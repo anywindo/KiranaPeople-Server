@@ -42,6 +42,12 @@ class EmployeeController extends Controller
             $rolesQuery->where('name', '!=', 'super-admin');
         }
         $roles = $rolesQuery->get();
+
+        if (!$roles->contains('name', 'Employee')) {
+            $employeeRole = Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
+            $roles->push($employeeRole);
+        }
+
         $locations = \App\Models\Location::orderBy('name')->get();
         return view('admin.employees.create', compact('roles', 'locations'));
     }
@@ -112,6 +118,12 @@ class EmployeeController extends Controller
             $rolesQuery->where('name', '!=', 'super-admin');
         }
         $roles = $rolesQuery->get();
+
+        if (!$roles->contains('name', 'Employee')) {
+            $employeeRole = Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
+            $roles->push($employeeRole);
+        }
+
         $locations = \App\Models\Location::orderBy('name')->get();
         return view('admin.employees.edit', compact('employee', 'roles', 'locations'));
     }
