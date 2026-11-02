@@ -117,11 +117,13 @@
                                                 $outStatusLabel = $isEarly ? 'Pulang Cepat' : 'Tepat Waktu';
                                                 $outStatusColor = $isEarly ? 'warning' : 'success';
                                                 
+                                                $shiftStatus = $attendance->shift_status;
+
                                                 $detailData = [
                                                     'employee' => $attendance->user->name ?? '-',
                                                     'date' => $attendance->date ? $attendance->date->format('d M Y') : '-',
-                                                    'shiftStatusLabel' => $attendance->shift_status['label'],
-                                                    'shiftStatusColor' => $attendance->shift_status['color'],
+                                                    'shiftStatusLabel' => $shiftStatus['label'],
+                                                    'shiftStatusColor' => $shiftStatus['color'],
                                                     'in' => [
                                                         'time' => $inTime,
                                                         'statusLabel' => $inStatusLabel,
@@ -180,8 +182,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge text-bg-{{ $attendance->shift_status['color'] }}">
-                                            {{ $attendance->shift_status['label'] }}
+                                        <span class="badge text-bg-{{ $shiftStatus['color'] }}">
+                                            {{ $shiftStatus['label'] }}
                                         </span>
                                     </td>
                                 </tr>

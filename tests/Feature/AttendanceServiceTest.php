@@ -71,3 +71,39 @@ it('throws exception if starting shift twice', function () {
         'selfie_path' => 'path2.jpg'
     ]);
 })->throws(ValidationException::class);
+
+it('sets on-time status when clocking in at 07:36 with 08:00 shift and 15m rule', function () {
+    [$user, $shift, $service] = setupAttendanceServiceTest();
+    \App\Models\Setting::set('attendance_rule_enabled', 'true', 'boolean');
+    \App\Models\Setting::set('attendance_rule_minutes', 15, 'integer');
+
+    \Carbon\Carbon::setTestNow(\Carbon\Carbon::today()->setHour(7)->setMinute(36));
+
+    $attendance = $service->recordEvent($user, $shift, EventType::START_SHIFT, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/dummy.jpg',
+    ]);
+
+    expect($attendance->status)->not->toBe(\App\Enums\AttendanceStatus::LATE);
+    expect($attendance->shift_status['color'])->toBe('success');
+    \Carbon\Carbon::setTestNow();
+});
+
+it('sets late status when clocking in at 07:46 with 08:00 shift and 15m rule', function () {
+    [$user, $shift, $service] = setupAttendanceServiceTest();
+    \App\Models\Setting::set('attendance_rule_enabled', 'true', 'boolean');
+    \App\Models\Setting::set('attendance_rule_minutes', 15, 'integer');
+
+    \Carbon\Carbon::setTestNow(\Carbon\Carbon::today()->setHour(7)->setMinute(46));
+
+    $attendance = $service->recordEvent($user, $shift, EventType::START_SHIFT, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/dummy.jpg',
+    ]);
+
+    expect($attendance->status)->toBe(\App\Enums\AttendanceStatus::LATE);
+    expect($attendance->shift_status['color'])->toBe('danger');
+    \Carbon\Carbon::setTestNow();
+});

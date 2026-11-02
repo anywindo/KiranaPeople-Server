@@ -134,17 +134,25 @@ class AttendanceController extends Controller
         if ($request->event_type === 'START_SHIFT') {
             if ($shift && $shift->default_start_time) {
                 $scheduledStart = \Carbon\Carbon::parse($today->format('Y-m-d') . ' ' . $shift->default_start_time);
-                $ruleEnabled = \App\Models\Setting::get('attendance_rule_enabled', false);
-                $cutoffMinutes = $ruleEnabled ? \App\Models\Setting::get('attendance_rule_minutes', 15) : 0;
+                $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
+                $cutoffMinutes = $ruleEnabled ? (int) \App\Models\Setting::get('attendance_rule_minutes', 15) : 0;
                 
-                $lateThreshold = $scheduledStart->copy()->addMinutes($cutoffMinutes);
                 $now = now();
-                
-                if ($now->greaterThan($lateThreshold)) {
-                    $latenessMinutes = (int) abs($now->diffInMinutes($scheduledStart));
-                    $status = 'LATE';
-                } elseif ($now->lessThan($scheduledStart)) {
-                    $status = 'EARLY';
+                if ($ruleEnabled && $cutoffMinutes > 0) {
+                    $lateThreshold = $scheduledStart->copy()->subMinutes($cutoffMinutes);
+                    if ($now->greaterThanOrEqualTo($lateThreshold)) {
+                        $latenessMinutes = (int) abs($now->diffInMinutes($lateThreshold));
+                        $status = 'LATE';
+                    } elseif ($now->lessThan($lateThreshold)) {
+                        $status = 'EARLY';
+                    }
+                } else {
+                    if ($now->greaterThan($scheduledStart)) {
+                        $latenessMinutes = (int) abs($now->diffInMinutes($scheduledStart));
+                        $status = 'LATE';
+                    } elseif ($now->lessThan($scheduledStart)) {
+                        $status = 'EARLY';
+                    }
                 }
             }
         }

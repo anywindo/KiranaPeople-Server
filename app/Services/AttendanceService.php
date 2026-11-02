@@ -50,10 +50,22 @@ class AttendanceService extends BaseService
             $initialStatus = AttendanceStatus::EXACT;
             if ($shift->default_start_time) {
                 $scheduledStart = \Carbon\Carbon::parse(today()->format('Y-m-d') . ' ' . $shift->default_start_time);
-                if (now()->greaterThan($scheduledStart)) {
-                    $initialStatus = AttendanceStatus::LATE;
-                } elseif (now()->lessThan($scheduledStart)) {
-                    $initialStatus = AttendanceStatus::EARLY;
+                $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
+                $now = now();
+                if ($ruleEnabled) {
+                    $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+                    $cutoffTime = $scheduledStart->copy()->subMinutes($ruleMinutes);
+                    if ($now->greaterThanOrEqualTo($cutoffTime)) {
+                        $initialStatus = AttendanceStatus::LATE;
+                    } elseif ($now->lessThan($cutoffTime)) {
+                        $initialStatus = AttendanceStatus::EARLY;
+                    }
+                } else {
+                    if ($now->greaterThan($scheduledStart)) {
+                        $initialStatus = AttendanceStatus::LATE;
+                    } elseif ($now->lessThan($scheduledStart)) {
+                        $initialStatus = AttendanceStatus::EARLY;
+                    }
                 }
             }
 
@@ -91,12 +103,24 @@ class AttendanceService extends BaseService
                 $latenessMinutes = 0;
                 if ($shift->default_start_time) {
                     $scheduledStart = \Carbon\Carbon::parse(today()->format('Y-m-d') . ' ' . $shift->default_start_time);
+                    $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
                     $now = now();
-                    if ($now->greaterThan($scheduledStart)) {
-                        $status = AttendanceStatus::LATE;
-                        $latenessMinutes = (int) abs($now->diffInMinutes($scheduledStart));
-                    } elseif ($now->lessThan($scheduledStart)) {
-                        $status = AttendanceStatus::EARLY;
+                    if ($ruleEnabled) {
+                        $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+                        $cutoffTime = $scheduledStart->copy()->subMinutes($ruleMinutes);
+                        if ($now->greaterThanOrEqualTo($cutoffTime)) {
+                            $status = AttendanceStatus::LATE;
+                            $latenessMinutes = (int) abs($now->diffInMinutes($cutoffTime));
+                        } elseif ($now->lessThan($cutoffTime)) {
+                            $status = AttendanceStatus::EARLY;
+                        }
+                    } else {
+                        if ($now->greaterThan($scheduledStart)) {
+                            $status = AttendanceStatus::LATE;
+                            $latenessMinutes = (int) abs($now->diffInMinutes($scheduledStart));
+                        } elseif ($now->lessThan($scheduledStart)) {
+                            $status = AttendanceStatus::EARLY;
+                        }
                     }
                 }
 

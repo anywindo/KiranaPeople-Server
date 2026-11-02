@@ -78,6 +78,9 @@ class AttendanceController extends Controller
         // Build available shifts list for the shift picker
         $availableShifts = Shift::all()->map(fn($s) => $this->formatShift($s));
 
+        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
+        $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+
         return response()->json([
             'meta' => [
                 'success' => true,
@@ -86,9 +89,12 @@ class AttendanceController extends Controller
             'data' => [
                 'date' => $today->toDateString(),
                 'status' => $attendance?->status?->value ?? ($attendance?->status ?? 'EXACT'),
+                'shift_status' => $attendance ? ($attendance->shift_status['label'] ?? null) : null,
                 'break_status' => $attendance ? ($attendance->break_status['label'] ?? '-') : '-',
                 'next_allowed_action' => $nextAction,
                 'active_break' => $activeBreak,
+                'attendance_rule_enabled' => $ruleEnabled,
+                'attendance_rule_minutes' => $ruleMinutes,
                 'shift' => $this->formatShift($shift),
                 'available_shifts' => $availableShifts,
                 'work_location' => $workLocation ? [
@@ -123,6 +129,9 @@ class AttendanceController extends Controller
             $breakEnd = Carbon::parse($fridayEnd)->format('H:i:s');
         }
 
+        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
+        $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+
         return [
             'id' => $shift->id,
             'name' => $shift->shift_name ?? $shift->name,
@@ -132,6 +141,8 @@ class AttendanceController extends Controller
             'break_end' => $breakEnd,
             'break_start_time' => $breakStart,
             'break_end_time' => $breakEnd,
+            'attendance_rule_enabled' => $ruleEnabled,
+            'attendance_rule_minutes' => $ruleMinutes,
         ];
     }
 

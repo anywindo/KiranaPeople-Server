@@ -19,7 +19,10 @@ class AttendanceResource extends JsonResource
             'user_id' => $this->user_id,
             'shift_id' => $this->shift_id,
             'date' => $this->getRawOriginal('date') ?? ($this->date instanceof \Carbon\Carbon ? $this->date->format('Y-m-d') : substr((string)$this->date, 0, 10)),
-            'status' => $this->status,
+            'status' => $this->relationLoaded('events') && $this->relationLoaded('shift') && $this->shift
+                ? ($this->shift_status['label'] ?? ($this->status?->value ?? (string)$this->status))
+                : ($this->status?->value ?? (string)$this->status),
+            'shift_status' => $this->relationLoaded('events') && $this->relationLoaded('shift') ? ($this->shift_status['label'] ?? null) : null,
             'break_status' => $this->relationLoaded('events') && $this->relationLoaded('shift') ? ($this->break_status['label'] ?? '-') : '-',
             'events' => AttendanceEventResource::collection($this->whenLoaded('events')),
             'shift' => $this->relationLoaded('shift') && $this->shift ? [
@@ -31,6 +34,8 @@ class AttendanceResource extends JsonResource
                 'break_end' => $this->shift->break_end ? \Carbon\Carbon::parse($this->shift->break_end)->format('H:i:s') : null,
                 'break_start_time' => $this->shift->break_start ? \Carbon\Carbon::parse($this->shift->break_start)->format('H:i:s') : null,
                 'break_end_time' => $this->shift->break_end ? \Carbon\Carbon::parse($this->shift->break_end)->format('H:i:s') : null,
+                'attendance_rule_enabled' => (bool) \App\Models\Setting::get('attendance_rule_enabled', false),
+                'attendance_rule_minutes' => (int) \App\Models\Setting::get('attendance_rule_minutes', 15),
             ] : null,
         ];
     }

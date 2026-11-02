@@ -342,10 +342,24 @@
                             </div>
                             <div class="flex items-center space-x-1 mt-0.5">
                                 @if($startEvent)
-                                    <span class="text-[16px] font-bold text-emerald-600 leading-tight">
-                                        {{ \Carbon\Carbon::parse($startEvent->timestamp)->format('H:i') }}
+                                    @php
+                                        $actualCheckIn = \Carbon\Carbon::parse($startEvent->timestamp);
+                                        $actualCheckInHi = $actualCheckIn->format('H:i');
+                                        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
+                                        $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+                                        $shiftStartTime = $activeShiftStart ?? '08:00';
+                                        $scheduledCheckIn = \Carbon\Carbon::parse($actualCheckIn->toDateString() . ' ' . $shiftStartTime);
+                                        if ($ruleEnabled && $ruleMinutes > 0) {
+                                            $cutoff = $scheduledCheckIn->copy()->subMinutes($ruleMinutes);
+                                            $isCheckInLate = $actualCheckIn->greaterThanOrEqualTo($cutoff);
+                                        } else {
+                                            $isCheckInLate = $actualCheckIn->greaterThan($scheduledCheckIn);
+                                        }
+                                    @endphp
+                                    <span class="text-[16px] font-bold {{ $isCheckInLate ? 'text-red-500' : 'text-emerald-600' }} leading-tight">
+                                        {{ $actualCheckInHi }}
                                     </span>
-                                    <i class="fa-solid fa-circle-check text-emerald-600 text-[12px]"></i>
+                                    <i class="fa-solid fa-circle-check {{ $isCheckInLate ? 'text-red-500' : 'text-emerald-600' }} text-[12px]"></i>
                                 @else
                                     <span class="text-[16px] font-bold text-[#8E8E93] leading-tight">--:--</span>
                                 @endif
