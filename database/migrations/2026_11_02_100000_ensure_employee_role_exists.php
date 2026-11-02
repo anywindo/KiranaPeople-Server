@@ -26,3 +26,4 @@ return new class extends Migration
         // Keep role for data integrity
     }
 };
+
