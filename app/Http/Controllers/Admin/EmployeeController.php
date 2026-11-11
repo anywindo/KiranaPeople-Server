@@ -49,7 +49,7 @@ class EmployeeController extends Controller
             $roles->push($employeeRole);
         }
 
-        $locations = \App\Models\Location::orderBy('name')->get();
+        $locations = \App\Models\Location::getAllCached();
 
         return view('admin.employees.create', compact('roles', 'locations'));
     }
@@ -124,7 +124,7 @@ class EmployeeController extends Controller
             $roles->push($employeeRole);
         }
 
-        $locations = \App\Models\Location::orderBy('name')->get();
+        $locations = \App\Models\Location::getAllCached();
 
         return view('admin.employees.edit', compact('employee', 'roles', 'locations'));
     }

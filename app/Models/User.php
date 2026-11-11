@@ -128,6 +128,14 @@ class User extends Authenticatable
         return $this->belongsTo(Location::class);
     }
 
+    /**
+     * Get user's assigned work location using master data cache.
+     */
+    public function getLocationCached(): ?Location
+    {
+        return $this->location_id ? Location::findCached($this->location_id) : null;
+    }
+
     public function attendances()
     {
         return $this->hasMany(Attendance::class);

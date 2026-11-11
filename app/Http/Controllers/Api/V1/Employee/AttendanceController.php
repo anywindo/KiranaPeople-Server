@@ -59,8 +59,8 @@ class AttendanceController extends Controller
             }
         }
 
-        $shift = $attendance?->shift ?? Shift::first();
-        $workLocation = $user->location;
+        $shift = $attendance?->shift ?? Shift::getFirstCached();
+        $workLocation = $user->getLocationCached() ?? $user->location;
 
         $formattedEvents = $events->map(function ($event) {
             return [
@@ -77,7 +77,7 @@ class AttendanceController extends Controller
         });
 
         // Build available shifts list for the shift picker
-        $availableShifts = Shift::all()->map(fn ($s) => $this->formatShift($s));
+        $availableShifts = Shift::getAllCached()->map(fn ($s) => $this->formatShift($s));
 
         $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
         $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
@@ -167,17 +167,17 @@ class AttendanceController extends Controller
 
         $shiftId = $request->validated('shift_id');
         if ($shiftId) {
-            $shift = Shift::findOrFail($shiftId);
+            $shift = Shift::findCached($shiftId) ?? Shift::findOrFail($shiftId);
         } elseif ($existingAttendance && $existingAttendance->shift) {
             $shift = $existingAttendance->shift;
         } else {
-            $shift = Shift::first();
+            $shift = Shift::getFirstCached();
         }
         $eventType = EventType::from($request->validated('event_type'));
 
         // Geofence validation if employee has assigned location
-        if ($employee->location) {
-            $location = $employee->location;
+        $location = $employee->getLocationCached() ?? $employee->location;
+        if ($location) {
             $earthRadius = 6371000;
             $latFrom = deg2rad((float) $request->validated('latitude'));
             $lonFrom = deg2rad((float) $request->validated('longitude'));

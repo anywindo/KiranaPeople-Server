@@ -44,8 +44,8 @@ class BreakController extends Controller
         $perPage = $request->input('per_page', 10);
         $attendances = $query->paginate($perPage)->appends($request->all());
 
-        $shifts = \App\Models\Shift::all();
-        $locations = \App\Models\Location::all();
+        $shifts = \App\Models\Shift::getAllCached();
+        $locations = \App\Models\Location::getAllCached();
 
         return view('admin.breaks.index', compact('attendances', 'shifts', 'locations'));
     }

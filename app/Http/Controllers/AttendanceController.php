@@ -81,8 +81,8 @@ class AttendanceController extends Controller
             ->take(30)
             ->get();
 
-        $availableShifts = \App\Models\Shift::all();
-        $shift = $attendance ? $attendance->shift : ($user->shift ?? $availableShifts->first());
+        $availableShifts = \App\Models\Shift::getAllCached();
+        $shift = $attendance ? $attendance->shift : ($user->shift ?? \App\Models\Shift::getFirstCached());
 
         return view('attendance.index', compact('user', 'events', 'historyEvents', 'attendancesHistory', 'nextAction', 'activeBreak', 'shift', 'availableShifts', 'activeNav'));
     }
@@ -130,9 +130,9 @@ class AttendanceController extends Controller
         $status = 'EXACT';
         $latenessMinutes = 0;
 
-        $shift = ($request->filled('shift_id') ? \App\Models\Shift::find($request->shift_id) : null)
+        $shift = ($request->filled('shift_id') ? \App\Models\Shift::findCached($request->shift_id) : null)
             ?? $user->shift
-            ?? \App\Models\Shift::first();
+            ?? \App\Models\Shift::getFirstCached();
         $shiftId = $shift ? $shift->id : 1;
 
         if ($request->event_type === 'START_SHIFT') {

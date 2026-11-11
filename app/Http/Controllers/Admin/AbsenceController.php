@@ -45,7 +45,7 @@ class AbsenceController extends Controller
         $perPage = $request->input('per_page', 10);
         $absentees = $query->with('location')->paginate($perPage)->appends($request->all());
 
-        $locations = Location::all();
+        $locations = Location::getAllCached();
 
         return view('admin.absences.index', compact('absentees', 'date', 'locations'));
     }
