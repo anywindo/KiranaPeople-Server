@@ -31,10 +31,10 @@ class AttendanceController extends Controller
         $user = $request->user();
         $today = Carbon::today();
 
-        $attendance = Attendance::where('user_id', $user->id)
-            ->whereDate('date', $today)
-            ->with(['events' => fn ($q) => $q->orderBy('timestamp', 'asc'), 'shift'])
-            ->first();
+        $attendance = $this->attendanceRepository->findTodayAttendanceForUser($user->id);
+        if ($attendance) {
+            $attendance->load(['events' => fn ($q) => $q->orderBy('timestamp', 'asc'), 'shift']);
+        }
 
         $events = $attendance ? $attendance->events : collect();
 
