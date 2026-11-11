@@ -26,4 +26,16 @@ mkdir -p /app/storage/framework/cache/data \
 chown -R www-data:www-data /app/storage /app/bootstrap/cache
 chmod -R 775 /app/storage /app/bootstrap/cache
 
+# Start background queue worker (unless explicitly disabled)
+if [ "${START_QUEUE_WORKER}" != "false" ]; then
+    echo "Starting background queue worker..."
+    php artisan queue:work --sleep=3 --tries=3 --max-time=3600 > /dev/null 2>&1 &
+fi
+
+# Start background scheduler loop if enabled
+if [ "${START_SCHEDULER}" = "true" ]; then
+    echo "Starting background scheduler loop..."
+    (while true; do php artisan schedule:run --no-interaction --quiet; sleep 60; done) > /dev/null 2>&1 &
+fi
+
 exec "$@"

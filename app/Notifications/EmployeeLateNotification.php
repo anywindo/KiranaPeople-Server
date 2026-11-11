@@ -7,12 +7,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class EmployeeLateNotification extends Notification
+class EmployeeLateNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $employee;
-    protected $latenessMinutes;
+    public $employee;
+    public $latenessMinutes;
 
     /**
      * Create a new notification instance.

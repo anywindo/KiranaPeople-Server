@@ -215,3 +215,4 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
         ]);
     }
 }
+

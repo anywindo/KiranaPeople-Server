@@ -30,6 +30,7 @@ class UserResource extends JsonResource
             'avatar'               => $this->avatar,
             'avatar_url'           => $this->avatar_url,
             'is_active'            => $this->is_active,
+            'department'           => $this->whenLoaded('teams', fn () => $this->teams->first()?->name),
             'roles'                => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'permissions'          => $this->whenLoaded('permissions', fn () => $this->getAllPermissions()->pluck('name')),
             'created_at'           => $this->created_at?->toISOString(),
