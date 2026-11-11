@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Location;
+use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
@@ -14,6 +14,7 @@ class LocationController extends Controller
     public function index()
     {
         $locations = Location::paginate(10);
+
         return view('admin.locations.index', compact('locations'));
     }
 
@@ -63,6 +64,7 @@ class LocationController extends Controller
         }
 
         $location->delete();
+
         return redirect()->route('admin.locations.index')->with('success', 'Lokasi berhasil dihapus.');
     }
 }

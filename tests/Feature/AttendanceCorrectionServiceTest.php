@@ -1,16 +1,12 @@
 <?php
 
-use App\Models\User;
+use App\Enums\AttendanceStatus;
+use App\Enums\RequestStatus;
 use App\Models\Attendance;
 use App\Models\Shift;
-use App\Enums\RequestStatus;
-use App\Enums\AttendanceStatus;
+use App\Models\User;
 use App\Services\AttendanceCorrectionRequestService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
-use Tests\TestCase;
-
-
 
 function setupCorrectionServiceTest()
 {
@@ -27,7 +23,7 @@ function setupCorrectionServiceTest()
         'date' => today(),
         'status' => AttendanceStatus::EXACT,
     ]);
-    
+
     $service = app(AttendanceCorrectionRequestService::class);
 
     return [$user, $manager, $shift, $attendance, $service];

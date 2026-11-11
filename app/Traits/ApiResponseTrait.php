@@ -56,19 +56,19 @@ trait ApiResponseTrait
                 'success' => true,
                 'message' => $message,
                 'pagination' => [
-                    'total'        => $paginator->total(),
-                    'per_page'     => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'per_page' => $paginator->perPage(),
                     'current_page' => $paginator->currentPage(),
-                    'total_pages'  => $paginator->lastPage(),
-                    'from'         => $paginator->firstItem(),
-                    'to'           => $paginator->lastItem(),
+                    'total_pages' => $paginator->lastPage(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
                 ],
             ],
             'links' => [
                 'first' => $paginator->url(1),
-                'last'  => $paginator->url($paginator->lastPage()),
-                'prev'  => $paginator->previousPageUrl(),
-                'next'  => $paginator->nextPageUrl(),
+                'last' => $paginator->url($paginator->lastPage()),
+                'prev' => $paginator->previousPageUrl(),
+                'next' => $paginator->nextPageUrl(),
             ],
         ], 200);
     }
@@ -141,7 +141,7 @@ trait ApiResponseTrait
             ],
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $body['errors'] = $errors;
         }
 

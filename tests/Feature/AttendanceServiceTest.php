@@ -1,14 +1,10 @@
 <?php
 
-use App\Models\User;
-use App\Models\Shift;
 use App\Enums\EventType;
+use App\Models\Shift;
+use App\Models\User;
 use App\Services\AttendanceService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
-use Tests\TestCase;
-
-
 
 function setupAttendanceServiceTest()
 {
@@ -52,7 +48,7 @@ it('throws exception if starting break before starting shift', function () {
     $service->recordEvent($user, $shift, EventType::START_BREAK, [
         'latitude' => -6.2,
         'longitude' => 106.8,
-        'selfie_path' => 'path.jpg'
+        'selfie_path' => 'path.jpg',
     ]);
 })->throws(ValidationException::class);
 
@@ -62,13 +58,13 @@ it('throws exception if starting shift twice', function () {
     $service->recordEvent($user, $shift, EventType::START_SHIFT, [
         'latitude' => -6.2,
         'longitude' => 106.8,
-        'selfie_path' => 'path.jpg'
+        'selfie_path' => 'path.jpg',
     ]);
 
     $service->recordEvent($user, $shift, EventType::START_SHIFT, [
         'latitude' => -6.2,
         'longitude' => 106.8,
-        'selfie_path' => 'path2.jpg'
+        'selfie_path' => 'path2.jpg',
     ]);
 })->throws(ValidationException::class);
 

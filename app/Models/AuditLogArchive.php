@@ -21,10 +21,10 @@ class AuditLogArchive extends Model
     ];
 
     protected $casts = [
-        'date_from'     => 'date',
-        'date_to'       => 'date',
+        'date_from' => 'date',
+        'date_to' => 'date',
         'downloaded_at' => 'datetime',
-        'purged_at'     => 'datetime',
+        'purged_at' => 'datetime',
     ];
 
     public function user()
@@ -34,16 +34,16 @@ class AuditLogArchive extends Model
 
     public function isDownloaded(): bool
     {
-        return !is_null($this->downloaded_at);
+        return ! is_null($this->downloaded_at);
     }
 
     public function isPurged(): bool
     {
-        return !is_null($this->purged_at);
+        return ! is_null($this->purged_at);
     }
 
     public function canPurge(): bool
     {
-        return $this->isDownloaded() && !$this->isPurged();
+        return $this->isDownloaded() && ! $this->isPurged();
     }
 }

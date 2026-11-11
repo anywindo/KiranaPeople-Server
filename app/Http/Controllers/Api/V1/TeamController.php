@@ -31,12 +31,14 @@ class TeamController extends BaseController
     public function update(UpdateTeamRequest $request, int $id): JsonResponse
     {
         $this->service->update($id, $request->validated());
+
         return $this->success(new TeamResource($this->service->get($id)));
     }
 
     public function destroy(int $id): JsonResponse
     {
         $this->service->delete($id);
+
         return $this->noContent();
     }
 
@@ -44,12 +46,14 @@ class TeamController extends BaseController
     {
         $request->validate(['user_id' => ['required', 'integer', 'exists:users,id']]);
         $this->service->addMember($id, $request->integer('user_id'));
+
         return $this->success(null, 'Member added');
     }
 
     public function removeMember(int $id, int $userId): JsonResponse
     {
         $this->service->removeMember($id, $userId);
+
         return $this->noContent('Member removed');
     }
 }

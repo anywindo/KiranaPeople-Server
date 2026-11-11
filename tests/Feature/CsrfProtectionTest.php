@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Location;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -42,7 +42,7 @@ class CsrfProtectionTest extends TestCase
     {
         $handler = app()->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
         $request = \Illuminate\Http\Request::create('/attendance', 'POST');
-        $response = $handler->render($request, new TokenMismatchException());
+        $response = $handler->render($request, new TokenMismatchException);
 
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertEquals(route('login'), $response->headers->get('Location'));
@@ -63,7 +63,7 @@ class CsrfProtectionTest extends TestCase
         $handler = app()->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
         $request = \Illuminate\Http\Request::create('/attendance', 'POST');
         $request->headers->set('Accept', 'application/json');
-        $response = $handler->render($request, new TokenMismatchException());
+        $response = $handler->render($request, new TokenMismatchException);
 
         $this->assertEquals(419, $response->getStatusCode());
         $this->assertStringContainsString('Sesi telah kedaluwarsa', $response->getContent());

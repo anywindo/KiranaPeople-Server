@@ -9,13 +9,14 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
-class EmployeeTemplateExport implements FromArray, WithHeadings, WithEvents
+class EmployeeTemplateExport implements FromArray, WithEvents, WithHeadings
 {
     public function array(): array
     {
         $location = Location::first();
+
         return [
-            ['EMP-00123', '1234567890123456', '1995-07-12', 'John Doe', 'john@example.com', '08123456789', '', $location ? $location->name : '']
+            ['EMP-00123', '1234567890123456', '1995-07-12', 'John Doe', 'john@example.com', '08123456789', '', $location ? $location->name : ''],
         ];
     }
 
@@ -42,7 +43,7 @@ class EmployeeTemplateExport implements FromArray, WithHeadings, WithEvents
                     $sheet = $event->sheet->getDelegate();
                     $rowIndex = 1;
                     foreach ($locations as $locationName) {
-                        $sheet->setCellValue('Z' . $rowIndex, $locationName);
+                        $sheet->setCellValue('Z'.$rowIndex, $locationName);
                         $rowIndex++;
                     }
                     $sheet->getColumnDimension('Z')->setVisible(false);
@@ -55,7 +56,7 @@ class EmployeeTemplateExport implements FromArray, WithHeadings, WithEvents
                         $validation->setShowInputMessage(true);
                         $validation->setShowErrorMessage(true);
                         $validation->setShowDropDown(true);
-                        $validation->setFormula1('=$Z$1:$Z$' . ($rowIndex - 1));
+                        $validation->setFormula1('=$Z$1:$Z$'.($rowIndex - 1));
                     }
                 }
             },

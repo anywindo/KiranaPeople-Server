@@ -34,7 +34,7 @@ class ForgotPasswordController extends Controller
 
         $sent = $this->resetService->sendResetNotification($request->email);
 
-        if (!$sent) {
+        if (! $sent) {
             return back()->withErrors(['email' => 'Email tidak terdaftar dalam sistem.'])->withInput();
         }
 

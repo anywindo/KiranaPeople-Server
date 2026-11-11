@@ -43,7 +43,7 @@ class ResetPasswordController extends Controller
             $request->password
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors(['email' => $result['message']]);

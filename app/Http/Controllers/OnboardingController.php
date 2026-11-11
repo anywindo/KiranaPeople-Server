@@ -15,7 +15,7 @@ class OnboardingController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->mustChangePassword()) {
+        if (! $user->mustChangePassword()) {
             return redirect()->intended($user->isAdmin() ? '/admin/dashboard' : '/attendance');
         }
 

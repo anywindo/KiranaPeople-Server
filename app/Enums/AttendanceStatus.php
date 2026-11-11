@@ -12,7 +12,7 @@ enum AttendanceStatus: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::EARLY => 'Lebih Awal',
             self::EXACT => 'Tepat Waktu',
             self::LATE => 'Terlambat',
@@ -23,7 +23,7 @@ enum AttendanceStatus: string
 
     public function color(): string
     {
-        return match($this) {
+        return match ($this) {
             self::EARLY => 'info',
             self::EXACT => 'success',
             self::LATE => 'danger',

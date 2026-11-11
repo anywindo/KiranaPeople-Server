@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Attendance;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BreakController extends Controller
@@ -13,16 +13,16 @@ class BreakController extends Controller
     {
         // Get attendances that have any break events
         $query = Attendance::with(['user.location', 'shift', 'events'])
-            ->whereHas('events', function($q) {
+            ->whereHas('events', function ($q) {
                 $q->whereIn('event_type', ['START_BREAK', 'END_BREAK']);
             })
             ->orderBy('date', 'desc');
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function($q) use ($search) {
+            $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -36,7 +36,7 @@ class BreakController extends Controller
 
         if ($request->filled('location_id')) {
             $location_id = $request->location_id;
-            $query->whereHas('user', function($q) use ($location_id) {
+            $query->whereHas('user', function ($q) use ($location_id) {
                 $q->where('location_id', $location_id);
             });
         }

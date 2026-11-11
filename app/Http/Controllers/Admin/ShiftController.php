@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Shift;
+use Illuminate\Http\Request;
 
 class ShiftController extends Controller
 {
@@ -14,6 +14,7 @@ class ShiftController extends Controller
     public function index()
     {
         $shifts = Shift::paginate(10);
+
         return view('admin.shifts.index', compact('shifts'));
     }
 
@@ -65,6 +66,7 @@ class ShiftController extends Controller
         }
 
         $shift->delete();
+
         return redirect()->route('admin.shifts.index')->with('success', 'Shift deleted successfully.');
     }
 }

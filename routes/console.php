@@ -18,13 +18,13 @@ Artisan::command('employees:sync-birthdays', function () {
 
         // Populate employee_id if missing
         if (empty($user->getRawOriginal('employee_id'))) {
-            $user->employee_id = 'EMP-' . str_pad($user->id, 5, '0', STR_PAD_LEFT);
+            $user->employee_id = 'EMP-'.str_pad($user->id, 5, '0', STR_PAD_LEFT);
             $dirty = true;
             $empIdUpdated++;
         }
 
         // Populate dob from NIK if missing
-        if (!$user->dob && $user->nik) {
+        if (! $user->dob && $user->nik) {
             $dob = \App\Models\User::parseDobDateFromNik($user->nik);
             if ($dob) {
                 $user->dob = $dob;
@@ -52,4 +52,3 @@ Artisan::command('employees:sync-birthdays', function () {
     $this->info("Updated DOB for {$dobUpdated} users.");
     $this->info("Updated password to birthday DDMMYYYY for {$passwordUpdated} users.");
 })->purpose('Populate missing Employee ID and DOB, and migrate default "password" to birthday DDMMYYYY');
-

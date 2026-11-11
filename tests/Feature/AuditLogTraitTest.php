@@ -2,7 +2,6 @@
 
 use App\Models\AuditLog;
 use App\Models\Location;
-use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\User;
 
@@ -11,7 +10,6 @@ test('creating a model records audit log and filters sensitive fields', function
         'name' => 'John Doe',
         'email' => 'johndoe_audit@example.com',
         'password' => bcrypt('Secret123!'),
-        'avatar_base64' => 'data:image/png;base64,xxxxxxxxx',
     ]);
 
     $log = AuditLog::where('auditable_type', User::class)
@@ -26,7 +24,6 @@ test('creating a model records audit log and filters sensitive fields', function
     expect($log->after)->toHaveKey('email', 'johndoe_audit@example.com');
     // Sensitive fields must NOT be in the log
     expect($log->after)->not->toHaveKey('password');
-    expect($log->after)->not->toHaveKey('avatar_base64');
     expect($log->after)->not->toHaveKey('remember_token');
 });
 

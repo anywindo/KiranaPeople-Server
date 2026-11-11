@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Shift extends Model
 {
-    use HasFactory, HasAuditLog;
+    use HasAuditLog, HasFactory;
 
     protected $guarded = [];
 

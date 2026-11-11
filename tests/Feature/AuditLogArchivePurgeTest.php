@@ -41,7 +41,7 @@ test('superadmin can create an archive for logs in a date range', function () {
 
     $response = $this->actingAs($superadmin)->post(route('admin.audit-logs.archives.store'), [
         'date_from' => $today,
-        'date_to'   => $today,
+        'date_to' => $today,
     ]);
 
     $response->assertRedirect(route('admin.audit-logs.archives.index'));
@@ -59,11 +59,11 @@ test('gate 1: requesting OTP is rejected if archive has not been downloaded', fu
     $superadmin->assignRole('super-admin');
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'test.xlsx',
-        'file_path'     => 'archives/test.xlsx',
-        'date_from'     => now()->subDays(10),
-        'date_to'       => now()->subDays(5),
+        'user_id' => $superadmin->id,
+        'filename' => 'test.xlsx',
+        'file_path' => 'archives/test.xlsx',
+        'date_from' => now()->subDays(10),
+        'date_to' => now()->subDays(5),
         'total_records' => 10,
         'downloaded_at' => null,
     ]);
@@ -80,11 +80,11 @@ test('downloading archive sets downloaded_at timestamp', function () {
     Storage::disk('local')->put('archives/sample.xlsx', 'dummy-excel-content');
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'sample.xlsx',
-        'file_path'     => 'archives/sample.xlsx',
-        'date_from'     => now()->subDays(10),
-        'date_to'       => now()->subDays(5),
+        'user_id' => $superadmin->id,
+        'filename' => 'sample.xlsx',
+        'file_path' => 'archives/sample.xlsx',
+        'date_from' => now()->subDays(10),
+        'date_to' => now()->subDays(5),
         'total_records' => 5,
         'downloaded_at' => null,
     ]);
@@ -104,11 +104,11 @@ test('gate 2: request OTP sends email notification after download', function () 
     $superadmin->assignRole('super-admin');
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'sample.xlsx',
-        'file_path'     => 'archives/sample.xlsx',
-        'date_from'     => now()->subDays(10),
-        'date_to'       => now()->subDays(5),
+        'user_id' => $superadmin->id,
+        'filename' => 'sample.xlsx',
+        'file_path' => 'archives/sample.xlsx',
+        'date_from' => now()->subDays(10),
+        'date_to' => now()->subDays(5),
         'total_records' => 5,
         'downloaded_at' => now(),
     ]);
@@ -125,11 +125,11 @@ test('gate 2: purge is rejected if OTP is invalid or expired', function () {
     $superadmin->assignRole('super-admin');
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'sample.xlsx',
-        'file_path'     => 'archives/sample.xlsx',
-        'date_from'     => now()->subDays(10),
-        'date_to'       => now()->subDays(5),
+        'user_id' => $superadmin->id,
+        'filename' => 'sample.xlsx',
+        'file_path' => 'archives/sample.xlsx',
+        'date_from' => now()->subDays(10),
+        'date_to' => now()->subDays(5),
         'total_records' => 5,
         'downloaded_at' => now(),
     ]);
@@ -153,28 +153,28 @@ test('gate 2: purge successfully deletes logs and records audit trail when OTP i
 
     // Create a log in the target range
     $oldLog = AuditLog::create([
-        'user_id'        => $superadmin->id,
-        'event'          => 'created',
+        'user_id' => $superadmin->id,
+        'event' => 'created',
         'auditable_type' => Location::class,
-        'auditable_id'   => 9999,
-        'created_at'     => now()->subDays(7),
+        'auditable_id' => 9999,
+        'created_at' => now()->subDays(7),
     ]);
 
     // Create a log outside the target range
     $recentLog = AuditLog::create([
-        'user_id'        => $superadmin->id,
-        'event'          => 'created',
+        'user_id' => $superadmin->id,
+        'event' => 'created',
         'auditable_type' => Location::class,
-        'auditable_id'   => 8888,
-        'created_at'     => now(),
+        'auditable_id' => 8888,
+        'created_at' => now(),
     ]);
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'sample.xlsx',
-        'file_path'     => 'archives/sample.xlsx',
-        'date_from'     => now()->subDays(10)->toDateString(),
-        'date_to'       => now()->subDays(5)->toDateString(),
+        'user_id' => $superadmin->id,
+        'filename' => 'sample.xlsx',
+        'file_path' => 'archives/sample.xlsx',
+        'date_from' => now()->subDays(10)->toDateString(),
+        'date_to' => now()->subDays(5)->toDateString(),
         'total_records' => 1,
         'downloaded_at' => now(),
     ]);
@@ -211,11 +211,11 @@ test('gate 2: requesting OTP enforces 60 seconds cooldown', function () {
     $superadmin->assignRole('super-admin');
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'sample.xlsx',
-        'file_path'     => 'archives/sample.xlsx',
-        'date_from'     => now()->subDays(10),
-        'date_to'       => now()->subDays(5),
+        'user_id' => $superadmin->id,
+        'filename' => 'sample.xlsx',
+        'file_path' => 'archives/sample.xlsx',
+        'date_from' => now()->subDays(10),
+        'date_to' => now()->subDays(5),
         'total_records' => 5,
         'downloaded_at' => now(),
     ]);
@@ -235,11 +235,11 @@ test('gate 2: purge locks out and invalidates OTP after 5 failed attempts', func
     $superadmin->assignRole('super-admin');
 
     $archive = AuditLogArchive::create([
-        'user_id'       => $superadmin->id,
-        'filename'      => 'sample.xlsx',
-        'file_path'     => 'archives/sample.xlsx',
-        'date_from'     => now()->subDays(10),
-        'date_to'       => now()->subDays(5),
+        'user_id' => $superadmin->id,
+        'filename' => 'sample.xlsx',
+        'file_path' => 'archives/sample.xlsx',
+        'date_from' => now()->subDays(10),
+        'date_to' => now()->subDays(5),
         'total_records' => 5,
         'downloaded_at' => now(),
     ]);
@@ -271,4 +271,3 @@ test('gate 2: purge locks out and invalidates OTP after 5 failed attempts', func
     $archive->refresh();
     expect($archive->isPurged())->toBeFalse();
 });
-

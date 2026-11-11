@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 class WebAuthenticationTest extends TestCase
 {
@@ -14,7 +14,7 @@ class WebAuthenticationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         Role::firstOrCreate(['name' => 'HR', 'guard_name' => 'web']);
@@ -40,7 +40,7 @@ class WebAuthenticationTest extends TestCase
     public function test_hr_user_redirected_to_role_selection_or_dashboard_after_login()
     {
         $hr = User::factory()->create([
-            'password' => bcrypt('password')
+            'password' => bcrypt('password'),
         ]);
         $hr->assignRole('HR');
 
@@ -56,7 +56,7 @@ class WebAuthenticationTest extends TestCase
     public function test_employee_redirected_to_app_after_login()
     {
         $employee = User::factory()->create([
-            'password' => bcrypt('password')
+            'password' => bcrypt('password'),
         ]);
         $employee->assignRole('Employee');
 
@@ -78,7 +78,7 @@ class WebAuthenticationTest extends TestCase
 
         $response = $this->actingAs($hr)->get('/attendance');
         $response->assertRedirect('/admin/dashboard');
-        
+
         $dashboardResponse = $this->actingAs($hr)->get('/admin/dashboard');
         $dashboardResponse->assertStatus(200);
     }

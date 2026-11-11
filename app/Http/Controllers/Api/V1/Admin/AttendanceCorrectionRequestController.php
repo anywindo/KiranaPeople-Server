@@ -17,8 +17,7 @@ class AttendanceCorrectionRequestController extends Controller
     public function __construct(
         protected AttendanceCorrectionRequestRepositoryInterface $repository,
         protected AttendanceCorrectionRequestService $service
-    ) {
-    }
+    ) {}
 
     /**
      * View all correction requests (for HR/Admin).
@@ -26,6 +25,7 @@ class AttendanceCorrectionRequestController extends Controller
     public function index(Request $request)
     {
         $requests = $this->repository->paginate($request->input('per_page', 15));
+
         return AttendanceCorrectionRequestResource::collection($requests);
     }
 
@@ -38,7 +38,7 @@ class AttendanceCorrectionRequestController extends Controller
         $correctionRequest = $this->repository->findOrFail($id);
 
         $status = RequestStatus::from($request->validated('status'));
-        
+
         $processed = $this->service->processRequest(
             $correctionRequest,
             $request->user(),
@@ -48,7 +48,7 @@ class AttendanceCorrectionRequestController extends Controller
 
         return response()->json([
             'message' => 'Correction request processed successfully.',
-            'data' => new AttendanceCorrectionRequestResource($processed)
+            'data' => new AttendanceCorrectionRequestResource($processed),
         ]);
     }
 }

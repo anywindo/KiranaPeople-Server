@@ -12,6 +12,7 @@ class AuditPurgeOtpNotification extends Notification
     use Queueable;
 
     public string $otp;
+
     public AuditLogArchive $archive;
 
     public function __construct(string $otp, AuditLogArchive $archive)

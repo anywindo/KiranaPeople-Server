@@ -42,7 +42,6 @@ class ProfileController extends Controller
             }
             $fileUploadService = new \App\Services\FileUploadService;
             $validated['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
-            $validated['avatar_base64'] = null;
         }
 
         if (! empty($validated['password'])) {

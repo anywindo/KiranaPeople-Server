@@ -70,20 +70,20 @@ trait HasAuditLog
     {
         try {
             AuditLog::create([
-                'user_id'        => Auth::id(),
-                'event'          => $event,
+                'user_id' => Auth::id(),
+                'event' => $event,
                 'auditable_type' => get_class($model),
-                'auditable_id'   => $model->getKey(),
-                'before'         => !empty($before) ? $before : null,
-                'after'          => !empty($after) ? $after : null,
-                'ip_address'     => request()?->ip(),
-                'user_agent'     => request()?->userAgent(),
-                'created_at'     => now(),
+                'auditable_id' => $model->getKey(),
+                'before' => ! empty($before) ? $before : null,
+                'after' => ! empty($after) ? $after : null,
+                'ip_address' => request()?->ip(),
+                'user_agent' => request()?->userAgent(),
+                'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
             // Fallback: log to file if audit_logs table or connection encounters an issue
             Log::channel('daily')->warning(
-                "[AuditLog] {$event} on " . get_class($model) . " #{$model->getKey()}: " . $e->getMessage()
+                "[AuditLog] {$event} on ".get_class($model)." #{$model->getKey()}: ".$e->getMessage()
             );
         }
     }

@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Shift;
-use App\Models\Attendance;
-use App\Models\AttendanceEvent;
 use App\Enums\AttendanceStatus;
 use App\Enums\EventType;
+use App\Models\Attendance;
+use App\Models\AttendanceEvent;
+use App\Models\Shift;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class AttendanceSeeder extends Seeder
 {
@@ -45,6 +45,7 @@ class AttendanceSeeder extends Seeder
                         'date' => $date->toDateString(),
                         'status' => AttendanceStatus::ON_LEAVE,
                     ]);
+
                     continue;
                 }
 
@@ -55,21 +56,22 @@ class AttendanceSeeder extends Seeder
                         'date' => $date->toDateString(),
                         'status' => AttendanceStatus::ABSENT,
                     ]);
+
                     continue;
                 }
 
                 // Calculate random check-in/out times
                 $scheduledStart = Carbon::parse($shift->default_start_time);
                 $scheduledEnd = Carbon::parse($shift->default_end_time);
-                
+
                 $isLate = rand(1, 100) <= 15; // 15% chance of being late
                 $isEarlyOut = rand(1, 100) <= 10; // 10% chance of leaving early
 
-                $actualStart = $isLate 
+                $actualStart = $isLate
                     ? $scheduledStart->copy()->addMinutes(rand(5, 60))
                     : $scheduledStart->copy()->subMinutes(rand(5, 30));
-                    
-                $actualEnd = $isEarlyOut 
+
+                $actualEnd = $isEarlyOut
                     ? $scheduledEnd->copy()->subMinutes(rand(5, 30))
                     : $scheduledEnd->copy()->addMinutes(rand(5, 60));
 
@@ -93,7 +95,7 @@ class AttendanceSeeder extends Seeder
                 if ($shift->break_start && $shift->break_end) {
                     $scheduledBreakStart = Carbon::parse($shift->break_start);
                     $scheduledBreakEnd = Carbon::parse($shift->break_end);
-                    
+
                     // Actual break start: slightly after scheduled
                     $actualBreakStart = $scheduledBreakStart->copy()->addMinutes(rand(1, 10));
                     // Actual break end: slightly before or after scheduled end

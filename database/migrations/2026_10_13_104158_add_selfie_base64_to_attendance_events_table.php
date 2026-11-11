@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('attendance_events', 'selfie_base64')) {
+        if (! Schema::hasColumn('attendance_events', 'selfie_base64')) {
             Schema::table('attendance_events', function (Blueprint $table) {
                 $table->text('selfie_base64')->nullable()->after('selfie_path');
             });

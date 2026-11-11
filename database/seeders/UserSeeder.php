@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use App\Models\Location;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
@@ -66,6 +66,7 @@ class UserSeeder extends Seeder
                 'avatar' => $avatarList[$avatarIndex++ % count($avatarList)],
             ], $attributes));
             $user->roles()->syncWithoutDetaching([$employeeRole->id]);
+
             return $user;
         };
 

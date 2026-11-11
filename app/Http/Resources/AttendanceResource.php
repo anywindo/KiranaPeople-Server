@@ -18,10 +18,10 @@ class AttendanceResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'shift_id' => $this->shift_id,
-            'date' => $this->getRawOriginal('date') ?? ($this->date instanceof \Carbon\Carbon ? $this->date->format('Y-m-d') : substr((string)$this->date, 0, 10)),
+            'date' => $this->getRawOriginal('date') ?? ($this->date instanceof \Carbon\Carbon ? $this->date->format('Y-m-d') : substr((string) $this->date, 0, 10)),
             'status' => $this->relationLoaded('events') && $this->relationLoaded('shift') && $this->shift
-                ? ($this->shift_status['label'] ?? ($this->status?->value ?? (string)$this->status))
-                : ($this->status?->value ?? (string)$this->status),
+                ? ($this->shift_status['label'] ?? ($this->status?->value ?? (string) $this->status))
+                : ($this->status?->value ?? (string) $this->status),
             'shift_status' => $this->relationLoaded('events') && $this->relationLoaded('shift') ? ($this->shift_status['label'] ?? null) : null,
             'break_status' => $this->relationLoaded('events') && $this->relationLoaded('shift') ? ($this->break_status['label'] ?? '-') : '-',
             'events' => AttendanceEventResource::collection($this->whenLoaded('events')),

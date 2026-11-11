@@ -19,9 +19,9 @@ class AuthController extends Controller
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
-        $login = $request->input('login') 
-            ?? $request->input('email') 
-            ?? $request->input('employee_id') 
+        $login = $request->input('login')
+            ?? $request->input('email')
+            ?? $request->input('employee_id')
             ?? $request->input('username');
 
         $user = \App\Models\User::findByLogin($login);
@@ -36,7 +36,7 @@ class AuthController extends Controller
 
             $authenticatedUser = Auth::user();
 
-            if (!$authenticatedUser->is_active) {
+            if (! $authenticatedUser->is_active) {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();

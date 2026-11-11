@@ -22,7 +22,7 @@ class PasswordResetService
         $normalizedEmail = strtolower(trim($email));
         $user = User::where('email', $normalizedEmail)->first();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -53,7 +53,7 @@ class PasswordResetService
         $normalizedEmail = strtolower(trim($email));
         $record = DB::table('password_reset_tokens')->where('email', $normalizedEmail)->first();
 
-        if (!$record || empty($record->token)) {
+        if (! $record || empty($record->token)) {
             return [
                 'success' => false,
                 'message' => 'Token reset kata sandi tidak valid atau tidak ditemukan.',
@@ -67,7 +67,7 @@ class PasswordResetService
             ];
         }
 
-        if (!Hash::check($token, $record->token)) {
+        if (! Hash::check($token, $record->token)) {
             return [
                 'success' => false,
                 'message' => 'Token reset kata sandi tidak valid.',
@@ -75,7 +75,7 @@ class PasswordResetService
         }
 
         $user = User::where('email', $normalizedEmail)->first();
-        if (!$user) {
+        if (! $user) {
             return [
                 'success' => false,
                 'message' => 'Pengguna tidak ditemukan.',
@@ -116,7 +116,7 @@ class PasswordResetService
         $normalizedEmail = strtolower(trim($email));
         $record = DB::table('password_reset_tokens')->where('email', $normalizedEmail)->first();
 
-        if (!$record || empty($record->otp)) {
+        if (! $record || empty($record->otp)) {
             return [
                 'success' => false,
                 'message' => 'Permintaan reset kata sandi tidak ditemukan atau telah kedaluwarsa.',
@@ -130,7 +130,7 @@ class PasswordResetService
             ];
         }
 
-        if (!Hash::check($otp, $record->otp)) {
+        if (! Hash::check($otp, $record->otp)) {
             return [
                 'success' => false,
                 'message' => 'Kode OTP yang Anda masukkan salah.',
@@ -153,7 +153,7 @@ class PasswordResetService
         $normalizedEmail = strtolower(trim($email));
         $record = DB::table('password_reset_tokens')->where('email', $normalizedEmail)->first();
 
-        if (!$record || empty($record->otp)) {
+        if (! $record || empty($record->otp)) {
             return [
                 'success' => false,
                 'message' => 'Permintaan reset kata sandi tidak ditemukan atau telah kedaluwarsa.',
@@ -167,7 +167,7 @@ class PasswordResetService
             ];
         }
 
-        if (!Hash::check($otp, $record->otp)) {
+        if (! Hash::check($otp, $record->otp)) {
             return [
                 'success' => false,
                 'message' => 'Kode OTP yang Anda masukkan salah.',
@@ -175,7 +175,7 @@ class PasswordResetService
         }
 
         $user = User::where('email', $normalizedEmail)->first();
-        if (!$user) {
+        if (! $user) {
             return [
                 'success' => false,
                 'message' => 'Pengguna tidak ditemukan.',

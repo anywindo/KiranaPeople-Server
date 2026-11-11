@@ -1,20 +1,14 @@
 <?php
 
-use App\Models\User;
-use App\Models\Shift;
+use App\Enums\AttendanceStatus;
+use App\Enums\EventType;
 use App\Models\Attendance;
 use App\Models\AttendanceEvent;
-use App\Enums\EventType;
-use App\Enums\AttendanceStatus;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-
-
+use App\Models\Shift;
+use App\Models\User;
 
 it('can create an attendance flow with events', function () {
-    $manager = User::factory()->create();
     $user = User::factory()->create([
-        'direct_supervisor_id' => $manager->id,
         'nik' => '123456789',
     ]);
 
@@ -43,5 +37,4 @@ it('can create an attendance flow with events', function () {
     expect($attendance->events)->toHaveCount(1);
     expect($attendance->events->first()->event_type)->toBe(EventType::START_SHIFT);
     expect($attendance->user->nik)->toBe('123456789');
-    expect($attendance->user->directSupervisor->id)->toBe($manager->id);
 });

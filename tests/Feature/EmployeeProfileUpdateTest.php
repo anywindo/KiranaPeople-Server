@@ -96,7 +96,6 @@ class EmployeeProfileUpdateTest extends TestCase
 
         $updatedUser = $user->fresh();
         $this->assertNotNull($updatedUser->avatar);
-        $this->assertNull($updatedUser->avatar_base64);
         Storage::disk('public')->assertExists($updatedUser->avatar);
     }
 }

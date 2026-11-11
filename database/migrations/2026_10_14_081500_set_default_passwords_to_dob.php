@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 return new class extends Migration
 {
@@ -49,16 +49,16 @@ return new class extends Migration
             $dob = $user->dob;
 
             // If user has no DOB, try parsing from NIK or assign from sample list
-            if (!$dob && $user->nik) {
+            if (! $dob && $user->nik) {
                 $parsedDob = User::parseDobDateFromNik($user->nik);
                 if ($parsedDob) {
                     $dob = Carbon::parse($parsedDob);
                 }
             }
 
-            if (!$dob) {
+            if (! $dob) {
                 $dob = Carbon::parse($sampleDobs[$dobIndex++ % count($sampleDobs)]);
-            } elseif (!$dob instanceof Carbon) {
+            } elseif (! $dob instanceof Carbon) {
                 $dob = Carbon::parse($dob);
             }
 

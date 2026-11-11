@@ -12,7 +12,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles, HasAuditLog;
+    use HasApiTokens, HasAuditLog, HasFactory, HasRoles, Notifiable;
 
     /**
      * The guard name for Spatie permissions.
@@ -21,6 +21,7 @@ class User extends Authenticatable
 
     /**
      * Mass assignable attributes.
+     *
      * @var list<string>
      */
     protected $fillable = [
@@ -32,26 +33,24 @@ class User extends Authenticatable
         'nik',
         'dob',
         'location_id',
-        'direct_supervisor_id',
-        'immediate_manager_id',
         'avatar',
-        'avatar_base64',
         'is_active',
         'password_changed_at',
     ];
 
     /**
      * Hidden from serialization (never expose in JSON responses).
+     *
      * @var list<string>
      */
     protected $hidden = [
         'password',
         'remember_token',
-        'avatar_base64',
     ];
 
     /**
      * The accessors to append to the model's array form.
+     *
      * @var list<string>
      */
     protected $appends = [
@@ -64,11 +63,11 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'   => 'datetime',
-            'dob'                 => 'date',
-            'password'            => 'hashed',
+            'email_verified_at' => 'datetime',
+            'dob' => 'date',
+            'password' => 'hashed',
             'password_changed_at' => 'datetime',
-            'is_active'           => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -109,12 +108,12 @@ class User extends Authenticatable
      */
     public function getEmployeeIdAttribute($value): ?string
     {
-        if (!empty($value)) {
+        if (! empty($value)) {
             return $value;
         }
 
         if ($this->exists && $this->id) {
-            return 'EMP-' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+            return 'EMP-'.str_pad($this->id, 5, '0', STR_PAD_LEFT);
         }
 
         return null;
@@ -124,16 +123,6 @@ class User extends Authenticatable
     // Relationships
     // =========================================================================
 
-    public function directSupervisor()
-    {
-        return $this->belongsTo(User::class, 'direct_supervisor_id');
-    }
-
-    public function immediateManager()
-    {
-        return $this->belongsTo(User::class, 'immediate_manager_id');
-    }
-
     public function location()
     {
         return $this->belongsTo(Location::class);
@@ -142,26 +131,6 @@ class User extends Authenticatable
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
-    }
-
-    public function leaveRequests()
-    {
-        return $this->hasMany(LeaveRequest::class);
-    }
-
-    public function overtimeRequests()
-    {
-        return $this->hasMany(OvertimeRequest::class);
-    }
-
-    public function businessTripRequests()
-    {
-        return $this->hasMany(BusinessTripRequest::class);
-    }
-
-    public function shiftChangeRequests()
-    {
-        return $this->hasMany(ShiftChangeRequest::class);
     }
 
     public function attendanceCorrectionRequests()
@@ -220,8 +189,8 @@ class User extends Authenticatable
 
         return static::where(function ($query) use ($login) {
             $query->where('email', $login)
-                  ->orWhere('employee_id', $login)
-                  ->orWhere('nik', $login);
+                ->orWhere('employee_id', $login)
+                ->orWhere('nik', $login);
 
             // Case-insensitive employee_id match
             $query->orWhereRaw('LOWER(employee_id) = ?', [strtolower($login)]);
@@ -230,20 +199,20 @@ class User extends Authenticatable
             if (is_numeric($login)) {
                 $id = (int) $login;
                 $query->orWhere('id', $id)
-                      ->orWhere('employee_id', 'EMP-' . $login)
-                      ->orWhere('employee_id', 'EMP' . $login)
-                      ->orWhere('employee_id', 'EMP' . str_pad($login, 4, '0', STR_PAD_LEFT))
-                      ->orWhere('employee_id', 'EMP-' . str_pad($login, 5, '0', STR_PAD_LEFT));
+                    ->orWhere('employee_id', 'EMP-'.$login)
+                    ->orWhere('employee_id', 'EMP'.$login)
+                    ->orWhere('employee_id', 'EMP'.str_pad($login, 4, '0', STR_PAD_LEFT))
+                    ->orWhere('employee_id', 'EMP-'.str_pad($login, 5, '0', STR_PAD_LEFT));
             }
 
             // Prefixed employee ID input (e.g. EMP0329, EMP-0329, emp49180)
             if (preg_match('/^EMP-?([0-9]+)$/i', $login, $matches)) {
                 $num = (int) $matches[1];
                 $query->orWhere('id', $num)
-                      ->orWhere('employee_id', 'EMP-' . $matches[1])
-                      ->orWhere('employee_id', 'EMP' . $matches[1])
-                      ->orWhere('employee_id', 'EMP' . str_pad($num, 4, '0', STR_PAD_LEFT))
-                      ->orWhere('employee_id', 'EMP-' . str_pad($num, 5, '0', STR_PAD_LEFT));
+                    ->orWhere('employee_id', 'EMP-'.$matches[1])
+                    ->orWhere('employee_id', 'EMP'.$matches[1])
+                    ->orWhere('employee_id', 'EMP'.str_pad($num, 4, '0', STR_PAD_LEFT))
+                    ->orWhere('employee_id', 'EMP-'.str_pad($num, 5, '0', STR_PAD_LEFT));
             }
         })->first();
     }
@@ -277,16 +246,16 @@ class User extends Authenticatable
         $currentYear2 = (int) date('y');
         $fullYear = ($year2 <= $currentYear2) ? (2000 + $year2) : (1900 + $year2);
 
-        if (!checkdate($month, $day, $fullYear)) {
+        if (! checkdate($month, $day, $fullYear)) {
             return null;
         }
 
         return [
-            'day'   => $day,
+            'day' => $day,
             'month' => $month,
-            'year'  => $fullYear,
-            'dmy'   => sprintf('%02d%02d%04d', $day, $month, $fullYear),
-            'ymd'   => sprintf('%04d-%02d-%02d', $fullYear, $month, $day),
+            'year' => $fullYear,
+            'dmy' => sprintf('%02d%02d%04d', $day, $month, $fullYear),
+            'ymd' => sprintf('%04d-%02d-%02d', $fullYear, $month, $day),
         ];
     }
 
@@ -296,6 +265,7 @@ class User extends Authenticatable
     public static function parseBirthdayFromNik(?string $nik): ?string
     {
         $details = static::parseNikBirthDetails($nik);
+
         return $details ? $details['dmy'] : null;
     }
 
@@ -305,6 +275,7 @@ class User extends Authenticatable
     public static function parseDobDateFromNik(?string $nik): ?string
     {
         $details = static::parseNikBirthDetails($nik);
+
         return $details ? $details['ymd'] : null;
     }
 
@@ -356,11 +327,12 @@ class User extends Authenticatable
     {
         $maxId = (int) (static::max('id') ?? 0);
         $nextId = $maxId + 1;
-        $candidate = 'EMP-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+        $candidate = 'EMP-'.str_pad($nextId, 5, '0', STR_PAD_LEFT);
         while (static::where('employee_id', $candidate)->exists()) {
             $nextId++;
-            $candidate = 'EMP-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            $candidate = 'EMP-'.str_pad($nextId, 5, '0', STR_PAD_LEFT);
         }
+
         return $candidate;
     }
 
@@ -369,26 +341,28 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): string
     {
-        if (!empty($this->avatar) && !str_contains($this->avatar, 'userdefault')) {
+        if (! empty($this->avatar) && ! str_contains($this->avatar, 'userdefault')) {
             if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
                 return $this->avatar;
             }
 
             $r2Url = config('filesystems.disks.r2.url');
-            if (!empty($r2Url)) {
+            if (! empty($r2Url)) {
                 $clean = ltrim($this->avatar, '/');
                 $subPath = str_starts_with($clean, 'storage/') ? substr($clean, 8) : $clean;
-                return rtrim($r2Url, '/') . '/' . ltrim($subPath, '/');
+
+                return rtrim($r2Url, '/').'/'.ltrim($subPath, '/');
             }
 
             $clean = ltrim($this->avatar, '/');
-            $fullPath = str_starts_with($clean, 'storage/') ? $clean : 'storage/' . $clean;
-            return asset($fullPath) . '?v=3';
+            $fullPath = str_starts_with($clean, 'storage/') ? $clean : 'storage/'.$clean;
+
+            return asset($fullPath).'?v=3';
         }
 
         $cleanName = trim($this->name ?: 'User');
         $encoded = urlencode($cleanName);
+
         return "https://ui-avatars.com/api/?name={$encoded}&background=4F46E5&color=fff&size=256&bold=true";
     }
 }
-

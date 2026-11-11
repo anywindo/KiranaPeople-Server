@@ -5,8 +5,6 @@ namespace Tests\Feature;
 use App\Models\Location;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
-use App\Services\PasswordResetService;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -68,7 +66,7 @@ class ForgotPasswordTest extends TestCase
             $this->user,
             ResetPasswordNotification::class,
             function (ResetPasswordNotification $notification) {
-                return !empty($notification->token) && strlen($notification->otp) === 6;
+                return ! empty($notification->token) && strlen($notification->otp) === 6;
             }
         );
 

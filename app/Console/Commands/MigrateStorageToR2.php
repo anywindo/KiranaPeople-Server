@@ -34,18 +34,20 @@ class MigrateStorageToR2 extends Command
         $this->info('Starting migration to Cloudflare R2...');
 
         // 1. Migrate Users' avatars
-        $users = User::whereNotNull('avatar')->get();
+        $users = User::whereNotNull('avatar')->where('avatar', '!=', '')->get();
         $this->info("Found {$users->count()} users with avatars.");
         foreach ($users as $user) {
             $path = ltrim($user->avatar, '/');
             $path = str_starts_with($path, 'storage/') ? substr($path, 8) : $path;
 
+            if (empty($path)) {
+                continue;
+            }
+
             $binary = null;
-            if (! empty($user->avatar_base64)) {
-                $binary = base64_decode($user->avatar_base64);
-            } elseif (file_exists(public_path($path))) {
+            if (is_file(public_path($path))) {
                 $binary = file_get_contents(public_path($path));
-            } elseif (file_exists(storage_path('app/public/'.$path))) {
+            } elseif (is_file(storage_path('app/public/'.$path))) {
                 $binary = file_get_contents(storage_path('app/public/'.$path));
             }
 
@@ -54,9 +56,6 @@ class MigrateStorageToR2 extends Command
                     'visibility' => 'public',
                     'ContentType' => 'image/webp',
                 ]);
-                if ($cleanDb && ! empty($user->avatar_base64)) {
-                    $user->update(['avatar_base64' => null]);
-                }
                 $this->line("  [OK] Uploaded avatar: {$path} (".strlen($binary).' bytes)');
             } else {
                 $this->warn("  [SKIP] No binary found for avatar: {$path}");
@@ -64,18 +63,20 @@ class MigrateStorageToR2 extends Command
         }
 
         // 2. Migrate Attendance Events' selfies
-        $events = AttendanceEvent::whereNotNull('selfie_path')->get();
+        $events = AttendanceEvent::whereNotNull('selfie_path')->where('selfie_path', '!=', '')->get();
         $this->info("Found {$events->count()} attendance events with selfies.");
         foreach ($events as $event) {
             $path = ltrim($event->selfie_path, '/');
             $path = str_starts_with($path, 'storage/') ? substr($path, 8) : $path;
 
+            if (empty($path)) {
+                continue;
+            }
+
             $binary = null;
-            if (! empty($event->selfie_base64)) {
-                $binary = base64_decode($event->selfie_base64);
-            } elseif (file_exists(public_path($path))) {
+            if (is_file(public_path($path))) {
                 $binary = file_get_contents(public_path($path));
-            } elseif (file_exists(storage_path('app/public/'.$path))) {
+            } elseif (is_file(storage_path('app/public/'.$path))) {
                 $binary = file_get_contents(storage_path('app/public/'.$path));
             }
 
@@ -84,9 +85,6 @@ class MigrateStorageToR2 extends Command
                     'visibility' => 'public',
                     'ContentType' => 'image/webp',
                 ]);
-                if ($cleanDb && ! empty($event->selfie_base64)) {
-                    $event->update(['selfie_base64' => null]);
-                }
                 $this->line("  [OK] Uploaded selfie: {$path} (".strlen($binary).' bytes)');
             } else {
                 $this->warn("  [SKIP] No binary found for selfie: {$path}");

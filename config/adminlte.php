@@ -341,7 +341,7 @@ return [
             'url' => 'logout',
             'icon' => 'fas fa-fw fa-sign-out-alt',
             'class' => 'text-danger',
-        ]
+        ],
     ],
 
     /*

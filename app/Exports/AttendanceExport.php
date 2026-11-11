@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Models\Attendance;
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;

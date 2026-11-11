@@ -29,15 +29,11 @@ class AttendanceEvent extends Model
     }
 
     /**
-     * Get the accessible selfie photo URL (from Cloudflare R2, base64 fallback, or local storage).
+     * Get the accessible selfie photo URL (from Cloudflare R2 or local storage).
      */
     public function getSelfieUrlAttribute(): ?string
     {
         if (empty($this->selfie_path)) {
-            if (! empty($this->selfie_base64)) {
-                return 'data:image/webp;base64,'.$this->selfie_base64;
-            }
-
             return null;
         }
 

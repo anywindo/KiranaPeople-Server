@@ -277,7 +277,6 @@ class AttendanceService extends BaseService
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
                 'selfie_path' => $data['selfie_path'],
-                'selfie_base64' => $data['selfie_base64'] ?? null,
                 'notes' => $data['notes'] ?? null,
                 'accuracy' => isset($data['accuracy']) && is_numeric($data['accuracy']) ? (float) $data['accuracy'] : null,
                 'altitude' => isset($data['altitude']) && is_numeric($data['altitude']) ? (float) $data['altitude'] : null,

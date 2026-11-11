@@ -78,7 +78,6 @@ class EmployeeController extends Controller
             'phone' => $validated['phone'],
             'location_id' => $validated['location_id'],
             'avatar' => $avatarPath,
-            'avatar_base64' => null,
             'password' => \Illuminate\Support\Facades\Hash::make($passwordString),
         ];
 
@@ -134,7 +133,6 @@ class EmployeeController extends Controller
                 }
             }
             $validated['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
-            $validated['avatar_base64'] = null;
         } else {
             unset($validated['avatar']);
         }

@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\User;
 use App\Models\Location;
+use App\Models\User;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
@@ -29,7 +29,7 @@ test('updating employee without location_id fails validation in web backend', fu
     $admin->assignRole('super-admin');
 
     $location = Location::firstOrCreate([
-        'name' => 'Kantor Pusat'
+        'name' => 'Kantor Pusat',
     ], [
         'latitude' => -6.2,
         'longitude' => 106.8,
@@ -47,4 +47,3 @@ test('updating employee without location_id fails validation in web backend', fu
 
     $response->assertSessionHasErrors('location_id');
 });
-

@@ -17,7 +17,7 @@ abstract class BaseController extends Controller
     protected function perPage(Request $request): int
     {
         $default = config('api.pagination.per_page', 15);
-        $max     = config('api.pagination.max_per_page', 100);
+        $max = config('api.pagination.max_per_page', 100);
         $perPage = (int) $request->query('per_page', $default);
 
         return min(max($perPage, 1), $max);

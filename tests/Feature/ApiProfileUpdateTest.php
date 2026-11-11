@@ -50,7 +50,7 @@ class ApiProfileUpdateTest extends TestCase
 
         $response = $this->post('/api/v1/auth/profile', [
             '_method' => 'PUT',
-            'avatar'  => $file,
+            'avatar' => $file,
         ], [
             'Accept' => 'application/json',
         ]);
@@ -72,8 +72,8 @@ class ApiProfileUpdateTest extends TestCase
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/v1/auth/change-password', [
-            'current_password'      => 'OldPassword123!',
-            'password'              => 'NewSecurePass2026!',
+            'current_password' => 'OldPassword123!',
+            'password' => 'NewSecurePass2026!',
             'password_confirmation' => 'NewSecurePass2026!',
         ]);
 
@@ -93,8 +93,8 @@ class ApiProfileUpdateTest extends TestCase
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/v1/auth/change-password', [
-            'current_password'      => 'WrongPassword!',
-            'password'              => 'NewSecurePass2026!',
+            'current_password' => 'WrongPassword!',
+            'password' => 'NewSecurePass2026!',
             'password_confirmation' => 'NewSecurePass2026!',
         ]);
 

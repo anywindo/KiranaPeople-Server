@@ -2,6 +2,4 @@
 
 namespace App\Repositories\Contracts;
 
-interface ShiftRepositoryInterface extends RepositoryInterface
-{
-}
+interface ShiftRepositoryInterface extends RepositoryInterface {}

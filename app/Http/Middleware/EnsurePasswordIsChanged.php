@@ -26,7 +26,7 @@ class EnsurePasswordIsChanged
                         'success' => false,
                         'message' => 'Password change required before proceeding.',
                         'requires_onboarding' => true,
-                    ]
+                    ],
                 ], 403);
             }
 
@@ -34,7 +34,7 @@ class EnsurePasswordIsChanged
         }
 
         // If user already changed password and visits onboarding, redirect to app
-        if ($user && !$user->mustChangePassword() && ($request->routeIs('onboarding.*') || $request->is('onboarding*'))) {
+        if ($user && ! $user->mustChangePassword() && ($request->routeIs('onboarding.*') || $request->is('onboarding*'))) {
             return redirect()->intended($user->isAdmin() ? '/admin/dashboard' : '/attendance');
         }
 

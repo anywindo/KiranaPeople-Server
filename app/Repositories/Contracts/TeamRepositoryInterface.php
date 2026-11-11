@@ -1,1 +1,5 @@
-<?php namespace App\Repositories\Contracts; interface TeamRepositoryInterface extends RepositoryInterface {}
+<?php
+
+namespace App\Repositories\Contracts;
+
+interface TeamRepositoryInterface extends RepositoryInterface {}

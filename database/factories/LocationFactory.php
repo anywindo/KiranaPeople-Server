@@ -20,7 +20,7 @@ class LocationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->city() . ' Office',
+            'name' => fake()->city().' Office',
             'latitude' => fake()->latitude(-6.3, -6.1),
             'longitude' => fake()->longitude(106.7, 106.9),
             'radius' => 50,

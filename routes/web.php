@@ -249,38 +249,5 @@ Route::get('/storage/{path}', function ($path) {
         return $respondImage(file_get_contents($publicAvatar), $defaultMime);
     }
 
-    // 5. Check database for avatar base64 (fallback & sync to R2)
-    if (str_contains($path, 'avatar') || str_starts_with($path, 'avatars')) {
-        $user = \App\Models\User::where('avatar', 'like', "%{$filename}%")->first();
-        if ($user && ! empty($user->avatar_base64)) {
-            $binary = base64_decode($user->avatar_base64);
-            @mkdir(dirname($tmpPath), 0777, true);
-            @file_put_contents($tmpPath, $binary);
-            try {
-                Storage::disk('r2')->put($path, $binary, ['visibility' => 'public', 'ContentType' => $defaultMime]);
-            } catch (\Throwable $e) {
-            }
-
-            return $respondImage($binary, $defaultMime);
-        }
-        abort(404);
-    }
-
-    // 6. Check database for selfie base64 (fallback & sync to R2)
-    if (str_contains($path, 'selfie') || str_contains($path, '.webp')) {
-        $event = \App\Models\AttendanceEvent::where('selfie_path', 'like', "%{$filename}%")->first();
-        if ($event && ! empty($event->selfie_base64)) {
-            $binary = base64_decode($event->selfie_base64);
-            @mkdir(dirname($tmpPath), 0777, true);
-            @file_put_contents($tmpPath, $binary);
-            try {
-                Storage::disk('r2')->put($path, $binary, ['visibility' => 'public', 'ContentType' => 'image/webp']);
-            } catch (\Throwable $e) {
-            }
-
-            return $respondImage($binary, 'image/webp');
-        }
-    }
-
     abort(404);
 })->where('path', '.*');

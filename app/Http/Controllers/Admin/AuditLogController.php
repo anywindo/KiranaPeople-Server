@@ -17,10 +17,11 @@ class AuditLogController extends Controller
     public function export(Request $request)
     {
         $filters = $request->only(['event', 'model', 'user_id', 'date_from', 'date_to', 'search']);
-        $filename = 'Audit_Logs_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $filename = 'Audit_Logs_'.date('Y-m-d_H-i-s').'.xlsx';
 
         return Excel::download(new AuditLogsExport($filters), $filename);
     }
+
     /**
      * Display a listing of audit logs (Superadmin only).
      */
@@ -56,17 +57,17 @@ class AuditLogController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('ip_address', 'like', "%{$search}%")
-                  ->orWhere('auditable_id', $search)
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('employee_id', 'like', "%{$search}%");
-                  });
+                    ->orWhere('auditable_id', $search)
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('employee_id', 'like', "%{$search}%");
+                    });
             });
         }
 
         $perPage = (int) $request->get('per_page', 25);
-        if (!in_array($perPage, [10, 25, 50, 100])) {
+        if (! in_array($perPage, [10, 25, 50, 100])) {
             $perPage = 25;
         }
 
@@ -98,18 +99,18 @@ class AuditLogController extends Controller
         $auditLog->load('user');
 
         return response()->json([
-            'id'             => $auditLog->id,
-            'event'          => $auditLog->event,
-            'event_badge'    => $auditLog->event_badge,
-            'model_label'    => $auditLog->model_label,
+            'id' => $auditLog->id,
+            'event' => $auditLog->event,
+            'event_badge' => $auditLog->event_badge,
+            'model_label' => $auditLog->model_label,
             'auditable_type' => $auditLog->auditable_type,
-            'auditable_id'   => $auditLog->auditable_id,
-            'actor'          => $auditLog->user?->name ?? 'Sistem / Anonim',
-            'ip_address'     => $auditLog->ip_address ?? '-',
-            'user_agent'     => $auditLog->user_agent ?? '-',
-            'created_at'     => $auditLog->created_at?->format('d M Y H:i:s') ?? '-',
-            'before'         => $auditLog->before ?? [],
-            'after'          => $auditLog->after ?? [],
+            'auditable_id' => $auditLog->auditable_id,
+            'actor' => $auditLog->user?->name ?? 'Sistem / Anonim',
+            'ip_address' => $auditLog->ip_address ?? '-',
+            'user_agent' => $auditLog->user_agent ?? '-',
+            'created_at' => $auditLog->created_at?->format('d M Y H:i:s') ?? '-',
+            'before' => $auditLog->before ?? [],
+            'after' => $auditLog->after ?? [],
         ]);
     }
 }

@@ -36,13 +36,13 @@ class AttendanceCorrectionRequestService extends BaseService
     {
         if ($request->status !== RequestStatus::PENDING) {
             throw ValidationException::withMessages([
-                'status' => 'Only pending requests can be processed.'
+                'status' => 'Only pending requests can be processed.',
             ]);
         }
 
-        if (!in_array($status, [RequestStatus::APPROVED, RequestStatus::REJECTED])) {
+        if (! in_array($status, [RequestStatus::APPROVED, RequestStatus::REJECTED])) {
             throw ValidationException::withMessages([
-                'status' => 'Invalid status provided.'
+                'status' => 'Invalid status provided.',
             ]);
         }
 

@@ -22,7 +22,7 @@ $directories = [
 ];
 
 foreach ($directories as $directory) {
-    if (!is_dir($directory)) {
+    if (! is_dir($directory)) {
         @mkdir($directory, 0777, true);
     }
 }
@@ -32,13 +32,13 @@ if (isset($_SERVER['REQUEST_URI'])) {
     $uri = $_SERVER['REQUEST_URI'];
     if (str_starts_with($uri, '/v1') || str_starts_with($uri, '/health') || $uri === '' || $uri === '/') {
         if ($uri !== '' && $uri !== '/') {
-            $_SERVER['REQUEST_URI'] = '/api' . $uri;
+            $_SERVER['REQUEST_URI'] = '/api'.$uri;
         }
     }
 }
 
 try {
-    require __DIR__ . '/../public/index.php';
+    require __DIR__.'/../public/index.php';
 } catch (\Throwable $e) {
     http_response_code(500);
     header('Content-Type: application/json');

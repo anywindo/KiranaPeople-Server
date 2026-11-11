@@ -43,9 +43,9 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $login = $this->input('login') 
-            ?? $this->input('email') 
-            ?? $this->input('employee_id') 
+        $login = $this->input('login')
+            ?? $this->input('email')
+            ?? $this->input('employee_id')
             ?? $this->input('username');
 
         $user = \App\Models\User::findByLogin($login);
@@ -95,6 +95,7 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         $login = $this->input('login') ?? $this->input('email') ?? '';
+
         return Str::transliterate(Str::lower($login).'|'.$this->ip());
     }
 }

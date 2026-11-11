@@ -18,6 +18,7 @@ trait HasCaching
     protected function cacheDriver(): \Illuminate\Cache\Repository
     {
         $driver = config('api.cache.driver', 'file');
+
         return Cache::driver($driver);
     }
 
@@ -27,6 +28,7 @@ trait HasCaching
     protected function cacheKey(string $suffix): string
     {
         $model = class_basename(static::class);
+
         return "api:{$model}:{$suffix}";
     }
 
@@ -35,11 +37,12 @@ trait HasCaching
      */
     protected function remember(string $key, \Closure $callback, ?int $ttl = null): mixed
     {
-        if (!config('api.cache.enabled', true)) {
+        if (! config('api.cache.enabled', true)) {
             return $callback();
         }
 
         $ttl ??= config('api.cache.ttl', 300);
+
         return $this->cacheDriver()->remember($key, $ttl, $callback);
     }
 

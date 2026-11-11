@@ -202,22 +202,13 @@ class AttendanceController extends Controller
         }
 
         $selfiePath = null;
-        $selfieBase64 = null;
+        $selfiePath = null;
         if ($request->hasFile('selfie')) {
-            $storeBase64 = (bool) env('STORE_SELFIE_BASE64', false);
-            if ($storeBase64) {
-                $uploaded = $this->fileUploadService->uploadImageWithBase64($request->file('selfie'), 'attendance-selfies');
-                $selfiePath = $uploaded['path'];
-                $selfieBase64 = $uploaded['base64'];
-            } else {
-                $selfiePath = $this->fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
-                $selfieBase64 = null;
-            }
+            $selfiePath = $this->fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
         }
 
         $payload = $request->validated();
         $payload['selfie_path'] = $selfiePath;
-        $payload['selfie_base64'] = $selfieBase64;
 
         $telemetryKeys = [
             'integrity_status', 'is_rooted', 'is_hooked', 'is_emulator',

@@ -11,6 +11,7 @@ class ResetPasswordNotification extends Notification
     use Queueable;
 
     public string $token;
+
     public string $otp;
 
     /**
@@ -38,7 +39,7 @@ class ResetPasswordNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $email = $notifiable->getEmailForPasswordReset() ?? $notifiable->email;
-        $resetUrl = url("/reset-password/{$this->token}?email=" . urlencode((string) $email));
+        $resetUrl = url("/reset-password/{$this->token}?email=".urlencode((string) $email));
 
         return (new MailMessage)
             ->subject('Permintaan Reset Kata Sandi - Kirana People')

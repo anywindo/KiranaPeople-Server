@@ -3,19 +3,24 @@
 namespace App\Exports\Admin;
 
 use App\Models\Attendance;
+use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Database\Eloquent\Builder;
 
-class AttendanceExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
+class AttendanceExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
 {
     protected $rowNumber = 0;
+
     protected $startDate;
+
     protected $endDate;
+
     protected $search;
+
     protected $shift_id;
+
     protected $location_id;
 
     public function __construct($startDate = null, $endDate = null, $search = null, $shift_id = null, $location_id = null)
@@ -41,9 +46,9 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
 
         if ($this->search) {
             $search = $this->search;
-            $query->whereHas('user', function($q) use ($search) {
+            $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -53,7 +58,7 @@ class AttendanceExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
 
         if ($this->location_id) {
             $location_id = $this->location_id;
-            $query->whereHas('user', function($q) use ($location_id) {
+            $query->whereHas('user', function ($q) use ($location_id) {
                 $q->where('location_id', $location_id);
             });
         }

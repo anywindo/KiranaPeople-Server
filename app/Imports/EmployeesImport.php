@@ -11,12 +11,12 @@ class EmployeesImport implements ToModel, WithHeadingRow
 {
     public function model(array $row): \Illuminate\Database\Eloquent\Model|array|null
     {
-        if (!isset($row['employee_id'])) {
+        if (! isset($row['employee_id'])) {
             return null;
         }
 
         $locationId = null;
-        if (!empty($row['location'])) {
+        if (! empty($row['location'])) {
             $loc = \App\Models\Location::where('name', $row['location'])->first();
             if ($loc) {
                 $locationId = $loc->id;

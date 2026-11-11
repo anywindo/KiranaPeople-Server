@@ -3,20 +3,25 @@
 namespace App\Exports\Admin;
 
 use App\Models\Attendance;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
 
-class BreakExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
+class BreakExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
 {
     protected $rowNumber = 0;
+
     protected $startDate;
+
     protected $endDate;
+
     protected $search;
+
     protected $shift_id;
+
     protected $location_id;
 
     public function __construct($startDate = null, $endDate = null, $search = null, $shift_id = null, $location_id = null)
@@ -32,7 +37,7 @@ class BreakExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
     {
         // Get attendances that have any break events
         $query = Attendance::with(['user.location', 'shift', 'events'])
-            ->whereHas('events', function($q) {
+            ->whereHas('events', function ($q) {
                 $q->whereIn('event_type', ['START_BREAK', 'END_BREAK']);
             })
             ->orderBy('date', 'desc');
@@ -47,9 +52,9 @@ class BreakExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
 
         if ($this->search) {
             $search = $this->search;
-            $query->whereHas('user', function($q) use ($search) {
+            $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -59,7 +64,7 @@ class BreakExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
 
         if ($this->location_id) {
             $location_id = $this->location_id;
-            $query->whereHas('user', function($q) use ($location_id) {
+            $query->whereHas('user', function ($q) use ($location_id) {
                 $q->where('location_id', $location_id);
             });
         }
@@ -88,8 +93,8 @@ class BreakExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSiz
     {
         $this->rowNumber++;
 
-        $startBreak = $attendance->events->first(fn($e) => ($e->event_type?->value ?? $e->event_type) === 'START_BREAK');
-        $endBreak = $attendance->events->first(fn($e) => ($e->event_type?->value ?? $e->event_type) === 'END_BREAK');
+        $startBreak = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === 'START_BREAK');
+        $endBreak = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === 'END_BREAK');
 
         $duration = '-';
         if ($startBreak && $endBreak) {

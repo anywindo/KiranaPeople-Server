@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Team extends Model
 {
-    use HasFactory, HasAuditLog;
+    use HasAuditLog, HasFactory;
 
     protected $fillable = [
         'name',

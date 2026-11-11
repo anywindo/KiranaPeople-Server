@@ -34,7 +34,7 @@ class AuditLogArchiveController extends Controller
     {
         $request->validate([
             'date_from' => 'required|date',
-            'date_to'   => 'required|date|after_or_equal:date_from',
+            'date_to' => 'required|date|after_or_equal:date_from',
         ]);
 
         $dateFrom = $request->date_from;
@@ -48,8 +48,8 @@ class AuditLogArchiveController extends Controller
             return back()->with('error', 'Tidak ditemukan rekaman log pada rentang tanggal tersebut untuk diarsipkan.');
         }
 
-        $filename = 'audit-logs-' . $dateFrom . '-sd-' . $dateTo . '-' . time() . '.xlsx';
-        $filePath = 'archives/' . $filename;
+        $filename = 'audit-logs-'.$dateFrom.'-sd-'.$dateTo.'-'.time().'.xlsx';
+        $filePath = 'archives/'.$filename;
 
         // Ensure storage directory exists
         Storage::disk('local')->makeDirectory('archives');
@@ -57,15 +57,15 @@ class AuditLogArchiveController extends Controller
         // Store Excel export to local disk
         Excel::store(new AuditLogsExport([
             'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
+            'date_to' => $dateTo,
         ]), $filePath, 'local');
 
         $archive = AuditLogArchive::create([
-            'user_id'       => auth()->id(),
-            'filename'      => $filename,
-            'file_path'     => $filePath,
-            'date_from'     => $dateFrom,
-            'date_to'       => $dateTo,
+            'user_id' => auth()->id(),
+            'filename' => $filename,
+            'file_path' => $filePath,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
             'total_records' => $count,
         ]);
 
@@ -78,12 +78,12 @@ class AuditLogArchiveController extends Controller
      */
     public function download(AuditLogArchive $archive)
     {
-        if (!Storage::disk('local')->exists($archive->file_path)) {
+        if (! Storage::disk('local')->exists($archive->file_path)) {
             return back()->with('error', 'File arsip fisik tidak ditemukan di server.');
         }
 
         // Mark downloaded timestamp (Prerequisite Gate 1)
-        if (!$archive->isDownloaded()) {
+        if (! $archive->isDownloaded()) {
             $archive->update(['downloaded_at' => now()]);
         }
 
@@ -96,8 +96,9 @@ class AuditLogArchiveController extends Controller
     public function requestOtp(Request $request, AuditLogArchive $archive)
     {
         // Security Gate 1: Must be downloaded first!
-        if (!$archive->isDownloaded()) {
+        if (! $archive->isDownloaded()) {
             $msg = 'Akses ditolak: Anda wajib mengunduh (download) berkas arsip terlebih dahulu sebagai backup sebelum meminta OTP penghapusan.';
+
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 403)
                 : back()->with('error', $msg);
@@ -106,6 +107,7 @@ class AuditLogArchiveController extends Controller
         // Already purged check
         if ($archive->isPurged()) {
             $msg = 'Data log pada rentang arsip ini sudah dibersihkan sebelumnya.';
+
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 400)
                 : back()->with('error', $msg);
@@ -117,6 +119,7 @@ class AuditLogArchiveController extends Controller
         // Cooldown check: 60 seconds between OTP requests
         if (Cache::has($cooldownKey)) {
             $msg = 'Mohon tunggu 60 detik sebelum meminta pengiriman kode OTP baru.';
+
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 429)
                 : back()->with('error', $msg);
@@ -139,24 +142,25 @@ class AuditLogArchiveController extends Controller
             $user->notify(new AuditPurgeOtpNotification($otp, $archive));
             $emailSent = true;
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("[AuditPurgeOTP] Failed sending email to {$user->email}: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning("[AuditPurgeOTP] Failed sending email to {$user->email}: ".$e->getMessage());
             $errorMessage = $e->getMessage();
         }
 
         $isDevEnvironment = app()->environment('local', 'testing');
 
         // In production, failed email is always an error and dev OTP is NEVER returned
-        if (!$emailSent && !$isDevEnvironment) {
-            $msg = 'Gagal mengirimkan kode OTP ke email: ' . ($errorMessage ?? 'Kesalahan pengiriman');
+        if (! $emailSent && ! $isDevEnvironment) {
+            $msg = 'Gagal mengirimkan kode OTP ke email: '.($errorMessage ?? 'Kesalahan pengiriman');
+
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 422)
                 : back()->with('error', $msg);
         }
 
-        $devOtp = ($isDevEnvironment && (!$emailSent || str_ends_with($user->email, '@example.com'))) ? $otp : null;
+        $devOtp = ($isDevEnvironment && (! $emailSent || str_ends_with($user->email, '@example.com'))) ? $otp : null;
         $successMsg = $emailSent
             ? "Kode OTP 6-digit telah dikirimkan ke email {$user->email}. Kode berlaku selama 5 menit."
-            : "Mode Uji Coba: Kode OTP berhasil dibuat. Silakan gunakan kode verifikasi di bawah ini.";
+            : 'Mode Uji Coba: Kode OTP berhasil dibuat. Silakan gunakan kode verifikasi di bawah ini.';
 
         return $request->expectsJson()
             ? response()->json([
@@ -176,11 +180,11 @@ class AuditLogArchiveController extends Controller
             'otp' => 'required|string|size:6',
         ], [
             'otp.required' => 'Kode OTP wajib diisi.',
-            'otp.size'     => 'Kode OTP harus 6 digit angka.',
+            'otp.size' => 'Kode OTP harus 6 digit angka.',
         ]);
 
         // Security Gate 1: Must have been downloaded
-        if (!$archive->isDownloaded()) {
+        if (! $archive->isDownloaded()) {
             return back()->with('error', 'Pembersihan ditolak: Berkas arsip belum pernah diunduh.');
         }
 
@@ -196,7 +200,7 @@ class AuditLogArchiveController extends Controller
         $cachedHash = Cache::get($cacheKey);
 
         // Check if OTP exists
-        if (!$cachedHash) {
+        if (! $cachedHash) {
             return back()->with('error', 'Kode OTP tidak ditemukan atau telah kedaluwarsa. Silakan minta kode OTP baru.');
         }
 
@@ -205,11 +209,12 @@ class AuditLogArchiveController extends Controller
         if ($attempts >= 5) {
             Cache::forget($cacheKey);
             Cache::forget($attemptsKey);
+
             return back()->with('error', 'Batas maksimal 5 kali percobaan OTP telah terlampaui. Kode OTP dibatalkan. Silakan minta kode OTP baru.');
         }
 
         // Validate OTP hash
-        if (!Hash::check($request->otp, $cachedHash)) {
+        if (! Hash::check($request->otp, $cachedHash)) {
             $attempts++;
             Cache::put($attemptsKey, $attempts, now()->addMinutes(5));
             $remaining = 5 - $attempts;
@@ -217,6 +222,7 @@ class AuditLogArchiveController extends Controller
             if ($remaining <= 0) {
                 Cache::forget($cacheKey);
                 Cache::forget($attemptsKey);
+
                 return back()->with('error', 'Kode OTP salah. Batas maksimal 5 percobaan telah habis. Silakan minta kode OTP baru.');
             }
 
@@ -229,7 +235,7 @@ class AuditLogArchiveController extends Controller
                 // Lock row to prevent race conditions from concurrent purge calls
                 $lockedArchive = AuditLogArchive::where('id', $archive->id)->lockForUpdate()->first();
 
-                if (!$lockedArchive || $lockedArchive->isPurged()) {
+                if (! $lockedArchive || $lockedArchive->isPurged()) {
                     throw new \RuntimeException('Data arsip ini sudah pernah dibersihkan sebelumnya.');
                 }
 
@@ -253,26 +259,26 @@ class AuditLogArchiveController extends Controller
 
                 // Record this critical administrative action in audit_logs
                 AuditLog::create([
-                    'user_id'        => $user->id,
-                    'event'          => 'deleted',
+                    'user_id' => $user->id,
+                    'event' => 'deleted',
                     'auditable_type' => AuditLogArchive::class,
-                    'auditable_id'   => $lockedArchive->id,
-                    'before'         => [
-                        'archive_id'    => $lockedArchive->id,
-                        'filename'      => $lockedArchive->filename,
-                        'date_from'     => $dateFrom,
-                        'date_to'       => $dateTo,
+                    'auditable_id' => $lockedArchive->id,
+                    'before' => [
+                        'archive_id' => $lockedArchive->id,
+                        'filename' => $lockedArchive->filename,
+                        'date_from' => $dateFrom,
+                        'date_to' => $dateTo,
                         'total_records' => $lockedArchive->total_records,
-                        'deleted_rows'  => $deletedCount,
+                        'deleted_rows' => $deletedCount,
                     ],
-                    'after'          => null,
-                    'ip_address'     => request()?->ip(),
-                    'user_agent'     => request()?->userAgent(),
-                    'created_at'     => now(),
+                    'after' => null,
+                    'ip_address' => request()?->ip(),
+                    'user_agent' => request()?->userAgent(),
+                    'created_at' => now(),
                 ]);
             });
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal memproses pembersihan log: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses pembersihan log: '.$e->getMessage());
         }
 
         return redirect()->route('admin.audit-logs.archives.index')

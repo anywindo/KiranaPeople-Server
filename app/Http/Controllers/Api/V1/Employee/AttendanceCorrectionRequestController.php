@@ -13,8 +13,7 @@ class AttendanceCorrectionRequestController extends Controller
 {
     public function __construct(
         protected AttendanceCorrectionRequestService $correctionService
-    ) {
-    }
+    ) {}
 
     /**
      * View own correction requests.
@@ -22,6 +21,7 @@ class AttendanceCorrectionRequestController extends Controller
     public function index(Request $request)
     {
         $requests = $request->user()->attendanceCorrectionRequests()->latest()->paginate(15);
+
         return AttendanceCorrectionRequestResource::collection($requests);
     }
 
@@ -39,7 +39,7 @@ class AttendanceCorrectionRequestController extends Controller
 
         return response()->json([
             'message' => 'Correction request submitted successfully.',
-            'data' => new AttendanceCorrectionRequestResource($correction)
+            'data' => new AttendanceCorrectionRequestResource($correction),
         ], 201);
     }
 }

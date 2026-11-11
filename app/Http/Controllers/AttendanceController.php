@@ -172,15 +172,7 @@ class AttendanceController extends Controller
             $attendance->update(['status' => $status]);
         }
 
-        $storeBase64 = (bool) env('STORE_SELFIE_BASE64', false);
-        if ($storeBase64) {
-            $uploaded = $fileUploadService->uploadImageWithBase64($request->file('selfie'), 'attendance-selfies');
-            $selfiePath = $uploaded['path'];
-            $selfieBase64 = $uploaded['base64'];
-        } else {
-            $selfiePath = $fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
-            $selfieBase64 = null;
-        }
+        $selfiePath = $fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
 
         AttendanceEvent::create([
             'attendance_id' => $attendance->id,
@@ -189,7 +181,6 @@ class AttendanceController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'selfie_path' => $selfiePath,
-            'selfie_base64' => $selfieBase64,
         ]);
 
         $message = 'Kehadiran berhasil dicatat!';
@@ -238,7 +229,6 @@ class AttendanceController extends Controller
                 }
             }
             $validated['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
-            $validated['avatar_base64'] = null;
         }
 
         if (! empty($validated['password'])) {

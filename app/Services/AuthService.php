@@ -21,10 +21,10 @@ class AuthService extends BaseService
     {
         $user = $this->transaction(function () use ($data) {
             $user = $this->repository->create([
-                'name'     => $data['name'],
-                'email'    => $data['email'],
+                'name' => $data['name'],
+                'email' => $data['email'],
                 'password' => $data['password'],  // cast hashes it
-                'phone'    => $data['phone'] ?? null,
+                'phone' => $data['phone'] ?? null,
             ]);
 
             // Assign default role
@@ -36,8 +36,8 @@ class AuthService extends BaseService
         $token = $user->createToken('auth-token', ['read', 'write'])->plainTextToken;
 
         return [
-            'user'       => $user,
-            'token'      => $token,
+            'user' => $user,
+            'token' => $token,
             'token_type' => 'Bearer',
             'expires_in' => config('api.token_expiry', 1440),
         ];
@@ -48,22 +48,22 @@ class AuthService extends BaseService
      */
     public function login(array $credentials): array
     {
-        $login = $credentials['login'] 
-            ?? $credentials['email'] 
-            ?? $credentials['employee_id'] 
-            ?? $credentials['username'] 
+        $login = $credentials['login']
+            ?? $credentials['email']
+            ?? $credentials['employee_id']
+            ?? $credentials['username']
             ?? null;
 
         /** @var User|null $user */
         $user = User::findByLogin($login);
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             throw ValidationException::withMessages([
                 'email' => ['This account has been disabled.'],
             ]);
@@ -74,11 +74,11 @@ class AuthService extends BaseService
 
         // Grant token abilities based on role
         $abilities = $this->abilitiesForUser($user);
-        $token     = $user->createToken('auth-token', $abilities)->plainTextToken;
+        $token = $user->createToken('auth-token', $abilities)->plainTextToken;
 
         return [
-            'user'       => $user->load('roles'),
-            'token'      => $token,
+            'user' => $user->load('roles'),
+            'token' => $token,
             'token_type' => 'Bearer',
             'expires_in' => config('api.token_expiry', 1440),
         ];
@@ -99,10 +99,10 @@ class AuthService extends BaseService
     {
         $user->currentAccessToken()->delete();
         $abilities = $this->abilitiesForUser($user);
-        $token     = $user->createToken('auth-token', $abilities)->plainTextToken;
+        $token = $user->createToken('auth-token', $abilities)->plainTextToken;
 
         return [
-            'token'      => $token,
+            'token' => $token,
             'token_type' => 'Bearer',
             'expires_in' => config('api.token_expiry', 1440),
         ];

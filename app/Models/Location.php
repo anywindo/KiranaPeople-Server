@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
-    use HasFactory, HasAuditLog;
+    use HasAuditLog, HasFactory;
+
     protected $fillable = [
         'name',
         'latitude',
         'longitude',
-        'radius'
+        'radius',
     ];
 
     public function users()

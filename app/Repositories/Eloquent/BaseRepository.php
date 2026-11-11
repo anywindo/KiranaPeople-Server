@@ -21,24 +21,28 @@ abstract class BaseRepository implements RepositoryInterface
 
     /**
      * Default eager-load relationships. Override per repository.
+     *
      * @var array<string>
      */
     protected array $with = [];
 
     /**
      * Default columns to SELECT. Override per repository to prevent data leaks.
+     *
      * @var array<string>
      */
     protected array $defaultColumns = ['*'];
 
     /**
      * Columns allowed for filtering via query string.
+     *
      * @var array<string>
      */
     protected array $filterableColumns = [];
 
     /**
      * Columns allowed for sorting via query string.
+     *
      * @var array<string>
      */
     protected array $sortableColumns = ['created_at', 'updated_at'];
@@ -58,14 +62,14 @@ abstract class BaseRepository implements RepositoryInterface
     public function all(array $columns = ['*']): Collection
     {
         $cols = $columns === ['*'] ? $this->defaultColumns : $columns;
-        $key  = $this->cacheKey('all:' . implode(',', $cols));
+        $key = $this->cacheKey('all:'.implode(',', $cols));
 
         return $this->remember($key, fn () => $this->newQuery()->get($cols));
     }
 
     public function paginate(int $perPage = 15, array $columns = ['*'], array $filters = []): LengthAwarePaginator
     {
-        $cols    = $columns === ['*'] ? $this->defaultColumns : $columns;
+        $cols = $columns === ['*'] ? $this->defaultColumns : $columns;
         $perPage = min($perPage, config('api.pagination.max_per_page', 100));
 
         return $this->newQuery()->paginate($perPage, $cols);
@@ -74,7 +78,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function find(int|string $id, array $columns = ['*']): ?Model
     {
         $cols = $columns === ['*'] ? $this->defaultColumns : $columns;
-        $key  = $this->cacheKey("find:{$id}");
+        $key = $this->cacheKey("find:{$id}");
 
         return $this->remember($key, fn () => $this->newQuery()->find($id, $cols));
     }
@@ -83,8 +87,8 @@ abstract class BaseRepository implements RepositoryInterface
     {
         $model = $this->find($id, $columns);
 
-        if (!$model) {
-            throw new ModelNotFoundException("Resource not found.");
+        if (! $model) {
+            throw new ModelNotFoundException('Resource not found.');
         }
 
         return $model;
@@ -98,6 +102,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function count(): int
     {
         $key = $this->cacheKey('count');
+
         return $this->remember($key, fn () => app($this->model)->newQuery()->count());
     }
 
@@ -110,6 +115,7 @@ abstract class BaseRepository implements RepositoryInterface
         return DB::transaction(function () use ($data) {
             $model = app($this->model)->newQuery()->create($data);
             $this->invalidateListCache();
+
             return $model->fresh($this->with);
         });
     }
@@ -120,9 +126,10 @@ abstract class BaseRepository implements RepositoryInterface
             $result = app($this->model)->newQuery()->findOrFail($id)->update($data);
             $this->forgetMany([
                 $this->cacheKey("find:{$id}"),
-                $this->cacheKey('all:' . implode(',', $this->defaultColumns)),
+                $this->cacheKey('all:'.implode(',', $this->defaultColumns)),
                 $this->cacheKey('count'),
             ]);
+
             return (bool) $result;
         });
     }
@@ -133,9 +140,10 @@ abstract class BaseRepository implements RepositoryInterface
             $result = app($this->model)->newQuery()->findOrFail($id)->delete();
             $this->forgetMany([
                 $this->cacheKey("find:{$id}"),
-                $this->cacheKey('all:' . implode(',', $this->defaultColumns)),
+                $this->cacheKey('all:'.implode(',', $this->defaultColumns)),
                 $this->cacheKey('count'),
             ]);
+
             return (bool) $result;
         });
     }
@@ -150,7 +158,7 @@ abstract class BaseRepository implements RepositoryInterface
     protected function invalidateListCache(): void
     {
         $this->forgetMany([
-            $this->cacheKey('all:' . implode(',', $this->defaultColumns)),
+            $this->cacheKey('all:'.implode(',', $this->defaultColumns)),
             $this->cacheKey('count'),
         ]);
     }

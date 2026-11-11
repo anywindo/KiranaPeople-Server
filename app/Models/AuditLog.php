@@ -57,18 +57,19 @@ class AuditLog extends Model
         // If it was double-encoded in older records, decode again
         while (is_string($decoded)) {
             $further = json_decode($decoded, true);
-            if (!is_array($further)) {
+            if (! is_array($further)) {
                 break;
             }
             $decoded = $further;
         }
 
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             return [];
         }
 
         // Clean any sensitive fields from old legacy records
         $ignored = ['password', 'remember_token', 'avatar_base64', 'selfie_base64'];
+
         return array_diff_key($decoded, array_flip($ignored));
     }
 
@@ -118,7 +119,7 @@ class AuditLog extends Model
             'created' => '<span class="badge bg-success"><i class="bi bi-plus-circle me-1"></i> Created</span>',
             'updated' => '<span class="badge bg-warning text-dark"><i class="bi bi-pencil-square me-1"></i> Updated</span>',
             'deleted' => '<span class="badge bg-danger"><i class="bi bi-trash me-1"></i> Deleted</span>',
-            default   => '<span class="badge bg-secondary">' . e(ucfirst($this->event)) . '</span>',
+            default => '<span class="badge bg-secondary">'.e(ucfirst($this->event)).'</span>',
         };
     }
 }

@@ -99,7 +99,6 @@ class AuthController extends BaseController
                 }
             }
             $updates['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
-            $updates['avatar_base64'] = null;
         }
 
         if (! empty($updates)) {

@@ -11,7 +11,7 @@ enum EventType: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::START_SHIFT => 'Start Shift',
             self::START_BREAK => 'Start Break',
             self::END_BREAK => 'End Break',

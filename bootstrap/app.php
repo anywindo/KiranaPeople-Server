@@ -72,7 +72,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 // Validation errors → 422
                 if ($e instanceof ValidationException) {
                     return response()->json([
-                        'meta'   => ['success' => false, 'message' => 'Validation failed'],
+                        'meta' => ['success' => false, 'message' => 'Validation failed'],
                         'errors' => $e->errors(),
                     ], 422);
                 }

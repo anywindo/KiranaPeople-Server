@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('shift_id')->constrained()->cascadeOnDelete();
             $table->string('status')->default('PRESENT');
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'date']);
         });
     }
