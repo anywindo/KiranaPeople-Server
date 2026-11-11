@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\TeamController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => '1.0.0', 'status' => 'healthy']));
+Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => config('app.version', '1.0.1'), 'status' => 'healthy']));
 Route::get('health', fn () => response()->json(['status' => 'ok', 'timestamp' => now()]));
 
 Route::prefix('v1')->group(function () {
@@ -40,7 +40,7 @@ Route::prefix('v1')->group(function () {
             Route::get('attendance/today', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'today']);
             Route::get('attendance/history', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'history']);
             Route::post('attendance/events', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'storeEvent']);
-            
+
             Route::get('correction-requests', [\App\Http\Controllers\Api\V1\Employee\AttendanceCorrectionRequestController::class, 'index']);
             Route::post('correction-requests', [\App\Http\Controllers\Api\V1\Employee\AttendanceCorrectionRequestController::class, 'store']);
         });

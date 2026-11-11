@@ -818,7 +818,7 @@
         function showEasterEgg() {
             Swal.fire({
                 title: 'Kirana People',
-                html: '<div class="text-start"><p>Sistem Informasi Manajemen Sumber Daya Manusia terpadu dari <b>Kirana People</b>.</p><p>Dikembangkan dengan ❤️ untuk <b>Kirana Group</b>.</p><p class="text-muted small mt-3 mb-0">Versi 1.0.0</p></div>',
+                html: '<div class="text-start"><p>Sistem Informasi Manajemen Sumber Daya Manusia terpadu dari <b>Kirana People</b>.</p><p>Dikembangkan dengan ❤️ untuk <b>Kirana Group</b>.</p><p class="text-muted small mt-3 mb-0">Versi {{ config('app.version', '1.0.1') }}</p></div>',
                 icon: 'info',
                 confirmButtonText: 'Keren!',
                 confirmButtonColor: '#3085d6',

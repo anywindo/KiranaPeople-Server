@@ -61,7 +61,7 @@ Base URL: `http://localhost:8000/api/v1` (atau URL domain production dengan pref
   ```json
   {
     "name": "KiranaPeople",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "status": "healthy"
   }
   ```
