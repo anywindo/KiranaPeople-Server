@@ -18,10 +18,10 @@ class EmployeeController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%")
-                  ->orWhere('employee_id', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('nik', 'like', "%{$search}%")
+                    ->orWhere('employee_id', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -57,11 +57,11 @@ class EmployeeController extends Controller
         ]);
 
         $dob = $validated['dob'] ?? null;
-        if (!$dob && !empty($validated['nik'])) {
+        if (! $dob && ! empty($validated['nik'])) {
             $dob = User::parseDobDateFromNik($validated['nik']);
         }
 
-        $passwordString = !empty($validated['password'])
+        $passwordString = ! empty($validated['password'])
             ? $validated['password']
             : User::computeDefaultPassword($dob, $validated['nik'] ?? null);
 
@@ -85,7 +85,7 @@ class EmployeeController extends Controller
             'password' => \Illuminate\Support\Facades\Hash::make($passwordString),
         ];
 
-        if (!empty($validated['employee_id'])) {
+        if (! empty($validated['employee_id'])) {
             $userData['employee_id'] = $validated['employee_id'];
         }
 
@@ -95,7 +95,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Employee created successfully.',
-            'data' => $user
+            'data' => $user,
         ], 201);
     }
 
@@ -103,17 +103,17 @@ class EmployeeController extends Controller
     {
         return response()->json([
             'message' => 'Employee retrieved successfully.',
-            'data' => $employee
+            'data' => $employee,
         ]);
     }
 
     public function update(Request $request, User $employee, FileUploadService $fileUploadService)
     {
         $validated = $request->validate([
-            'employee_id' => 'nullable|string|max:50|unique:users,employee_id,' . $employee->id,
+            'employee_id' => 'nullable|string|max:50|unique:users,employee_id,'.$employee->id,
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $employee->id,
-            'nik' => 'required|string|max:255|unique:users,nik,' . $employee->id,
+            'email' => 'required|email|unique:users,email,'.$employee->id,
+            'nik' => 'required|string|max:255|unique:users,nik,'.$employee->id,
             'dob' => 'required|date',
             'phone' => 'required|string|max:255',
             'location_id' => 'required|exists:locations,id',
@@ -121,14 +121,20 @@ class EmployeeController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        if (array_key_exists('dob', $validated) && empty($validated['dob']) && !empty($validated['nik'])) {
+        if (array_key_exists('dob', $validated) && empty($validated['dob']) && ! empty($validated['nik'])) {
             $validated['dob'] = User::parseDobDateFromNik($validated['nik']);
         }
 
         if ($request->hasFile('avatar')) {
             if ($employee->avatar) {
-                try { Storage::disk('r2')->delete($employee->avatar); } catch (\Throwable $e) {}
-                try { Storage::disk('public')->delete($employee->avatar); } catch (\Throwable $e) {}
+                try {
+                    Storage::disk('r2')->delete($employee->avatar);
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Storage::disk('public')->delete($employee->avatar);
+                } catch (\Throwable $e) {
+                }
             }
             $uploaded = $fileUploadService->uploadImageWithBase64($request->file('avatar'), 'avatars');
             $validated['avatar'] = $uploaded['path'];
@@ -137,7 +143,7 @@ class EmployeeController extends Controller
             unset($validated['avatar']);
         }
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
         } else {
             unset($validated['password']);
@@ -147,15 +153,16 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Employee updated successfully.',
-            'data' => $employee
+            'data' => $employee,
         ]);
     }
 
     public function destroy(User $employee)
     {
         $employee->delete();
+
         return response()->json([
-            'message' => 'Employee deleted successfully.'
+            'message' => 'Employee deleted successfully.',
         ]);
     }
 }

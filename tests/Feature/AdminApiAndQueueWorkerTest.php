@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Notifications\EmployeeLateNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AdminApiAndQueueWorkerTest extends TestCase
@@ -19,9 +18,13 @@ class AdminApiAndQueueWorkerTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $employee1;
+
     protected User $employee2;
+
     protected Location $location;
+
     protected Shift $shift;
 
     protected function setUp(): void
@@ -105,14 +108,14 @@ class AdminApiAndQueueWorkerTest extends TestCase
                     'nik',
                     'location',
                     'roles',
-                ]
+                ],
             ],
             'links',
             'meta' => [
                 'current_page',
                 'per_page',
                 'total',
-            ]
+            ],
         ]);
 
         $data = $response->json('data');
@@ -165,10 +168,10 @@ class AdminApiAndQueueWorkerTest extends TestCase
                     'break_status',
                     'events',
                     'shift',
-                ]
+                ],
             ],
             'links',
-            'meta'
+            'meta',
         ]);
 
         $data = $response->json('data');
@@ -178,4 +181,3 @@ class AdminApiAndQueueWorkerTest extends TestCase
         $this->assertEquals('Tepat waktu', $data[0]['events'][0]['notes']);
     }
 }
-

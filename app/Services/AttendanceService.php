@@ -14,7 +14,6 @@ use Illuminate\Validation\ValidationException;
 
 class AttendanceService extends BaseService
 {
-
     public function __construct(AttendanceRepositoryInterface $repository)
     {
         parent::__construct($repository);
@@ -28,18 +27,18 @@ class AttendanceService extends BaseService
         // 1. Validate incoming data (GPS & Selfie)
         if (empty($data['latitude']) || empty($data['longitude'])) {
             throw ValidationException::withMessages([
-                'location' => 'GPS coordinates (latitude and longitude) are required.'
+                'location' => 'GPS coordinates (latitude and longitude) are required.',
             ]);
         }
         if (empty($data['selfie_path'])) {
             throw ValidationException::withMessages([
-                'selfie_path' => 'Selfie photo is required.'
+                'selfie_path' => 'Selfie photo is required.',
             ]);
         }
 
         // Anti-Spoofing & Mock Location Detection
-        $isMocked = !empty($data['is_mocked']) && filter_var($data['is_mocked'], FILTER_VALIDATE_BOOLEAN);
-        $fakeGps = !empty($data['fake_gps_app_installed']) && filter_var($data['fake_gps_app_installed'], FILTER_VALIDATE_BOOLEAN);
+        $isMocked = ! empty($data['is_mocked']) && filter_var($data['is_mocked'], FILTER_VALIDATE_BOOLEAN);
+        $fakeGps = ! empty($data['fake_gps_app_installed']) && filter_var($data['fake_gps_app_installed'], FILTER_VALIDATE_BOOLEAN);
         if ($isMocked || $fakeGps) {
             AuditLog::create([
                 'user_id' => $employee->id,
@@ -60,21 +59,21 @@ class AttendanceService extends BaseService
             ]);
 
             throw ValidationException::withMessages([
-                'location' => 'Lokasi palsu (Mock Location / Fake GPS) terdeteksi. Harap nonaktifkan aplikasi lokasi palsu dan gunakan GPS asli perangkat.'
+                'location' => 'Lokasi palsu (Mock Location / Fake GPS) terdeteksi. Harap nonaktifkan aplikasi lokasi palsu dan gunakan GPS asli perangkat.',
             ]);
         }
 
         // GPS Accuracy check
-        if (isset($data['accuracy']) && is_numeric($data['accuracy']) && (float)$data['accuracy'] < 0) {
+        if (isset($data['accuracy']) && is_numeric($data['accuracy']) && (float) $data['accuracy'] < 0) {
             throw ValidationException::withMessages([
-                'accuracy' => 'Nilai akurasi GPS tidak valid.'
+                'accuracy' => 'Nilai akurasi GPS tidak valid.',
             ]);
         }
 
         // Device Integrity check (rooted / hooked / compromised)
-        $isRooted = !empty($data['is_rooted']) && filter_var($data['is_rooted'], FILTER_VALIDATE_BOOLEAN);
-        $isHooked = !empty($data['is_hooked']) && filter_var($data['is_hooked'], FILTER_VALIDATE_BOOLEAN);
-        $compromised = isset($data['integrity_status']) && strtolower((string)$data['integrity_status']) === 'compromised';
+        $isRooted = ! empty($data['is_rooted']) && filter_var($data['is_rooted'], FILTER_VALIDATE_BOOLEAN);
+        $isHooked = ! empty($data['is_hooked']) && filter_var($data['is_hooked'], FILTER_VALIDATE_BOOLEAN);
+        $compromised = isset($data['integrity_status']) && strtolower((string) $data['integrity_status']) === 'compromised';
         if ($isRooted || $isHooked || $compromised) {
             AuditLog::create([
                 'user_id' => $employee->id,
@@ -93,22 +92,24 @@ class AttendanceService extends BaseService
             ]);
 
             throw ValidationException::withMessages([
-                'device_security' => 'Perangkat tidak lolos pemeriksaan integritas keamanan (terdeteksi root/hooking/modifikasi). Presensi ditolak.'
+                'device_security' => 'Perangkat tidak lolos pemeriksaan integritas keamanan (terdeteksi root/hooking/modifikasi). Presensi ditolak.',
             ]);
         }
 
         // Clock Skew / Device Timestamp Drift check (within 10 minutes = 600s)
-        if (!empty($data['device_timestamp'])) {
+        if (! empty($data['device_timestamp'])) {
             try {
                 $deviceTime = \Carbon\Carbon::parse($data['device_timestamp']);
                 $driftSeconds = abs(now()->diffInSeconds($deviceTime));
                 if ($driftSeconds > 600) {
                     throw ValidationException::withMessages([
-                        'device_timestamp' => 'Waktu pada perangkat tidak sinkron dengan waktu server (selisih ' . round($driftSeconds / 60) . ' menit). Harap gunakan pengaturan waktu otomatis.'
+                        'device_timestamp' => 'Waktu pada perangkat tidak sinkron dengan waktu server (selisih '.round($driftSeconds / 60).' menit). Harap gunakan pengaturan waktu otomatis.',
                     ]);
                 }
             } catch (\Exception $e) {
-                if ($e instanceof ValidationException) throw $e;
+                if ($e instanceof ValidationException) {
+                    throw $e;
+                }
             }
         }
 
@@ -117,17 +118,17 @@ class AttendanceService extends BaseService
             /** @var Attendance|null $attendance */
             $attendance = $this->repository->findTodayAttendanceForUser($employee->id, true);
 
-            if (!$attendance) {
+            if (! $attendance) {
                 // First event must be START_SHIFT
                 if ($eventType !== EventType::START_SHIFT) {
                     throw ValidationException::withMessages([
-                        'event_type' => 'Cannot record this event. You must start your shift first.'
+                        'event_type' => 'Cannot record this event. You must start your shift first.',
                     ]);
                 }
 
                 $initialStatus = AttendanceStatus::EXACT;
                 if ($shift->default_start_time) {
-                    $scheduledStart = \Carbon\Carbon::parse(today()->format('Y-m-d') . ' ' . $shift->default_start_time);
+                    $scheduledStart = \Carbon\Carbon::parse(today()->format('Y-m-d').' '.$shift->default_start_time);
                     $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
                     $now = now();
                     if ($ruleEnabled) {
@@ -157,7 +158,7 @@ class AttendanceService extends BaseService
 
             // 3. Enforce sequence rules under lock
             $events = $attendance->events()->lockForUpdate()->orderBy('timestamp')->get();
-            
+
             $hasStartedShift = $events->contains('event_type', EventType::START_SHIFT);
             $hasStartedBreak = $events->contains('event_type', EventType::START_BREAK);
             $hasEndedBreak = $events->contains('event_type', EventType::END_BREAK);
@@ -165,7 +166,7 @@ class AttendanceService extends BaseService
 
             if ($hasEndedShift) {
                 throw ValidationException::withMessages([
-                    'event_type' => 'Shift has already ended for today.'
+                    'event_type' => 'Shift has already ended for today.',
                 ]);
             }
 
@@ -173,14 +174,14 @@ class AttendanceService extends BaseService
                 case EventType::START_SHIFT:
                     if ($hasStartedShift) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Presensi masuk sudah dilakukan hari ini.'
+                            'event_type' => 'Presensi masuk sudah dilakukan hari ini.',
                         ]);
                     }
 
                     $status = AttendanceStatus::EXACT;
                     $latenessMinutes = 0;
                     if ($shift->default_start_time) {
-                        $scheduledStart = \Carbon\Carbon::parse(today()->format('Y-m-d') . ' ' . $shift->default_start_time);
+                        $scheduledStart = \Carbon\Carbon::parse(today()->format('Y-m-d').' '.$shift->default_start_time);
                         $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
                         $now = now();
                         if ($ruleEnabled) {
@@ -205,21 +206,21 @@ class AttendanceService extends BaseService
                     $attendance->update(['status' => $status]);
 
                     if ($status === AttendanceStatus::LATE) {
-                        $admins = rescue(fn() => \App\Models\User::role(['super-admin', 'HR'], 'web')->get(), collect());
+                        $admins = rescue(fn () => \App\Models\User::role(['super-admin', 'HR'], 'web')->get(), collect());
                         if ($admins && $admins->isNotEmpty()) {
                             \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\EmployeeLateNotification($employee, $latenessMinutes));
                         }
                     }
                     break;
                 case EventType::START_BREAK:
-                    if (!$hasStartedShift) {
+                    if (! $hasStartedShift) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Tidak dapat memulai istirahat. Anda harus melakukan presensi masuk kerja terlebih dahulu.'
+                            'event_type' => 'Tidak dapat memulai istirahat. Anda harus melakukan presensi masuk kerja terlebih dahulu.',
                         ]);
                     }
                     if ($hasStartedBreak) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Istirahat sudah dimulai sebelumnya.'
+                            'event_type' => 'Istirahat sudah dimulai sebelumnya.',
                         ]);
                     }
                     if ($shift->break_start) {
@@ -233,37 +234,37 @@ class AttendanceService extends BaseService
                         $currentTime = now()->format('H:i:s');
                         if ($currentTime < $breakStartTime) {
                             throw ValidationException::withMessages([
-                                'event_type' => 'Belum waktu istirahat (jadwal istirahat mulai: '.$breakStartTime.').'
+                                'event_type' => 'Belum waktu istirahat (jadwal istirahat mulai: '.$breakStartTime.').',
                             ]);
                         }
                     }
                     break;
                 case EventType::END_BREAK:
-                    if (!$hasStartedShift) {
+                    if (! $hasStartedShift) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Tidak dapat menyelesaikan istirahat. Anda belum melakukan presensi masuk kerja.'
+                            'event_type' => 'Tidak dapat menyelesaikan istirahat. Anda belum melakukan presensi masuk kerja.',
                         ]);
                     }
-                    if (!$hasStartedBreak) {
+                    if (! $hasStartedBreak) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Tidak dapat menyelesaikan istirahat sebelum memulainya.'
+                            'event_type' => 'Tidak dapat menyelesaikan istirahat sebelum memulainya.',
                         ]);
                     }
                     if ($hasEndedBreak) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Istirahat sudah diselesaikan sebelumnya.'
+                            'event_type' => 'Istirahat sudah diselesaikan sebelumnya.',
                         ]);
                     }
                     break;
                 case EventType::END_SHIFT:
-                    if (!$hasStartedShift) {
+                    if (! $hasStartedShift) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Tidak dapat melakukan presensi pulang. Anda belum melakukan presensi masuk kerja.'
+                            'event_type' => 'Tidak dapat melakukan presensi pulang. Anda belum melakukan presensi masuk kerja.',
                         ]);
                     }
-                    if ($hasStartedBreak && !$hasEndedBreak) {
+                    if ($hasStartedBreak && ! $hasEndedBreak) {
                         throw ValidationException::withMessages([
-                            'event_type' => 'Tidak dapat pulang kerja saat masih istirahat. Selesaikan istirahat terlebih dahulu.'
+                            'event_type' => 'Tidak dapat pulang kerja saat masih istirahat. Selesaikan istirahat terlebih dahulu.',
                         ]);
                     }
                     break;
@@ -278,10 +279,10 @@ class AttendanceService extends BaseService
                 'selfie_path' => $data['selfie_path'],
                 'selfie_base64' => $data['selfie_base64'] ?? null,
                 'notes' => $data['notes'] ?? null,
-                'accuracy' => isset($data['accuracy']) && is_numeric($data['accuracy']) ? (float)$data['accuracy'] : null,
-                'altitude' => isset($data['altitude']) && is_numeric($data['altitude']) ? (float)$data['altitude'] : null,
-                'is_mocked' => !empty($data['is_mocked']) && filter_var($data['is_mocked'], FILTER_VALIDATE_BOOLEAN),
-                'device_timestamp' => !empty($data['device_timestamp']) ? \Carbon\Carbon::parse($data['device_timestamp']) : null,
+                'accuracy' => isset($data['accuracy']) && is_numeric($data['accuracy']) ? (float) $data['accuracy'] : null,
+                'altitude' => isset($data['altitude']) && is_numeric($data['altitude']) ? (float) $data['altitude'] : null,
+                'is_mocked' => ! empty($data['is_mocked']) && filter_var($data['is_mocked'], FILTER_VALIDATE_BOOLEAN),
+                'device_timestamp' => ! empty($data['device_timestamp']) ? \Carbon\Carbon::parse($data['device_timestamp']) : null,
                 'device_telemetry' => $data['device_telemetry'] ?? null,
             ]);
 

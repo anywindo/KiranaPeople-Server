@@ -34,9 +34,10 @@ class AttendanceEvent extends Model
     public function getSelfieUrlAttribute(): ?string
     {
         if (empty($this->selfie_path)) {
-            if (!empty($this->selfie_base64)) {
-                return 'data:image/webp;base64,' . $this->selfie_base64;
+            if (! empty($this->selfie_base64)) {
+                return 'data:image/webp;base64,'.$this->selfie_base64;
             }
+
             return null;
         }
 
@@ -45,8 +46,8 @@ class AttendanceEvent extends Model
         }
 
         $r2Url = config('filesystems.disks.r2.url');
-        if (!empty($r2Url)) {
-            return rtrim($r2Url, '/') . '/' . ltrim($this->selfie_path, '/');
+        if (! empty($r2Url)) {
+            return rtrim($r2Url, '/').'/'.ltrim($this->selfie_path, '/');
         }
 
         return \Illuminate\Support\Facades\Storage::disk('public')->url($this->selfie_path);

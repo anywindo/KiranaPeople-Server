@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class EmployeeLateNotification extends Notification implements ShouldQueue
@@ -12,6 +11,7 @@ class EmployeeLateNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public $employee;
+
     public $latenessMinutes;
 
     /**
@@ -41,7 +41,7 @@ class EmployeeLateNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'message' => "{$this->employee->name} terlambat {$this->latenessMinutes} menit pada " . now()->format('d M Y'),
+            'message' => "{$this->employee->name} terlambat {$this->latenessMinutes} menit pada ".now()->format('d M Y'),
             'employee_id' => $this->employee->id,
             'lateness_minutes' => $this->latenessMinutes,
         ];

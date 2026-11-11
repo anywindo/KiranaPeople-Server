@@ -3,13 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\EventType;
-use App\Models\AuditLog;
 use App\Models\Location;
 use App\Models\Role;
 use App\Models\Shift;
 use App\Models\User;
 use App\Services\AttendanceService;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -21,8 +19,11 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Shift $shift;
+
     protected Location $location;
+
     protected AttendanceService $service;
 
     protected function setUp(): void
@@ -198,7 +199,7 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
             ],
             'data' => [
                 'event_type' => 'START_SHIFT',
-            ]
+            ],
         ]);
 
         $this->assertDatabaseHas('attendance_events', [
@@ -215,4 +216,3 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
         ]);
     }
 }
-
