@@ -28,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
         Paginator::useBootstrapFive();
 
+        \Illuminate\Support\Facades\Gate::define('viewApiDocs', function ($user = null) {
+            return (bool) env('API_DOCS_ENABLED', true);
+        });
+
         \Illuminate\Support\Facades\RateLimiter::for('api', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

@@ -83,8 +83,9 @@ class AdminApiAndQueueWorkerTest extends TestCase
     public function test_employee_late_notification_implements_should_queue(): void
     {
         $notification = new EmployeeLateNotification($this->employee1, 15);
-        $this->assertTrue($notification instanceof ShouldQueue);
+        $this->assertTrue(is_a($notification, ShouldQueue::class));
 
+        /** @var EmployeeLateNotification $notification */
         $channels = $notification->via($this->admin);
         $this->assertContains('database', $channels);
 
