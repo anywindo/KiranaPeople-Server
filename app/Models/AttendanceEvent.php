@@ -14,8 +14,13 @@ class AttendanceEvent extends Model
     protected $casts = [
         'event_type' => \App\Enums\EventType::class,
         'timestamp' => 'datetime',
+        'device_timestamp' => 'datetime',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
+        'accuracy' => 'decimal:2',
+        'altitude' => 'decimal:2',
+        'is_mocked' => 'boolean',
+        'device_telemetry' => 'array',
     ];
 
     public function attendance()

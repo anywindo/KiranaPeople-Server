@@ -29,7 +29,7 @@ class Attendance extends Model
 
     public function events()
     {
-        return $this->hasMany(AttendanceEvent::class);
+        return $this->hasMany(AttendanceEvent::class)->orderBy('timestamp', 'asc')->orderBy('id', 'asc');
     }
 
     public function getShiftStatusAttribute()

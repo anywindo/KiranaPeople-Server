@@ -71,6 +71,9 @@ class AttendanceController extends Controller
                 'timestamp' => $event->timestamp ? Carbon::parse($event->timestamp)->format('Y-m-d H:i:s') : '',
                 'latitude' => $event->latitude !== null ? (float) $event->latitude : null,
                 'longitude' => $event->longitude !== null ? (float) $event->longitude : null,
+                'accuracy' => $event->accuracy !== null ? (float) $event->accuracy : null,
+                'is_mocked' => (bool) $event->is_mocked,
+                'notes' => $event->notes,
                 'selfie_url' => $event->selfie_url,
             ];
         });
@@ -211,6 +214,21 @@ class AttendanceController extends Controller
         $payload = $request->validated();
         $payload['selfie_path'] = $selfiePath;
         $payload['selfie_base64'] = $selfieBase64;
+
+        $telemetryKeys = [
+            'integrity_status', 'is_rooted', 'is_hooked', 'is_emulator',
+            'is_debugger', 'is_developer_mode', 'fake_gps_app_installed',
+            'integrity_signals', 'app_signature'
+        ];
+        $telemetry = [];
+        foreach ($telemetryKeys as $key) {
+            if ($request->has($key)) {
+                $telemetry[$key] = $request->input($key);
+            }
+        }
+        if (!empty($telemetry)) {
+            $payload['device_telemetry'] = $telemetry;
+        }
 
         $attendance = $this->attendanceService->recordEvent($employee, $shift, $eventType, $payload);
 

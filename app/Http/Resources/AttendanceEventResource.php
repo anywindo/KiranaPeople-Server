@@ -20,6 +20,9 @@ class AttendanceEventResource extends JsonResource
             'timestamp' => $this->timestamp,
             'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
             'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
+            'accuracy' => $this->accuracy !== null ? (float) $this->accuracy : null,
+            'is_mocked' => (bool) $this->is_mocked,
+            'notes' => $this->notes,
             'selfie_path' => $this->selfie_path,
             'selfie_url' => $this->selfie_url,
         ];

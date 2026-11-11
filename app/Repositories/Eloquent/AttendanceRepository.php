@@ -12,11 +12,16 @@ class AttendanceRepository extends BaseRepository implements AttendanceRepositor
     /**
      * Find today's attendance for a user.
      */
-    public function findTodayAttendanceForUser(int $userId)
+    public function findTodayAttendanceForUser(int $userId, bool $lockForUpdate = false)
     {
-        return $this->newQuery()
+        $query = $this->newQuery()
             ->where('user_id', $userId)
-            ->whereDate('date', today())
-            ->first();
+            ->whereDate('date', today());
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->first();
     }
 }
