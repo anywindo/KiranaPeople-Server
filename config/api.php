@@ -49,6 +49,6 @@ return [
     | Sanctum Token
     |--------------------------------------------------------------------------
     */
-    'token_expiry' => (int) env('SANCTUM_TOKEN_EXPIRY', 1440), // minutes (default 24h)
+    'token_expiry' => (int) env('SANCTUM_EXPIRATION', env('SANCTUM_TOKEN_EXPIRY', 1440)), // minutes (default 24h)
 
 ];

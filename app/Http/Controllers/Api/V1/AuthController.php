@@ -27,6 +27,7 @@ class AuthController extends BaseController
             'token' => $result['token'],
             'token_type' => $result['token_type'],
             'expires_in' => $result['expires_in'],
+            'expires_at' => $result['expires_at'],
         ], 'Registration successful');
     }
 
@@ -39,6 +40,7 @@ class AuthController extends BaseController
             'token' => $result['token'],
             'token_type' => $result['token_type'],
             'expires_in' => $result['expires_in'],
+            'expires_at' => $result['expires_at'],
         ], 'Login successful');
     }
 

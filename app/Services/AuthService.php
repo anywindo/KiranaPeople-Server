@@ -33,13 +33,15 @@ class AuthService extends BaseService
             return $user;
         });
 
-        $token = $user->createToken('auth-token', ['read', 'write'])->plainTextToken;
+        $expiresAt = $this->tokenExpiresAt();
+        $token = $user->createToken('auth-token', ['read', 'write'], $expiresAt)->plainTextToken;
 
         return [
             'user' => $user,
             'token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => config('api.token_expiry', 1440),
+            'expires_in' => (int) config('sanctum.expiration', config('api.token_expiry', 1440)),
+            'expires_at' => $expiresAt?->toISOString(),
         ];
     }
 
@@ -74,13 +76,15 @@ class AuthService extends BaseService
 
         // Grant token abilities based on role
         $abilities = $this->abilitiesForUser($user);
-        $token = $user->createToken('auth-token', $abilities)->plainTextToken;
+        $expiresAt = $this->tokenExpiresAt();
+        $token = $user->createToken('auth-token', $abilities, $expiresAt)->plainTextToken;
 
         return [
             'user' => $user->load('roles'),
             'token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => config('api.token_expiry', 1440),
+            'expires_in' => (int) config('sanctum.expiration', config('api.token_expiry', 1440)),
+            'expires_at' => $expiresAt?->toISOString(),
         ];
     }
 
@@ -99,13 +103,25 @@ class AuthService extends BaseService
     {
         $user->currentAccessToken()->delete();
         $abilities = $this->abilitiesForUser($user);
-        $token = $user->createToken('auth-token', $abilities)->plainTextToken;
+        $expiresAt = $this->tokenExpiresAt();
+        $token = $user->createToken('auth-token', $abilities, $expiresAt)->plainTextToken;
 
         return [
             'token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => config('api.token_expiry', 1440),
+            'expires_in' => (int) config('sanctum.expiration', config('api.token_expiry', 1440)),
+            'expires_at' => $expiresAt?->toISOString(),
         ];
+    }
+
+    /**
+     * Calculate token expiration datetime.
+     */
+    private function tokenExpiresAt(): ?\DateTimeInterface
+    {
+        $minutes = config('sanctum.expiration', config('api.token_expiry', 1440));
+
+        return $minutes ? now()->addMinutes((int) $minutes) : null;
     }
 
     /**

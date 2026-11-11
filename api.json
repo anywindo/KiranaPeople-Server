@@ -1260,14 +1260,18 @@
                                                     "const": "Bearer"
                                                 },
                                                 "expires_in": {
-                                                    "type": "string"
+                                                    "type": "integer"
+                                                },
+                                                "expires_at": {
+                                                    "type": "null"
                                                 }
                                             },
                                             "required": [
                                                 "user",
                                                 "token",
                                                 "token_type",
-                                                "expires_in"
+                                                "expires_in",
+                                                "expires_at"
                                             ]
                                         },
                                         "meta": {
@@ -1340,14 +1344,18 @@
                                                     "const": "Bearer"
                                                 },
                                                 "expires_in": {
-                                                    "type": "string"
+                                                    "type": "integer"
+                                                },
+                                                "expires_at": {
+                                                    "type": "null"
                                                 }
                                             },
                                             "required": [
                                                 "user",
                                                 "token",
                                                 "token_type",
-                                                "expires_in"
+                                                "expires_in",
+                                                "expires_at"
                                             ]
                                         },
                                         "meta": {
@@ -1989,13 +1997,17 @@
                                                     "const": "Bearer"
                                                 },
                                                 "expires_in": {
-                                                    "type": "string"
+                                                    "type": "integer"
+                                                },
+                                                "expires_at": {
+                                                    "type": "null"
                                                 }
                                             },
                                             "required": [
                                                 "token",
                                                 "token_type",
-                                                "expires_in"
+                                                "expires_in",
+                                                "expires_at"
                                             ]
                                         },
                                         "meta": {
