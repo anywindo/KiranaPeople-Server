@@ -14,14 +14,14 @@ class MigrateStorageToR2 extends Command
      *
      * @var string
      */
-    protected $signature = 'storage:migrate-r2';
+    protected $signature = 'storage:migrate-r2 {--clean-db : Purge base64 columns from database after uploading to R2}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Migrate all avatars and selfies from local/database to Cloudflare R2 bucket';
+    protected $description = 'Migrate all avatars and selfies from local/database to Cloudflare R2 bucket and optionally clean database base64 columns';
 
     /**
      * Execute the console command.
@@ -29,6 +29,7 @@ class MigrateStorageToR2 extends Command
     public function handle(): int
     {
         $r2 = Storage::disk('r2');
+        $cleanDb = (bool) $this->option('clean-db');
 
         $this->info('Starting migration to Cloudflare R2...');
 
@@ -40,12 +41,12 @@ class MigrateStorageToR2 extends Command
             $path = str_starts_with($path, 'storage/') ? substr($path, 8) : $path;
 
             $binary = null;
-            if (!empty($user->avatar_base64)) {
+            if (! empty($user->avatar_base64)) {
                 $binary = base64_decode($user->avatar_base64);
             } elseif (file_exists(public_path($path))) {
                 $binary = file_get_contents(public_path($path));
-            } elseif (file_exists(storage_path('app/public/' . $path))) {
-                $binary = file_get_contents(storage_path('app/public/' . $path));
+            } elseif (file_exists(storage_path('app/public/'.$path))) {
+                $binary = file_get_contents(storage_path('app/public/'.$path));
             }
 
             if ($binary) {
@@ -53,7 +54,10 @@ class MigrateStorageToR2 extends Command
                     'visibility' => 'public',
                     'ContentType' => 'image/webp',
                 ]);
-                $this->line("  [OK] Uploaded avatar: {$path} (" . strlen($binary) . " bytes)");
+                if ($cleanDb && ! empty($user->avatar_base64)) {
+                    $user->update(['avatar_base64' => null]);
+                }
+                $this->line("  [OK] Uploaded avatar: {$path} (".strlen($binary).' bytes)');
             } else {
                 $this->warn("  [SKIP] No binary found for avatar: {$path}");
             }
@@ -67,12 +71,12 @@ class MigrateStorageToR2 extends Command
             $path = str_starts_with($path, 'storage/') ? substr($path, 8) : $path;
 
             $binary = null;
-            if (!empty($event->selfie_base64)) {
+            if (! empty($event->selfie_base64)) {
                 $binary = base64_decode($event->selfie_base64);
             } elseif (file_exists(public_path($path))) {
                 $binary = file_get_contents(public_path($path));
-            } elseif (file_exists(storage_path('app/public/' . $path))) {
-                $binary = file_get_contents(storage_path('app/public/' . $path));
+            } elseif (file_exists(storage_path('app/public/'.$path))) {
+                $binary = file_get_contents(storage_path('app/public/'.$path));
             }
 
             if ($binary) {
@@ -80,13 +84,17 @@ class MigrateStorageToR2 extends Command
                     'visibility' => 'public',
                     'ContentType' => 'image/webp',
                 ]);
-                $this->line("  [OK] Uploaded selfie: {$path} (" . strlen($binary) . " bytes)");
+                if ($cleanDb && ! empty($event->selfie_base64)) {
+                    $event->update(['selfie_base64' => null]);
+                }
+                $this->line("  [OK] Uploaded selfie: {$path} (".strlen($binary).' bytes)');
             } else {
                 $this->warn("  [SKIP] No binary found for selfie: {$path}");
             }
         }
 
         $this->info('Migration to Cloudflare R2 completed successfully!');
+
         return self::SUCCESS;
     }
 }

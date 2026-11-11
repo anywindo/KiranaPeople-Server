@@ -23,8 +23,8 @@ class AuthController extends BaseController
         $result = $this->authService->register($request->validated());
 
         return $this->created([
-            'user'       => new UserResource($result['user']),
-            'token'      => $result['token'],
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
             'token_type' => $result['token_type'],
             'expires_in' => $result['expires_in'],
         ], 'Registration successful');
@@ -35,8 +35,8 @@ class AuthController extends BaseController
         $result = $this->authService->login($request->validated());
 
         return $this->success([
-            'user'       => new UserResource($result['user']),
-            'token'      => $result['token'],
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
             'token_type' => $result['token_type'],
             'expires_in' => $result['expires_in'],
         ], 'Login successful');
@@ -89,15 +89,20 @@ class AuthController extends BaseController
 
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
-                try { Storage::disk('r2')->delete($user->avatar); } catch (\Throwable $e) {}
-                try { Storage::disk('public')->delete($user->avatar); } catch (\Throwable $e) {}
+                try {
+                    Storage::disk('r2')->delete($user->avatar);
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Storage::disk('public')->delete($user->avatar);
+                } catch (\Throwable $e) {
+                }
             }
-            $uploaded = $fileUploadService->uploadImageWithBase64($request->file('avatar'), 'avatars');
-            $updates['avatar'] = $uploaded['path'];
-            $updates['avatar_base64'] = $uploaded['base64'];
+            $updates['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
+            $updates['avatar_base64'] = null;
         }
 
-        if (!empty($updates)) {
+        if (! empty($updates)) {
             $user->update($updates);
         }
 
@@ -134,7 +139,7 @@ class AuthController extends BaseController
 
         $currentPasswordProvided = $request->input('current_password') ?? $request->input('old_password');
 
-        if (!$user->mustChangePassword()) {
+        if (! $user->mustChangePassword()) {
             if (empty($currentPasswordProvided)) {
                 return response()->json([
                     'meta' => [
@@ -147,7 +152,7 @@ class AuthController extends BaseController
                 ], 422);
             }
 
-            if (!Hash::check($currentPasswordProvided, $user->password)) {
+            if (! Hash::check($currentPasswordProvided, $user->password)) {
                 return response()->json([
                     'meta' => [
                         'success' => false,
@@ -167,7 +172,7 @@ class AuthController extends BaseController
                 'meta' => [
                     'success' => false,
                     'message' => 'Kata sandi baru tidak boleh sama dengan kata sandi default atau tanggal lahir Anda.',
-                ]
+                ],
             ], 422);
         }
 
@@ -211,7 +216,7 @@ class AuthController extends BaseController
                 'meta' => [
                     'success' => false,
                     'message' => 'Kata sandi baru tidak boleh sama dengan kata sandi default atau tanggal lahir Anda.',
-                ]
+                ],
             ], 422);
         }
 
@@ -236,7 +241,7 @@ class AuthController extends BaseController
 
         $sent = $service->sendResetNotification($request->email);
 
-        if (!$sent) {
+        if (! $sent) {
             return $this->error('Email tidak terdaftar dalam sistem.', 404, [
                 'email' => ['Email tidak terdaftar dalam sistem.'],
             ]);
@@ -263,7 +268,7 @@ class AuthController extends BaseController
             $request->otp
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return $this->error($result['message'], 422, [
                 'otp' => [$result['message']],
             ]);
@@ -292,7 +297,7 @@ class AuthController extends BaseController
             $request->password
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return $this->error($result['message'], 422);
         }
 

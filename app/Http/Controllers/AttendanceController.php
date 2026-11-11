@@ -237,9 +237,8 @@ class AttendanceController extends Controller
                 } catch (\Throwable $e) {
                 }
             }
-            $uploaded = $fileUploadService->uploadImageWithBase64($request->file('avatar'), 'avatars');
-            $validated['avatar'] = $uploaded['path'];
-            $validated['avatar_base64'] = $uploaded['base64'];
+            $validated['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
+            $validated['avatar_base64'] = null;
         }
 
         if (! empty($validated['password'])) {

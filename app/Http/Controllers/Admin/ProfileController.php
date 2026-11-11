@@ -13,7 +13,7 @@ class ProfileController extends Controller
     public function index()
     {
         return view('admin.profile.index', [
-            'user' => auth()->user()
+            'user' => auth()->user(),
         ]);
     }
 
@@ -31,16 +31,21 @@ class ProfileController extends Controller
 
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
-                try { Storage::disk('r2')->delete($user->avatar); } catch (\Throwable $e) {}
-                try { Storage::disk('public')->delete($user->avatar); } catch (\Throwable $e) {}
+                try {
+                    Storage::disk('r2')->delete($user->avatar);
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Storage::disk('public')->delete($user->avatar);
+                } catch (\Throwable $e) {
+                }
             }
-            $fileUploadService = new \App\Services\FileUploadService();
-            $uploaded = $fileUploadService->uploadImageWithBase64($request->file('avatar'), 'avatars');
-            $validated['avatar'] = $uploaded['path'];
-            $validated['avatar_base64'] = $uploaded['base64'];
+            $fileUploadService = new \App\Services\FileUploadService;
+            $validated['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
+            $validated['avatar_base64'] = null;
         }
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
