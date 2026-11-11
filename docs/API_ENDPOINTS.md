@@ -66,15 +66,41 @@ Base URL: `http://localhost:8000/api/v1` (atau URL domain production dengan pref
   }
   ```
 
-### 1.2 Health Check
+### 1.2 Deep Health Check
 - **URL**: `GET /api/health`
 - **Auth**: Publik
-- **Deskripsi**: Liveness check untuk container / monitoring tools.
-- **Respons**:
+- **Deskripsi**: Deep health check untuk load balancer, container orchestrator (Kubernetes, Render, Docker), dan monitoring tools. Mengecek konektivitas database (SQL ping), cache subsystem, dan storage (local & Cloudflare R2). Mengembalikan HTTP 200 jika sehat/degraded, atau HTTP 503 jika database terputus.
+- **Respons (HTTP 200)**:
   ```json
   {
-    "status": "ok",
-    "timestamp": "2026-10-16T08:00:00.000000Z"
+    "status": "healthy",
+    "name": "KiranaPeople",
+    "version": "1.0.1",
+    "environment": "production",
+    "timestamp": "2026-11-11T11:49:07+07:00",
+    "checks": {
+      "database": {
+        "status": "ok",
+        "latency_ms": 1.45,
+        "connection": "pgsql"
+      },
+      "cache": {
+        "status": "ok",
+        "latency_ms": 0.32,
+        "driver": "file"
+      },
+      "storage": {
+        "local": {
+          "status": "ok",
+          "disk": "public"
+        },
+        "r2": {
+          "status": "ok",
+          "latency_ms": 450.21,
+          "bucket": "kiranapeople"
+        }
+      }
+    }
   }
   ```
 
