@@ -15,6 +15,9 @@ class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
+        if (Auth::user()?->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
         return $this->renderAttendanceView($request, 'home');
     }
 
@@ -168,9 +171,15 @@ class AttendanceController extends Controller
             $attendance->update(['status' => $status]);
         }
         
-        $uploaded = $fileUploadService->uploadImageWithBase64($request->file('selfie'), 'attendance-selfies');
-        $selfiePath = $uploaded['path'];
-        $selfieBase64 = $uploaded['base64'];
+        $storeBase64 = (bool) env('STORE_SELFIE_BASE64', false);
+        if ($storeBase64) {
+            $uploaded = $fileUploadService->uploadImageWithBase64($request->file('selfie'), 'attendance-selfies');
+            $selfiePath = $uploaded['path'];
+            $selfieBase64 = $uploaded['base64'];
+        } else {
+            $selfiePath = $fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
+            $selfieBase64 = null;
+        }
         
         AttendanceEvent::create([
             'attendance_id' => $attendance->id,
