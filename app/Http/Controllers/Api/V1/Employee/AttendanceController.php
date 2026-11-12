@@ -152,7 +152,30 @@ class AttendanceController extends Controller
      */
     public function history(Request $request)
     {
-        $attendances = $request->user()->attendances()->with(['events', 'shift'])->latest('date')->paginate(15);
+        $query = $request->user()->attendances()->with(['events', 'shift'])->latest('date');
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('date', '>=', $request->input('start_date'));
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('date', '<=', $request->input('end_date'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('month')) {
+            $query->whereMonth('date', $request->input('month'));
+        }
+
+        if ($request->filled('year')) {
+            $query->whereYear('date', $request->input('year'));
+        }
+
+        $perPage = (int) $request->input('per_page', 15);
+        $attendances = $query->paginate($perPage);
 
         return AttendanceResource::collection($attendances);
     }
