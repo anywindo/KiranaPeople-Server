@@ -7,6 +7,7 @@ use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\FileUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
 {
