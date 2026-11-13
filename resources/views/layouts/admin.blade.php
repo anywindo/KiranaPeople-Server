@@ -116,7 +116,7 @@
             --bs-table-bg: transparent;
         }
 
-        .table > :not(caption) > * > * {
+        .table> :not(caption)>*>* {
             padding: 0.75rem 1rem;
             vertical-align: middle;
         }
@@ -156,10 +156,57 @@
             transition: background 0.2s ease, border-color 0.2s ease;
         }
 
-        .app-header > .container-fluid {
+        .app-header>.container-fluid {
             height: 100%;
             display: flex;
             align-items: center;
+        }
+
+        .app-header .navbar-nav {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .app-header .navbar-nav .nav-item {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .app-header .navbar-nav .nav-link {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* User Menu Profile Dropdown Alignment & Clean Shadow */
+        .app-header .user-menu .nav-link,
+        .navbar-nav > .user-menu > .nav-link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 100%;
+        }
+
+        .app-header .user-menu .user-image,
+        .navbar-nav > .user-menu .user-image {
+            float: none !important;
+            margin: 0 !important;
+            margin-top: 0 !important;
+            margin-right: 0 !important;
+            line-height: 1 !important;
+            width: 2.1rem !important;
+            height: 2.1rem !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+            box-shadow: none !important;
+            filter: none !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+        }
+
+        .app-header .user-menu span {
+            display: inline-flex !important;
+            align-items: center !important;
+            line-height: 1 !important;
         }
 
         .app-footer,
@@ -816,7 +863,7 @@
             color: #94a3b8 !important;
         }
 
-        [data-bs-theme="dark"] .breadcrumb-item + .breadcrumb-item::before {
+        [data-bs-theme="dark"] .breadcrumb-item+.breadcrumb-item::before {
             color: #64748b !important;
         }
 
@@ -1126,10 +1173,10 @@
 
                     <!--begin::User Menu Dropdown-->
                     <li class="nav-item dropdown user-menu">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img src="{{ auth()->user()->avatar_url }}" class="user-image rounded-circle shadow"
-                                style="object-fit: cover; width: 2.1rem; height: 2.1rem;" alt="User Image">
-                            <span class="d-none d-md-inline">{{ auth()->user()->name }}</span>
+                        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                            <img src="{{ auth()->user()->avatar_url }}" class="user-image rounded-circle"
+                                style="object-fit: cover; width: 2.1rem; height: 2.1rem; box-shadow: none !important;" alt="User Image">
+                            <span class="d-none d-md-inline ms-2">{{ auth()->user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow-sm"
                             style="border-radius: 0.5rem; overflow: hidden; border: 1px solid rgba(0,0,0,0.1);">
