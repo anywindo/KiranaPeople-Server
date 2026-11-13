@@ -26,8 +26,11 @@ class AttendanceController extends Controller
             });
         }
 
-        if ($request->filled('date')) {
-            $query->whereDate('date', $request->date);
+        // Default date filter to today if 'date' query parameter is not explicitly provided
+        $selectedDate = $request->has('date') ? $request->input('date') : now()->toDateString();
+
+        if (! empty($selectedDate)) {
+            $query->whereDate('date', $selectedDate);
         }
 
         if ($request->filled('shift_id')) {
@@ -42,12 +45,12 @@ class AttendanceController extends Controller
         }
 
         $perPage = $request->input('per_page', 10);
-        $attendances = $query->paginate($perPage)->appends($request->all());
+        $attendances = $query->paginate($perPage)->appends(array_merge($request->all(), ['date' => $selectedDate]));
 
         $shifts = \App\Models\Shift::getAllCached();
         $locations = \App\Models\Location::getAllCached();
 
-        return view('admin.attendances.index', compact('attendances', 'shifts', 'locations'));
+        return view('admin.attendances.index', compact('attendances', 'shifts', 'locations', 'selectedDate'));
     }
 
     public function export(Request $request)

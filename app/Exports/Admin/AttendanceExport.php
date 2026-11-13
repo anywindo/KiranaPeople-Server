@@ -6,11 +6,17 @@ use App\Models\Attendance;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class AttendanceExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
+class AttendanceExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithChunkReading
 {
+    public function chunkSize(): int
+    {
+        return 500;
+    }
+
     protected $rowNumber = 0;
 
     protected $startDate;

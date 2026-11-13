@@ -2,8 +2,20 @@
     "$schema": "https://www.schemastore.org/package.json",
     "private": true,
     "type": "module",
-    "scripts": {},
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
     "devDependencies": {
-        "bootstrap": "5.3.8"
+        "@tailwindcss/vite": "^4.3.5",
+        "autoprefixer": "^10.6.2",
+        "bootstrap": "5.3.8",
+        "laravel-vite-plugin": "^3.2.1",
+        "postcss": "^8.5.32",
+        "tailwindcss": "^4.3.5",
+        "vite": "^8.3.8"
+    },
+    "dependencies": {
+        "chart.js": "^4.6.1"
     }
 }

@@ -11,7 +11,20 @@ class Setting extends Model
 
     protected $fillable = ['key', 'value', 'type'];
 
+    public const CACHE_KEY = 'kirana_app_settings';
+
     protected static array $runtimeCache = [];
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            static::clearCache();
+        });
+
+        static::deleted(function () {
+            static::clearCache();
+        });
+    }
 
     public static function get($key, $default = null)
     {
@@ -19,15 +32,23 @@ class Setting extends Model
             return self::$runtimeCache[$key];
         }
 
-        // Preload all settings into runtime cache on first call to prevent N+1 queries
+        // Preload all settings from persistent cache or DB into runtime cache
         if (empty(self::$runtimeCache)) {
             try {
-                $all = self::all();
-                foreach ($all as $item) {
-                    self::$runtimeCache[$item->key] = self::castValue($item->value, $item->type);
+                $cached = \Illuminate\Support\Facades\Cache::rememberForever(self::CACHE_KEY, function () {
+                    $all = self::all();
+                    $settings = [];
+                    foreach ($all as $item) {
+                        $settings[$item->key] = self::castValue($item->value, $item->type);
+                    }
+                    return $settings;
+                });
+
+                if (is_array($cached)) {
+                    self::$runtimeCache = $cached;
                 }
             } catch (\Throwable $e) {
-                // Table might not exist during early migrations
+                // Table or cache might not exist during early migrations
             }
         }
 
@@ -55,17 +76,22 @@ class Setting extends Model
 
     public static function set($key, $value, $type = 'string')
     {
-        $castValue = self::castValue(is_array($value) ? json_encode($value) : $value, $type);
-        self::$runtimeCache[$key] = $castValue;
-
-        return self::updateOrCreate(
+        $result = self::updateOrCreate(
             ['key' => $key],
             ['value' => is_array($value) ? json_encode($value) : $value, 'type' => $type]
         );
+
+        self::clearCache();
+
+        return $result;
     }
 
     public static function clearCache(): void
     {
         self::$runtimeCache = [];
+        try {
+            \Illuminate\Support\Facades\Cache::forget(self::CACHE_KEY);
+        } catch (\Throwable $e) {
+        }
     }
 }

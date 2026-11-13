@@ -9,6 +9,7 @@
 <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
 <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Kirana People') }}">
+<meta name="color-scheme" content="light dark">
 <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
 <script>

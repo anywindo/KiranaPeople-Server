@@ -1,3 +1,13 @@
+# Stage 1: Build frontend assets with Node & Vite
+FROM node:22-bookworm-slim AS assets
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY resources/ resources/
+COPY vite.config.js ./
+RUN npm run build
+
+# Stage 2: Main FrankenPHP runtime
 FROM dunglas/frankenphp:1-php8.4-bookworm
 
 # Strip elevated Linux capabilities so frankenphp can execute in unprivileged cloud containers (Render)
@@ -28,6 +38,9 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 
 # Copy the rest of the application code
 COPY . /app
+
+# Copy compiled frontend assets from assets stage
+COPY --from=assets /app/public/build /app/public/build
 
 # Copy custom Caddyfile
 COPY Caddyfile /etc/caddy/Caddyfile

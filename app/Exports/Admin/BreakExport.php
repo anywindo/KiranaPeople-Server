@@ -7,11 +7,17 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class BreakExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
+class BreakExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithChunkReading
 {
+    public function chunkSize(): int
+    {
+        return 500;
+    }
+
     protected $rowNumber = 0;
 
     protected $startDate;

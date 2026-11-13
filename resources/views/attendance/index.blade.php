@@ -7,53 +7,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Presensi | Kirana People</title>
     @include('layouts.partials.favicons')
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #F6F7FA;
-            color: #1C1C1E;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .tn-card {
-            background-color: #FFFFFF;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(240, 242, 245, 0.9);
-        }
-
-        .leaflet-bottom,
-        .leaflet-top {
-            z-index: 40 !important;
-        }
-
-        [x-cloak] {
-            display: none !important;
-        }
-
-        /* Smooth scroll & hide scrollbar for clean app feel */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .leaflet-div-icon {
-            background: transparent !important;
-            border: none !important;
-        }
-    </style>
 </head>
 
 @php

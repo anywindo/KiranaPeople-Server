@@ -21,144 +21,175 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <style>
         :root {
+            /* Declare supported color scheme for UA controls */
+            color-scheme: light dark;
+
+            /* Brand & Accent Tokens */
             --bs-primary: #4f46e5;
             --bs-primary-rgb: 79, 70, 229;
+            --kirana-accent: #FF21A4;
+            --kirana-accent-rgb: 255, 33, 164;
+
+            /* WCAG Compliant Status Palette */
             --bs-success: #10b981;
             --bs-success-rgb: 16, 185, 129;
-            --bs-info: #0ea5e9;
-            --bs-info-rgb: 14, 165, 233;
-            --bs-warning: #f59e0b;
-            --bs-warning-rgb: 245, 158, 11;
-            --bs-danger: #ef4444;
-            --bs-danger-rgb: 239, 68, 68;
+            --bs-info: #0284c7;
+            --bs-info-rgb: 2, 132, 199;
+            --bs-warning: #d97706;
+            --bs-warning-rgb: 217, 119, 6;
+            --bs-danger: #e11d48;
+            --bs-danger-rgb: 225, 29, 72;
             --bs-dark: #0f172a;
             --bs-dark-rgb: 15, 23, 42;
+
+            /* Light Surfaces (Slate Tone) */
             --bs-body-bg: #f8fafc;
+            --bs-body-color: #0f172a;
+            --kirana-sidebar-bg: #0f172a;
+            --card-border-color: #e2e8f0;
+            --header-bg: rgba(255, 255, 255, 0.85);
+            --header-border-color: #e2e8f0;
+        }
+
+        /* Match interactive form controls and scrollbars to modern standard */
+        html {
+            accent-color: var(--bs-primary);
+            scrollbar-color: light-dark(#cbd5e1, #475569) transparent;
+            scrollbar-width: thin;
         }
 
         body {
             background-color: var(--bs-body-bg);
-            background-attachment: fixed;
-            transition: background-color 0.3s ease;
+            color: var(--bs-body-color);
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
+        .card {
+            border: 1px solid var(--card-border-color);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+            border-radius: 0.75rem;
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--card-border-color);
+        }
+
+        .card-header::after,
+        .card-footer::after {
+            display: none !important;
+        }
+
+        /* Sticky table header support for scrollable cards */
+        thead.sticky-top th {
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-image: url('{{ asset('loginpage2.webp') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0.2;
-            z-index: -2;
-            pointer-events: none;
+            z-index: 2;
+            background-color: #f1f5f9 !important;
         }
 
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
-            z-index: -1;
-            pointer-events: none;
-            transition: background 0.3s ease;
+        [data-bs-theme="dark"] thead.sticky-top th {
+            background-color: #1e293b !important;
         }
 
-        /* Dark Mode Overrides */
-        [data-bs-theme="dark"] body::after {
-            background: linear-gradient(to top, rgba(33, 37, 41, 1) 0%, rgba(33, 37, 41, 0) 100%);
+        .app-header {
+            background: var(--header-bg) !important;
+            border-bottom: 1px solid var(--header-border-color);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
-        [data-bs-theme="dark"] .app-header {
-            background: rgba(33, 37, 41, 0.8) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .app-footer {
+            background: var(--header-bg) !important;
+            border-top: 1px solid var(--header-border-color);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
-        [data-bs-theme="dark"] .app-footer {
-            background: rgba(33, 37, 41, 0.8) !important;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        /* Dark Mode Slate Identity (Matching Mobile Client AppColors) */
+        [data-bs-theme="dark"] {
+            --bs-body-bg: #0b1120;
+            --bs-body-color: #f8fafc;
+            --kirana-sidebar-bg: #020617;
+            --card-border-color: #334155;
+            --header-bg: rgba(15, 23, 42, 0.85);
+            --header-border-color: #334155;
         }
 
         [data-bs-theme="dark"] .card {
-            background: rgba(33, 37, 41, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow:
-                0 8px 12px -3px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                inset 1px 0 0 rgba(255, 255, 255, 0.05);
+            background-color: #1e293b;
+            border-color: var(--card-border-color);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
         }
 
         [data-bs-theme="dark"] .card-header {
-            background: rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.02);
+            border-bottom-color: var(--card-border-color);
         }
 
         [data-bs-theme="dark"] .small-box {
-            background: rgba(33, 37, 41, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow:
-                0 10px 15px -3px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: #1e293b;
+            border: 1px solid var(--card-border-color);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
         }
 
         [data-bs-theme="dark"] .small-box::before {
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
         }
 
         /* Pagination Dark Mode */
         [data-bs-theme="dark"] .page-link {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: #f8f9fa;
+            background-color: #1e293b;
+            border-color: var(--card-border-color);
+            color: #f8fafc;
         }
 
         [data-bs-theme="dark"] .page-item.active .page-link {
             background-color: var(--bs-primary);
             border-color: var(--bs-primary);
+            color: #ffffff;
         }
 
         [data-bs-theme="dark"] .page-item.disabled .page-link {
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: #0f172a;
             border-color: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.5);
+            color: #64748b;
         }
 
         /* Text Overrides Dark Mode */
         [data-bs-theme="dark"] .app-footer,
         [data-bs-theme="dark"] .app-footer a {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: #94a3b8 !important;
         }
 
         /* Dropdown Dark Mode */
         [data-bs-theme="dark"] .dropdown-menu {
-            background-color: rgba(33, 37, 41, 0.95) !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5) !important;
+            background-color: #1e293b !important;
+            border-color: var(--card-border-color) !important;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5) !important;
         }
 
         [data-bs-theme="dark"] .dropdown-item {
-            color: rgba(255, 255, 255, 0.85) !important;
+            color: #e2e8f0 !important;
         }
 
         [data-bs-theme="dark"] .dropdown-item:hover,
         [data-bs-theme="dark"] .dropdown-item:focus {
-            background-color: rgba(255, 255, 255, 0.1) !important;
+            background-color: #334155 !important;
             color: #ffffff !important;
         }
 
         [data-bs-theme="dark"] .dropdown-header {
-            color: rgba(255, 255, 255, 0.7) !important;
+            color: #94a3b8 !important;
         }
 
         [data-bs-theme="dark"] .dropdown-divider {
-            border-top-color: rgba(255, 255, 255, 0.1) !important;
+            border-top-color: var(--card-border-color) !important;
+        }
+
+        [data-bs-theme="dark"] .table {
+            --bs-table-bg: transparent;
+            --bs-table-border-color: var(--card-border-color);
+            color: #f8fafc;
         }
 
         /* Notification Dropdown Styling */
@@ -616,10 +647,7 @@
                         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow-sm"
                             style="border-radius: 0.5rem; overflow: hidden; border: 1px solid rgba(0,0,0,0.1);">
                             <li class="user-header position-relative border-bottom-0"
-                                style="background: url('{{ asset('loginpage2.webp') }}') center/cover no-repeat !important; color: white; overflow: hidden;">
-                                <div
-                                    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 0;">
-                                </div>
+                                style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white; overflow: hidden;">
                                 <div style="position: relative; z-index: 1;">
                                     <img src="{{ auth()->user()->avatar_url }}"
                                         class="rounded-circle shadow-sm border border-2 border-white mb-2"
@@ -833,6 +861,8 @@
     </script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Chart.js UMD -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
     @stack('scripts')
 </body>

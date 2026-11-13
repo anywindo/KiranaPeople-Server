@@ -1,4 +1,4 @@
-<aside class="app-sidebar shadow" data-bs-theme="dark" style="background-color: #1A1D20;">
+<aside class="app-sidebar shadow" data-bs-theme="dark" style="background-color: var(--kirana-sidebar-bg, #0f172a) !important; border-right: 1px solid rgba(255, 255, 255, 0.08);">
     <!--begin::Sidebar Brand-->
     <div class="sidebar-brand">
         <a href="{{ route('admin.dashboard') }}" class="brand-link">

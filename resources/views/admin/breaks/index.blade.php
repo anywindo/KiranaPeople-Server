@@ -73,91 +73,9 @@
                         <tbody>
                             @forelse($attendances as $attendance)
                                 @php
-                                    $startBreak = $attendance->events->first(fn($e) => ($e->event_type?->value ?? $e->event_type) === 'START_BREAK');
-                                    $endBreak = $attendance->events->first(fn($e) => ($e->event_type?->value ?? $e->event_type) === 'END_BREAK');
-
-                                    $duration = '-';
-                                    if ($startBreak && $endBreak) {
-                                        $diff = \Carbon\Carbon::parse($endBreak->timestamp)->diff(\Carbon\Carbon::parse($startBreak->timestamp));
-                                        $duration = sprintf('%02d:%02d:%02d', $diff->h, $diff->i, $diff->s);
-                                    }
-
-                                    // Status Logic for Admin Panel (aligned with Attendance::break_status)
-                                    $breakStatus = $attendance->break_status;
-                                    $breakStatusLabel = is_array($breakStatus) ? ($breakStatus['label'] ?? '-') : ($breakStatus ?? '-');
-                                    $breakStatusColor = is_array($breakStatus) ? ($breakStatus['color'] ?? 'secondary') : 'secondary';
-                                    $startColorClass = 'text-muted';
-                                    $endColorClass = 'text-muted';
-                                    $isEarlyBreak = false;
-                                    $isLateStartBreak = false;
-                                    $isLateBreak = false;
-
-                                    if ($startBreak && $attendance->shift && $attendance->shift->break_start && $attendance->shift->break_end) {
-                                        $startColorClass = 'text-warning'; // Default
-                                        $endColorClass = 'text-info'; // Default
-
-                                        $breakStartCfg = $attendance->shift->break_start;
-                                        $breakEndCfg = $attendance->shift->break_end;
-                                        $isFriday = $attendance->date ? \Carbon\Carbon::parse($attendance->date)->isFriday() : \Carbon\Carbon::parse($startBreak->timestamp)->isFriday();
-                                        if ($isFriday && \App\Models\Setting::get('friday_break_enabled', true)) {
-                                            $breakStartCfg = \App\Models\Setting::get('friday_break_start', '11:30');
-                                            $breakEndCfg = \App\Models\Setting::get('friday_break_end', '13:00');
-                                        }
-
-                                        $actualStartTime = \Carbon\Carbon::parse($startBreak->timestamp)->format('H:i:s');
-                                        $expectedStartTime = \Carbon\Carbon::parse($breakStartCfg)->format('H:i:s');
-                                        $expectedEndTime = \Carbon\Carbon::parse($breakEndCfg)->format('H:i:s');
-
-                                        $isEarlyBreak = ($actualStartTime < $expectedStartTime);
-                                        $isLateStartBreak = ($actualStartTime > $expectedEndTime);
-                                        $startColorClass = ($isEarlyBreak || $isLateStartBreak) ? 'text-danger' : 'text-success';
-
-                                        if ($endBreak) {
-                                            $actualEndTime = \Carbon\Carbon::parse($endBreak->timestamp)->format('H:i:s');
-                                            $actualDuration = \Carbon\Carbon::parse($endBreak->timestamp)->diffInMinutes(\Carbon\Carbon::parse($startBreak->timestamp), true);
-                                            $expectedDuration = \Carbon\Carbon::parse($breakEndCfg)->diffInMinutes(\Carbon\Carbon::parse($breakStartCfg), true);
-
-                                            $isLateBreak = ($actualEndTime > $expectedEndTime)
-                                                || ($actualEndTime < $expectedStartTime)
-                                                || ($actualDuration > $expectedDuration);
-                                            $endColorClass = $isLateBreak ? 'text-danger' : 'text-success';
-                                        }
-                                    }
-
-                                    // Prepare data for detail modal
-                                    $inPhoto = $startBreak && $startBreak->selfie_url ? $startBreak->selfie_url : asset('placeholder.svg');
-                                    $outPhoto = $endBreak && $endBreak->selfie_url ? $endBreak->selfie_url : asset('placeholder.svg');
-
-                                    $inStatusLabel = $startBreak ? ($isEarlyBreak ? 'Awal' : ($isLateStartBreak ? 'Terlambat' : 'Tepat')) : '-';
-                                    $inStatusColor = $startBreak ? (($isEarlyBreak || $isLateStartBreak) ? 'danger' : 'success') : 'secondary';
-
-                                    $outStatusLabel = $endBreak ? ($isLateBreak ? 'Terlambat' : 'Tepat') : '-';
-                                    $outStatusColor = $endBreak ? ($isLateBreak ? 'danger' : 'success') : 'secondary';
-
-                                    $detailData = [
-                                        'employee' => $attendance->user->name ?? '-',
-                                        'date' => \Carbon\Carbon::parse($attendance->date)->format('d M Y'),
-                                        'shiftStatusLabel' => $breakStatusLabel,
-                                        'shiftStatusColor' => $breakStatusColor,
-                                        'in' => [
-                                            'time' => $startBreak ? \Carbon\Carbon::parse($startBreak->timestamp)->format('H:i') : '-',
-                                            'statusLabel' => $inStatusLabel,
-                                            'statusColor' => $inStatusColor,
-                                            'photo' => $inPhoto,
-                                            'lat' => $startBreak->latitude ?? null,
-                                            'lng' => $startBreak->longitude ?? null
-                                        ],
-                                        'out' => [
-                                            'time' => $endBreak ? \Carbon\Carbon::parse($endBreak->timestamp)->format('H:i') : '-',
-                                            'statusLabel' => $outStatusLabel,
-                                            'statusColor' => $outStatusColor,
-                                            'photo' => $outPhoto,
-                                            'lat' => $endBreak->latitude ?? null,
-                                            'lng' => $endBreak->longitude ?? null
-                                        ]
-                                    ];
+                                    $bEval = $attendance->break_evaluation;
                                 @endphp
-                                <tr onclick='showBreakDetail(@json($detailData))' style="cursor: pointer;"
+                                <tr onclick='showBreakDetail(@json($bEval['detail_data']))' style="cursor: pointer;"
                                     class="hover-bg-light">
                                     <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/m/Y') }}</td>
                                     <td>{{ $attendance->user->employee_id ?? '-' }}</td>
@@ -172,36 +90,36 @@
                                     <td>{{ $attendance->user->location->name ?? '-' }}</td>
                                     <td>{{ $attendance->shift->shift_name ?? '-' }}</td>
                                     <td>
-                                        @if ($startBreak)
+                                        @if ($bEval['start_break'])
                                             <span
-                                                class="{{ $startColorClass }} fw-bold">{{ \Carbon\Carbon::parse($startBreak->timestamp)->format('H:i') }}</span>
+                                                class="{{ $bEval['start_color_class'] }} fw-bold">{{ \Carbon\Carbon::parse($bEval['start_break']->timestamp)->format('H:i') }}</span>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($endBreak)
+                                        @if ($bEval['end_break'])
                                             <span
-                                                class="{{ $endColorClass }} fw-bold">{{ \Carbon\Carbon::parse($endBreak->timestamp)->format('H:i') }}</span>
+                                                class="{{ $bEval['end_color_class'] }} fw-bold">{{ \Carbon\Carbon::parse($bEval['end_break']->timestamp)->format('H:i') }}</span>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ $duration }}</span>
+                                        <span class="badge bg-secondary">{{ $bEval['duration'] }}</span>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
-                                            @if($startBreak)
-                                                <img src="{{ $inPhoto }}" alt="Mulai Istirahat" class="img-thumbnail p-1"
+                                            @if($bEval['start_break'])
+                                                <img src="{{ $bEval['in_photo'] }}" alt="Mulai Istirahat" class="img-thumbnail p-1"
                                                     style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                                             @else
                                                 <img src="{{ asset('placeholder.svg') }}" alt="Mulai Istirahat" class="img-thumbnail p-1 opacity-50"
                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                             @endif
 
-                                            @if($endBreak)
-                                                <img src="{{ $outPhoto }}" alt="Selesai Istirahat" class="img-thumbnail p-1"
+                                            @if($bEval['end_break'])
+                                                <img src="{{ $bEval['out_photo'] }}" alt="Selesai Istirahat" class="img-thumbnail p-1"
                                                     style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                                             @else
                                                 <img src="{{ asset('placeholder.svg') }}" alt="Selesai Istirahat"
@@ -211,8 +129,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge text-bg-{{ $breakStatusColor }}">
-                                            {{ $breakStatusLabel }}
+                                        <span class="badge text-bg-{{ $bEval['break_status_color'] }}">
+                                            {{ $bEval['break_status_label'] }}
                                         </span>
                                     </td>
                                 </tr>

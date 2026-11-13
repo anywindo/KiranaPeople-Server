@@ -37,12 +37,17 @@
                                 </select>
 
                                 <input type="date" name="date" class="form-control" title="Filter berdasarkan tanggal"
-                                    value="{{ request('date') }}">
+                                    value="{{ $selectedDate }}">
                                 <input type="text" name="search" class="form-control" placeholder="Cari nama, NIK..."
                                     value="{{ request('search') }}">
-                                <button type="submit" class="btn btn-default">
+                                <button type="submit" class="btn btn-default" title="Cari">
                                     <i class="bi bi-search"></i>
                                 </button>
+                                @if(!empty($selectedDate) || request()->filled('search') || request()->filled('location_id') || request()->filled('shift_id'))
+                                    <a href="{{ route('admin.attendances.index', ['date' => '']) }}" class="btn btn-outline-secondary" title="Tampilkan Semua Tanggal / Reset">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                @endif
                             </div>
                         </form>
                         <button type="button" class="btn btn-success btn-sm text-nowrap" data-bs-toggle="modal"
@@ -70,79 +75,11 @@
                         <tbody>
                             @forelse($attendances as $attendance)
                                 @php
-                                    $checkIn = $attendance->events->where('event_type', \App\Enums\EventType::START_SHIFT)->first();
-                                    $checkOut = $attendance->events->where('event_type', \App\Enums\EventType::END_SHIFT)->first();
+                                    $inEval = $attendance->check_in_evaluation;
+                                    $outEval = $attendance->check_out_evaluation;
+                                    $shiftStatus = $attendance->shift_status;
                                 @endphp
-                                            @php
-                                                $scheduledStart = $attendance->shift->default_start_time ? \Carbon\Carbon::parse($attendance->shift->default_start_time) : null;
-                                                $scheduledEnd = $attendance->shift->default_end_time ? \Carbon\Carbon::parse($attendance->shift->default_end_time) : null;
-                                                
-                                                $actualStart = $checkIn ? $checkIn->timestamp : null;
-                                                $actualEnd = $checkOut ? $checkOut->timestamp : null;
-                                                
-                                                $isLate = false;
-                                                $isWarning = false;
-                                                if ($checkIn && $scheduledStart) {
-                                                    $ruleEnabled = \App\Models\Setting::get('attendance_rule_enabled', false);
-                                                    if ($ruleEnabled) {
-                                                        $ruleMinutes = \App\Models\Setting::get('attendance_rule_minutes', 15);
-                                                        $cutoff = $scheduledStart->copy()->subMinutes($ruleMinutes);
-                                                        if ($actualStart->format('H:i:s') >= $cutoff->format('H:i:s')) {
-                                                            if ($actualStart->format('H:i:s') <= $scheduledStart->format('H:i:s')) {
-                                                                $isWarning = true;
-                                                            } else {
-                                                                $isLate = true;
-                                                            }
-                                                        }
-                                                    } else {
-                                                        $isLate = $actualStart->format('H:i:s') > $scheduledStart->format('H:i:s');
-                                                    }
-                                                }
-
-                                                $isEarly = $checkOut && $scheduledEnd && $actualEnd->format('H:i') < $scheduledEnd->format('H:i');
-
-                                                $inPhoto = $checkIn && $checkIn->selfie_url ? $checkIn->selfie_url : asset('placeholder.svg');
-                                                $inLat = $checkIn ? $checkIn->latitude : '';
-                                                $inLng = $checkIn ? $checkIn->longitude : '';
-                                                $inTime = $checkIn ? $actualStart->format('H:i') : '-';
-                                                $inDate = $attendance->date ? $attendance->date->format('d M Y') : '-';
-                                                $inStatusLabel = $isWarning ? 'Hampir Terlambat' : ($isLate ? 'Terlambat' : 'Tepat Waktu');
-                                                $inStatusColor = $isWarning ? 'warning' : ($isLate ? 'danger' : 'success');
-
-                                                $outPhoto = $checkOut && $checkOut->selfie_url ? $checkOut->selfie_url : asset('placeholder.svg');
-                                                $outLat = $checkOut ? $checkOut->latitude : '';
-                                                $outLng = $checkOut ? $checkOut->longitude : '';
-                                                $outTime = $checkOut ? $actualEnd->format('H:i') : '-';
-                                                $outDate = $attendance->date ? $attendance->date->format('d M Y') : '-';
-                                                $outStatusLabel = $isEarly ? 'Pulang Cepat' : 'Tepat Waktu';
-                                                $outStatusColor = $isEarly ? 'warning' : 'success';
-                                                
-                                                $shiftStatus = $attendance->shift_status;
-
-                                                $detailData = [
-                                                    'employee' => $attendance->user->name ?? '-',
-                                                    'date' => $attendance->date ? $attendance->date->format('d M Y') : '-',
-                                                    'shiftStatusLabel' => $shiftStatus['label'],
-                                                    'shiftStatusColor' => $shiftStatus['color'],
-                                                    'in' => [
-                                                        'time' => $inTime,
-                                                        'statusLabel' => $inStatusLabel,
-                                                        'statusColor' => $inStatusColor,
-                                                        'photo' => $inPhoto,
-                                                        'lat' => $inLat,
-                                                        'lng' => $inLng
-                                                    ],
-                                                    'out' => [
-                                                        'time' => $outTime,
-                                                        'statusLabel' => $outStatusLabel,
-                                                        'statusColor' => $outStatusColor,
-                                                        'photo' => $outPhoto,
-                                                        'lat' => $outLat,
-                                                        'lng' => $outLng
-                                                    ]
-                                                ];
-                                            @endphp
-                                <tr onclick='showAttendanceDetail(@json($detailData))' style="cursor: pointer;" class="hover-bg-light">
+                                <tr onclick='showAttendanceDetail(@json($attendance->detail_modal_data))' style="cursor: pointer;" class="hover-bg-light">
                                     <td>{{ $attendance->date ? $attendance->date->format('d M Y') : '-' }}</td>
                                     <td>{{ $attendance->user->employee_id ?? '-' }}</td>
                                     <td>
@@ -153,29 +90,29 @@
                                     <td>{{ $attendance->shift->shift_name ?? '-' }}</td>
 
                                     <td>
-                                        @if($checkIn)
-                                            <span class="{{ $isWarning ? 'text-warning fw-bold' : ($isLate ? 'text-danger fw-bold' : 'text-success') }}">{{ $actualStart->format('H:i') }}</span>
+                                        @if($inEval['event'])
+                                            <span class="{{ $inEval['is_warning'] ? 'text-warning fw-bold' : ($inEval['is_late'] ? 'text-danger fw-bold' : 'text-success') }}">{{ $inEval['time'] }}</span>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($checkOut)
-                                            <span class="{{ $isEarly ? 'text-warning fw-bold' : 'text-success' }}">{{ $actualEnd->format('H:i') }}</span>
+                                        @if($outEval['event'])
+                                            <span class="{{ $outEval['is_early'] ? 'text-warning fw-bold' : 'text-success' }}">{{ $outEval['time'] }}</span>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
-                                            @if($checkIn)
-                                                <img src="{{ $inPhoto }}" alt="In" class="img-thumbnail p-1" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
+                                            @if($inEval['event'])
+                                                <img src="{{ $inEval['photo'] }}" alt="In" class="img-thumbnail p-1" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                                             @else
                                                 <img src="{{ asset('placeholder.svg') }}" alt="In" class="img-thumbnail p-1 opacity-50" style="width: 40px; height: 40px; object-fit: cover;">
                                             @endif
 
-                                            @if($checkOut)
-                                                <img src="{{ $outPhoto }}" alt="Out" class="img-thumbnail p-1" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
+                                            @if($outEval['event'])
+                                                <img src="{{ $outEval['photo'] }}" alt="Out" class="img-thumbnail p-1" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                                             @else
                                                 <img src="{{ asset('placeholder.svg') }}" alt="Out" class="img-thumbnail p-1 opacity-50" style="width: 40px; height: 40px; object-fit: cover;">
                                             @endif
