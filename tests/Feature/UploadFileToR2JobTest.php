@@ -12,10 +12,10 @@ use Tests\TestCase;
 
 class UploadFileToR2JobTest extends TestCase
 {
-    public function test_file_upload_service_dispatches_upload_job(): void
+    public function test_file_upload_service_stores_to_r2_and_local(): void
     {
-        Queue::fake();
         Storage::fake('public');
+        Storage::fake('r2');
 
         $file = UploadedFile::fake()->image('selfie.jpg', 640, 480);
         $service = new FileUploadService();
@@ -24,9 +24,7 @@ class UploadFileToR2JobTest extends TestCase
 
         $this->assertNotEmpty($path);
         Storage::disk('public')->assertExists($path);
-        Queue::assertPushed(UploadFileToR2Job::class, function ($job) use ($path) {
-            return $job->path === $path;
-        });
+        Storage::disk('r2')->assertExists($path);
     }
 
     public function test_upload_job_uploads_to_r2_when_configured(): void
