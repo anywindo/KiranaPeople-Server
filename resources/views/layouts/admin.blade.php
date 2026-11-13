@@ -533,19 +533,19 @@
         }
 
         [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link:hover {
-            background-color: rgba(247, 117, 186, 0.18) !important;
-            color: #F775BA !important;
+            background-color: rgba(190, 24, 93, 0.22) !important;
+            color: #f472b6 !important;
             border-radius: 0 !important;
             margin: 0 !important;
             width: 100% !important;
         }
 
         [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link:hover .nav-icon {
-            color: #F775BA !important;
+            color: #f472b6 !important;
         }
 
         [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link.active {
-            background-color: var(--kirana-accent, #F775BA) !important;
+            background-color: #be185d !important;
             color: #ffffff !important;
             border-radius: 0 !important;
             margin: 0 !important;
