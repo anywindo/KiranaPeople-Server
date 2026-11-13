@@ -2,7 +2,8 @@
     <!--begin::Sidebar Brand-->
     <div class="sidebar-brand text-center">
         <a href="{{ route('admin.dashboard') }}" class="brand-link text-center justify-content-center">
-            <img src="{{ asset('logoKiranaHitam.png') }}" alt="Kirana Logo" class="brand-image">
+            <img src="{{ asset('logoKiranaHitam.png') }}" alt="Kirana Logo" class="brand-image logo-light">
+            <img src="{{ asset('logoKirana.png') }}" alt="Kirana Logo" class="brand-image logo-dark">
             <span class="brand-text fw-light fs-5"><b>Kirana</b> Group</span>
         </a>
     </div>

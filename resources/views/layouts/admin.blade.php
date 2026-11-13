@@ -6,6 +6,14 @@
     <title>@yield('title', 'Admin Dashboard') | Kirana People</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @include('layouts.partials.favicons')
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            }
+        })();
+    </script>
     <!--begin::Fonts-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
         crossorigin="anonymous">
@@ -179,7 +187,7 @@
 
         /* User Menu Profile Dropdown Alignment & Clean Shadow */
         .app-header .user-menu .nav-link,
-        .navbar-nav > .user-menu > .nav-link {
+        .navbar-nav>.user-menu>.nav-link {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -187,7 +195,7 @@
         }
 
         .app-header .user-menu .user-image,
-        .navbar-nav > .user-menu .user-image {
+        .navbar-nav>.user-menu .user-image {
             float: none !important;
             margin: 0 !important;
             margin-top: 0 !important;
@@ -207,6 +215,16 @@
             display: inline-flex !important;
             align-items: center !important;
             line-height: 1 !important;
+        }
+
+        /* Profile Card & Header Dropdowns Spacing */
+        .app-header .user-menu {
+            --bs-dropdown-spacer: 0.75rem;
+        }
+
+        .app-header .user-menu .dropdown-menu {
+            margin-top: 0.75rem !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
         }
 
         .app-footer,
@@ -258,11 +276,20 @@
         }
 
         .app-sidebar .sidebar-brand .brand-image {
-            mix-blend-mode: multiply;
             float: none !important;
             margin: 0 0.5rem 0 0 !important;
             max-height: 32px;
             vertical-align: middle;
+            box-shadow: none !important;
+        }
+
+        .app-sidebar .sidebar-brand .brand-image.logo-light {
+            mix-blend-mode: multiply;
+            display: inline-block !important;
+        }
+
+        .app-sidebar .sidebar-brand .brand-image.logo-dark {
+            display: none !important;
         }
 
         .app-sidebar .brand-link {
@@ -368,6 +395,7 @@
             max-width: 380px;
             max-height: 480px;
             overflow-y: auto;
+            margin-top: 0.75rem !important;
         }
 
         .notification-header {
@@ -462,6 +490,15 @@
 
         [data-bs-theme="dark"] .app-sidebar .sidebar-brand .brand-image {
             mix-blend-mode: normal;
+            box-shadow: none !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-brand .brand-image.logo-light {
+            display: none !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-brand .brand-image.logo-dark {
+            display: inline-block !important;
         }
 
         [data-bs-theme="dark"] .app-sidebar .brand-link {
@@ -712,8 +749,24 @@
             border-top-color: #334155 !important;
         }
 
-        [data-bs-theme="dark"] .user-footer.bg-light {
+        [data-bs-theme="dark"] .user-header {
             background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border-bottom: 1px solid #334155 !important;
+        }
+
+        [data-bs-theme="dark"] .user-header p,
+        [data-bs-theme="dark"] .user-header .text-dark {
+            color: #f8fafc !important;
+        }
+
+        [data-bs-theme="dark"] .user-header small,
+        [data-bs-theme="dark"] .user-header .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        [data-bs-theme="dark"] .user-footer.bg-light {
+            background-color: #0f172a !important;
             border-top: 1px solid #334155 !important;
         }
 
@@ -1054,9 +1107,9 @@
                         </a>
                     </li>
                     <li class="nav-item d-none d-md-flex align-items-center ms-2">
-                        <span class="fw-bold fs-5 header-title d-none d-sm-inline">
+                        <!-- <span class="fw-bold fs-5 header-title d-none d-sm-inline">
                             Kirana People - Garment HRIS
-                        </span>
+                        </span> -->
                     </li>
                 </ul>
                 <!--end::Start Navbar Links-->
@@ -1173,23 +1226,25 @@
 
                     <!--begin::User Menu Dropdown-->
                     <li class="nav-item dropdown user-menu">
-                        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown"
+                            data-bs-offset="0, 12">
                             <img src="{{ auth()->user()->avatar_url }}" class="user-image rounded-circle"
-                                style="object-fit: cover; width: 2.1rem; height: 2.1rem; box-shadow: none !important;" alt="User Image">
+                                style="object-fit: cover; width: 2.1rem; height: 2.1rem; box-shadow: none !important;"
+                                alt="User Image">
                             <span class="d-none d-md-inline ms-2">{{ auth()->user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow-sm"
                             style="border-radius: 0.5rem; overflow: hidden; border: 1px solid rgba(0,0,0,0.1);">
-                            <li class="user-header position-relative border-bottom-0"
-                                style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white; overflow: hidden;">
+                            <li class="user-header position-relative border-bottom"
+                                style="background-color: #FEFEFE; color: #0f172a; overflow: hidden; border-bottom: 1px solid #e2e8f0 !important;">
                                 <div style="position: relative; z-index: 1;">
-                                    <img src="{{ auth()->user()->avatar_url }}"
-                                        class="rounded-circle shadow-sm border border-2 border-white mb-2"
-                                        style="width: 90px; height: 90px; object-fit: cover;" alt="User Image">
-                                    <p class="mb-0 fw-bold fs-5">
+                                    <img src="{{ auth()->user()->avatar_url }}" class="rounded-circle mb-2"
+                                        style="width: 90px; height: 90px; object-fit: cover; box-shadow: none !important;"
+                                        alt="User Image">
+                                    <p class="mb-0 fw-bold fs-5 text-dark">
                                         {{ auth()->user()->name }}
                                     </p>
-                                    <small class="d-block mt-2 opacity-75">
+                                    <small class="d-block mt-2 text-muted">
                                         <i class="bi bi-person-badge"></i> {{ auth()->user()->employee_id ?? 'N/A' }}
                                         &bull; {{ auth()->user()->email }}
                                     </small>
