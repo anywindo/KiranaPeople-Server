@@ -259,7 +259,14 @@
             -webkit-backdrop-filter: blur(12px);
             border-right: 1px solid var(--kirana-sidebar-border) !important;
             box-shadow: none !important;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        margin-right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        min-width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        max-width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        background 0.2s ease,
+                        border-color 0.2s ease !important;
         }
 
         .app-sidebar .sidebar-brand {
@@ -1070,6 +1077,15 @@
 
         .app-header .nav-link:hover .bi-bell {
             transform: rotate(15deg) scale(1.12);
+        }
+
+        [data-lte-toggle="sidebar"] i {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-block;
+        }
+
+        [data-lte-toggle="sidebar"]:hover i {
+            transform: scale(1.18);
         }
 
         .app-header .user-menu .user-image {
