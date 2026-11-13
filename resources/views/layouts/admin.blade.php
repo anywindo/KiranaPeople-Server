@@ -1036,7 +1036,99 @@
             color: #cbd5e1 !important;
         }
 
-        /* Animations */
+        /* Animations & Micro-interactions */
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .dropdown-menu.show {
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform-origin: top right;
+        }
+
+        #darkModeIcon {
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: inline-block;
+        }
+
+        #darkModeToggle:hover #darkModeIcon {
+            transform: rotate(20deg) scale(1.18);
+        }
+
+        .app-header .bi-bell {
+            transition: transform 0.25s ease;
+            display: inline-block;
+        }
+
+        .app-header .nav-link:hover .bi-bell {
+            transform: rotate(15deg) scale(1.12);
+        }
+
+        .app-header .user-menu .user-image {
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .app-header .user-menu .nav-link:hover .user-image {
+            transform: scale(1.06);
+        }
+
+        .app-sidebar .sidebar-menu .nav-link {
+            transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.2s ease !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link:hover {
+            padding-left: 1.45rem !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link .nav-icon {
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-block;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link:hover .nav-icon {
+            transform: scale(1.15);
+        }
+
+        .btn {
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .modal.fade .modal-dialog {
+            transform: scale(0.96) translateY(-10px);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+        }
+
+        .modal.show .modal-dialog {
+            transform: scale(1) translateY(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            ::before,
+            ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
