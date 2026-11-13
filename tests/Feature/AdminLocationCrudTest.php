@@ -42,6 +42,32 @@ class AdminLocationCrudTest extends TestCase
         $response->assertViewHas('locations');
         $response->assertSee('Kantor Batang');
         $response->assertSee('75 m');
+        $response->assertSee('Jumlah Pekerja');
+        $response->assertSee('0 Orang');
+    }
+
+    public function test_admin_sees_worker_count_and_can_filter_employees_by_location()
+    {
+        $location = Location::create([
+            'name' => 'Pabrik Garmen 1',
+            'latitude' => -6.912345,
+            'longitude' => 109.712345,
+            'radius' => 100,
+        ]);
+
+        $worker1 = User::factory()->create(['location_id' => $location->id, 'name' => 'Budi Santoso']);
+        $worker2 = User::factory()->create(['location_id' => $location->id, 'name' => 'Siti Rahma']);
+
+        $response = $this->actingAs($this->admin, 'web')->get(route('admin.locations.index'));
+        $response->assertStatus(200);
+        $response->assertSee('2 Orang');
+        $response->assertSee(route('admin.employees.index', ['location_id' => $location->id]));
+
+        // Check employee filter by location_id
+        $filterResponse = $this->actingAs($this->admin, 'web')->get(route('admin.employees.index', ['location_id' => $location->id]));
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertSee('Budi Santoso');
+        $filterResponse->assertSee('Siti Rahma');
     }
 
     public function test_admin_can_view_create_location_page()

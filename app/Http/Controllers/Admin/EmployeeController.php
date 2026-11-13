@@ -31,6 +31,10 @@ class EmployeeController extends Controller
             });
         }
 
+        if ($request->filled('location_id')) {
+            $query->where('location_id', $request->location_id);
+        }
+
         $perPage = $request->input('per_page', 10);
         $employees = $query->paginate($perPage)->appends($request->all());
 

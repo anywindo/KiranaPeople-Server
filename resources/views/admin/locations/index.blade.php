@@ -29,6 +29,7 @@
                             <th>Latitude</th>
                             <th>Longitude</th>
                             <th>Radius (meter)</th>
+                            <th>Jumlah Pekerja</th>
                             <th style="width: 150px">Aksi</th>
                         </tr>
                     </thead>
@@ -41,6 +42,17 @@
                             <td>{{ $location->longitude }}</td>
                             <td>{{ $location->radius }} m</td>
                             <td>
+                                @if($location->users_count > 0)
+                                    <a href="{{ route('admin.employees.index', ['location_id' => $location->id]) }}" class="badge text-bg-primary text-decoration-none d-inline-flex align-items-center gap-1" title="Lihat daftar karyawan di lokasi ini">
+                                        <i class="bi bi-people-fill"></i> {{ $location->users_count }} Orang
+                                    </a>
+                                @else
+                                    <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">
+                                        <i class="bi bi-people"></i> 0 Orang
+                                    </span>
+                                @endif
+                            </td>
+                            <td>
                                 <a href="{{ route('admin.locations.edit', $location) }}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
                                 <form action="{{ route('admin.locations.destroy', $location) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus lokasi ini?')">
                                     @csrf
@@ -51,7 +63,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center">Belum ada data lokasi.</td>
+                            <td colspan="7" class="text-center">Belum ada data lokasi.</td>
                         </tr>
                         @endforelse
                     </tbody>

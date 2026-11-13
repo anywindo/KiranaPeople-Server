@@ -13,7 +13,7 @@ class LocationController extends Controller
      */
     public function index()
     {
-        $locations = Location::paginate(10);
+        $locations = Location::withCount('users')->latest('id')->paginate(10);
 
         return view('admin.locations.index', compact('locations'));
     }
