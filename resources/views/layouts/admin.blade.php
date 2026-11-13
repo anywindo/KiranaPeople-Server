@@ -160,7 +160,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--header-border-color) !important;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+            box-shadow: none !important;
             transition: background 0.2s ease, border-color 0.2s ease;
         }
 
@@ -453,7 +453,7 @@
         [data-bs-theme="dark"] .app-header {
             background: rgba(15, 23, 42, 0.95) !important;
             border-bottom: 1px solid #334155 !important;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3) !important;
+            box-shadow: none !important;
         }
 
         [data-bs-theme="dark"] .app-header .header-title {
