@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\AttendanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -213,6 +214,128 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
         $todayResponse->assertJsonFragment([
             'notes' => 'Catatan kehadiran dari mobile',
             'is_mocked' => false,
+        ]);
+    }
+
+    public function test_idempotency_key_returns_cached_response_without_duplicate_event(): void
+    {
+        Storage::fake('public');
+        Storage::fake('r2');
+
+        $file = UploadedFile::fake()->image('selfie.jpg', 300, 300);
+        $idempotencyKey = 'unique-event-key-'.uniqid();
+
+        $payload = [
+            'shift_id' => $this->shift->id,
+            'event_type' => 'START_SHIFT',
+            'latitude' => -6.208800,
+            'longitude' => 106.845600,
+            'accuracy' => 10.0,
+            'is_mocked' => '0',
+            'selfie' => $file,
+        ];
+
+        // First attempt with Idempotency Key -> 201 Created
+        $response1 = $this->actingAs($this->user)
+            ->withHeaders(['X-Idempotency-Key' => $idempotencyKey])
+            ->postJson('/api/v1/employee/attendance/events', $payload);
+
+        $response1->assertStatus(201);
+        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+
+        // Second attempt with exact same Idempotency Key -> returns cached 201 and no new record
+        $response2 = $this->actingAs($this->user)
+            ->withHeaders(['X-Idempotency-Key' => $idempotencyKey])
+            ->postJson('/api/v1/employee/attendance/events', $payload);
+
+        $response2->assertStatus(201);
+        $response2->assertHeader('X-Cache-Lookup', 'HIT');
+        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+    }
+
+    public function test_atomic_lock_rejects_concurrent_requests_with_429(): void
+    {
+        Storage::fake('public');
+
+        $lockKey = "attendance_lock:{$this->user->id}:START_SHIFT";
+        $lock = Cache::lock($lockKey, 10);
+        $this->assertTrue($lock->get());
+
+        try {
+            $file = UploadedFile::fake()->image('selfie.jpg', 300, 300);
+            $response = $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', [
+                'shift_id' => $this->shift->id,
+                'event_type' => 'START_SHIFT',
+                'latitude' => -6.208800,
+                'longitude' => 106.845600,
+                'accuracy' => 10.0,
+                'is_mocked' => '0',
+                'selfie' => $file,
+            ]);
+
+            $response->assertStatus(429);
+            $response->assertJson([
+                'meta' => [
+                    'success' => false,
+                    'message' => 'Permintaan presensi sedang diproses. Mohon tunggu sejenak.',
+                ],
+            ]);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    public function test_rapid_repeated_request_returns_success_without_duplicate_event(): void
+    {
+        Storage::fake('public');
+        Storage::fake('r2');
+
+        $file = UploadedFile::fake()->image('selfie.jpg', 300, 300);
+        $payload = [
+            'shift_id' => $this->shift->id,
+            'event_type' => 'START_SHIFT',
+            'latitude' => -6.208800,
+            'longitude' => 106.845600,
+            'accuracy' => 10.0,
+            'is_mocked' => '0',
+            'selfie' => $file,
+        ];
+
+        // First click
+        $response1 = $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', $payload);
+        $response1->assertStatus(201);
+        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+
+        // Fast second click 1 second later (simulating cellular lag tap)
+        $response2 = $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', $payload);
+        $response2->assertStatus(200);
+        $response2->assertJson([
+            'meta' => [
+                'success' => true,
+                'message' => 'Kehadiran berhasil dicatat!',
+            ],
+            'data' => [
+                'event_type' => 'START_SHIFT',
+            ],
+        ]);
+        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+    }
+
+    public function test_rate_limiter_throttles_excessive_attendance_requests(): void
+    {
+        // 10 requests allowed per minute
+        for ($i = 0; $i < 10; $i++) {
+            $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', []);
+        }
+
+        // 11th request must be throttled with HTTP 429
+        $response = $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', []);
+        $response->assertStatus(429);
+        $response->assertJson([
+            'meta' => [
+                'success' => false,
+                'message' => 'Terlalu banyak permintaan presensi. Mohon tunggu sejenak sebelum mencoba lagi.',
+            ],
         ]);
     }
 }

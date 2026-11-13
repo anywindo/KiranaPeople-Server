@@ -69,6 +69,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($request->expectsJson() || $request->is('api/*')) {
 
+                // Direct HTTP Response Exception (e.g. rate limit response callback)
+                if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) {
+                    return $e->getResponse();
+                }
+
                 // Validation errors → 422
                 if ($e instanceof ValidationException) {
                     return response()->json([

@@ -40,7 +40,8 @@ Route::prefix('v1')->group(function () {
         Route::prefix('employee')->group(function () {
             Route::get('attendance/today', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'today']);
             Route::get('attendance/history', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'history']);
-            Route::post('attendance/events', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'storeEvent']);
+            Route::post('attendance/events', [\App\Http\Controllers\Api\V1\Employee\AttendanceController::class, 'storeEvent'])
+                ->middleware('throttle:attendance-events');
 
             Route::get('correction-requests', [\App\Http\Controllers\Api\V1\Employee\AttendanceCorrectionRequestController::class, 'index']);
             Route::post('correction-requests', [\App\Http\Controllers\Api\V1\Employee\AttendanceCorrectionRequestController::class, 'store']);

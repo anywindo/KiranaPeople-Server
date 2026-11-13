@@ -39,5 +39,18 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\RateLimiter::for('auth', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by($request->ip());
         });
+
+        \Illuminate\Support\Facades\RateLimiter::for('attendance-events', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)
+                ->by($request->user()?->id ?: $request->ip())
+                ->response(function () {
+                    return response()->json([
+                        'meta' => [
+                            'success' => false,
+                            'message' => 'Terlalu banyak permintaan presensi. Mohon tunggu sejenak sebelum mencoba lagi.',
+                        ],
+                    ], 429);
+                });
+        });
     }
 }
