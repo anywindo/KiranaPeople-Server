@@ -1,8 +1,8 @@
-<aside class="app-sidebar shadow" data-bs-theme="dark" style="background-color: var(--kirana-sidebar-bg, #0f172a) !important; border-right: 1px solid rgba(255, 255, 255, 0.08);">
+<aside class="app-sidebar">
     <!--begin::Sidebar Brand-->
-    <div class="sidebar-brand">
-        <a href="{{ route('admin.dashboard') }}" class="brand-link">
-            <img src="{{ asset('logoKirana.png') }}" alt="Kirana Logo" class="brand-image opacity-75 shadow">
+    <div class="sidebar-brand text-center">
+        <a href="{{ route('admin.dashboard') }}" class="brand-link text-center justify-content-center">
+            <img src="{{ asset('logoKiranaHitam.png') }}" alt="Kirana Logo" class="brand-image">
             <span class="brand-text fw-light fs-5"><b>Kirana</b> Group</span>
         </a>
     </div>
@@ -145,7 +145,7 @@
     <!--end::Sidebar Wrapper-->
 
     <!--begin::Sidebar Footer / Logout-->
-    <div class="sidebar-footer border-top border-secondary position-absolute bottom-0 w-100" style="z-index: 10;">
+    <div class="sidebar-footer position-absolute bottom-0 w-100" style="z-index: 10;">
         <a href="#" class="btn btn-danger w-100 text-start text-white"
             onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();">
             <i class="bi bi-box-arrow-right me-2"></i> Logout

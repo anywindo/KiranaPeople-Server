@@ -27,8 +27,8 @@
             /* Brand & Accent Tokens */
             --bs-primary: #4f46e5;
             --bs-primary-rgb: 79, 70, 229;
-            --kirana-accent: #FF21A4;
-            --kirana-accent-rgb: 255, 33, 164;
+            --kirana-accent: #F775BA;
+            --kirana-accent-rgb: 247, 117, 186;
 
             /* WCAG Compliant Status Palette */
             --bs-success: #10b981;
@@ -45,10 +45,11 @@
             /* Light Surfaces (Slate Tone) */
             --bs-body-bg: #f8fafc;
             --bs-body-color: #0f172a;
-            --kirana-sidebar-bg: #0f172a;
-            --card-border-color: #e2e8f0;
             --header-bg: rgba(255, 255, 255, 0.85);
             --header-border-color: #e2e8f0;
+            --kirana-sidebar-bg: var(--header-bg);
+            --kirana-sidebar-border: var(--header-border-color);
+            --card-border-color: #e2e8f0;
         }
 
         /* Match interactive form controls and scrollbars to modern standard */
@@ -141,12 +142,24 @@
             position: sticky;
             top: 0;
             z-index: 1030;
+            height: 3.5rem !important;
+            min-height: 3.5rem !important;
+            max-height: 3.5rem !important;
+            box-sizing: border-box !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
             background: var(--header-bg) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--header-border-color);
+            border-bottom: 1px solid var(--header-border-color) !important;
             box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
             transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .app-header > .container-fluid {
+            height: 100%;
+            display: flex;
+            align-items: center;
         }
 
         .app-footer,
@@ -172,6 +185,134 @@
         .header-title {
             color: #0f172a;
             font-weight: 600;
+        }
+
+        /* Sidebar Styling - Light Mode Default (Matches Header Bar) */
+        .app-sidebar {
+            background: var(--kirana-sidebar-bg) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid var(--kirana-sidebar-border) !important;
+            box-shadow: none !important;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .app-sidebar .sidebar-brand {
+            border-bottom: 1px solid var(--kirana-sidebar-border) !important;
+            height: 3.5rem !important;
+            min-height: 3.5rem !important;
+            max-height: 3.5rem !important;
+            box-sizing: border-box !important;
+            display: flex;
+            align-items: center;
+            justify-content: center !important;
+            padding: 0 1rem;
+            text-align: center;
+        }
+
+        .app-sidebar .sidebar-brand .brand-image {
+            mix-blend-mode: multiply;
+            float: none !important;
+            margin: 0 0.5rem 0 0 !important;
+            max-height: 32px;
+            vertical-align: middle;
+        }
+
+        .app-sidebar .brand-link {
+            color: #0f172a !important;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center !important;
+            width: 100%;
+            transition: color 0.15s ease;
+        }
+
+        .app-sidebar .sidebar-wrapper {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        .app-sidebar .sidebar-wrapper nav {
+            width: 100% !important;
+            margin-top: 0 !important;
+        }
+
+        .app-sidebar .sidebar-menu {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            width: 100% !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-item {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-header {
+            color: #64748b !important;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 1.25rem 1.25rem 0.35rem 1.25rem !important;
+            width: 100% !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link {
+            color: #334155 !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            padding: 0.65rem 1.25rem !important;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link .nav-icon {
+            color: #64748b;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            min-width: 1.5rem;
+            text-align: center;
+            transition: color 0.15s ease;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link:hover {
+            background-color: rgba(247, 117, 186, 0.12) !important;
+            color: #d84594 !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link:hover .nav-icon {
+            color: #d84594 !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link.active {
+            background-color: var(--kirana-accent, #F775BA) !important;
+            color: #ffffff !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            box-shadow: none !important;
+        }
+
+        .app-sidebar .sidebar-menu .nav-link.active .nav-icon {
+            color: #ffffff !important;
+        }
+
+        .sidebar-footer {
+            background: var(--kirana-sidebar-bg) !important;
+            border-top: 1px solid var(--kirana-sidebar-border) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
         /* Notification Dropdown Styling */
@@ -259,6 +400,75 @@
         [data-bs-theme="dark"] .app-footer a {
             color: #94a3b8 !important;
             border-top-color: #334155 !important;
+        }
+
+        /* Dark Mode Sidebar */
+        [data-bs-theme="dark"] .app-sidebar {
+            background: #020617 !important;
+            border-right: 1px solid #334155 !important;
+            box-shadow: none !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-brand {
+            border-bottom: 1px solid #334155 !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-brand .brand-image {
+            mix-blend-mode: normal;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .brand-link {
+            color: #f8fafc !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-wrapper {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-header {
+            color: #64748b !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link {
+            color: #cbd5e1 !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link .nav-icon {
+            color: #94a3b8 !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link:hover {
+            background-color: rgba(247, 117, 186, 0.18) !important;
+            color: #F775BA !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link:hover .nav-icon {
+            color: #F775BA !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link.active {
+            background-color: var(--kirana-accent, #F775BA) !important;
+            color: #ffffff !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            box-shadow: none !important;
+        }
+
+        [data-bs-theme="dark"] .app-sidebar .sidebar-menu .nav-link.active .nav-icon {
+            color: #ffffff !important;
+        }
+
+        [data-bs-theme="dark"] .sidebar-footer {
+            background: #020617 !important;
+            border-top: 1px solid #334155 !important;
         }
 
         /* Dark Mode Surfaces & Cards */

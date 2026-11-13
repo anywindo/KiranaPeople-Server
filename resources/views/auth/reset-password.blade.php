@@ -14,7 +14,7 @@
 
     <style>
         :root {
-            --tn-accent: #FF21A4;
+            --tn-accent: #F775BA;
             --tn-accent-hover: #e01b8e;
             --tn-accent-shadow: rgba(255, 33, 164, 0.32);
             --tn-text-primary: #1C1C1E;

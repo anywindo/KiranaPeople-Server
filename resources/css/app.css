@@ -3,13 +3,13 @@
 
 :root {
     color-scheme: light dark;
-    --color-primary: #FF21A4;
+    --color-primary: #F775BA;
     --color-primary-dark: #DB2777;
     --color-primary-light: #FCE7F3;
 }
 
 html {
-    accent-color: #FF21A4;
+    accent-color: #F775BA;
     scrollbar-color: light-dark(#CBD5E1, #475569) transparent;
     scrollbar-width: thin;
 }

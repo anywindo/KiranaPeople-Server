@@ -178,7 +178,7 @@
             <div class="flex items-center space-x-3.5 mb-4 px-1">
                 <img src="{{ $user->avatar_url }}"
                     @click="openLightbox('{{ $user->avatar_url }}', '{{ addslashes($user->name) }}', 'Foto Profil')"
-                    class="w-[52px] h-[52px] rounded-full object-cover border border-gray-200/80 shadow-sm cursor-pointer hover:ring-2 hover:ring-[#FF21A4] transition-all flex-shrink-0"
+                    class="w-[52px] h-[52px] rounded-full object-cover border border-gray-200/80 shadow-sm cursor-pointer hover:ring-2 hover:ring-[#F775BA] transition-all flex-shrink-0"
                     alt="{{ $user->name }}" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                 <div class="flex flex-col min-w-0">
                     <span class="text-[13px] font-normal text-[#8E8E93] leading-tight">{{ $greeting }}</span>
@@ -207,13 +207,13 @@
             <!-- Segment Bar: Capsule (Kerja / Istirahat) -->
             <div class="p-1 bg-[#EEF0F5] rounded-full flex gap-1 mb-4 shadow-inner">
                 <button type="button" @click="activeTab = 'work'"
-                    :class="activeTab === 'work' ? 'bg-[#FF21A4] text-white shadow-md shadow-pink-500/25' : 'text-[#8E8E93] hover:text-[#1C1C1E]'"
+                    :class="activeTab === 'work' ? 'bg-[#F775BA] text-white shadow-md shadow-pink-500/25' : 'text-[#8E8E93] hover:text-[#1C1C1E]'"
                     class="flex-1 py-2 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200">
                     <i class="fa-solid fa-briefcase text-xs"></i>
                     <span>Kerja</span>
                 </button>
                 <button type="button" @click="activeTab = 'break'"
-                    :class="activeTab === 'break' ? 'bg-[#FF21A4] text-white shadow-md shadow-pink-500/25' : 'text-[#8E8E93] hover:text-[#1C1C1E]'"
+                    :class="activeTab === 'break' ? 'bg-[#F775BA] text-white shadow-md shadow-pink-500/25' : 'text-[#8E8E93] hover:text-[#1C1C1E]'"
                     class="flex-1 py-2 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200">
                     <i class="fa-solid fa-mug-hot text-xs"></i>
                     <span>Istirahat</span>
@@ -231,7 +231,7 @@
                 <div x-show="activeTab === 'work'">
                     <div class="bg-[#F8F9FB] border border-[#EEF0F5] rounded-2xl p-3 flex items-center justify-between">
                         <div class="flex items-center space-x-3 min-w-0">
-                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                 <i class="fa-regular fa-clock text-base"></i>
                             </div>
                             <div class="min-w-0">
@@ -243,7 +243,7 @@
                         </div>
                         @if(!$startEvent)
                             <button type="button" @click="showShiftPicker = true"
-                                class="bg-[#FFF0F7] hover:bg-[#FFE2F1] text-[#FF21A4] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition active:scale-95 flex-shrink-0 ml-2">
+                                class="bg-[#FFF0F7] hover:bg-[#FFE2F1] text-[#F775BA] text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition active:scale-95 flex-shrink-0 ml-2">
                                 <span>Pilih</span>
                                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
                             </button>
@@ -255,7 +255,7 @@
                 <div x-show="activeTab === 'break'" style="display: none;">
                     <div class="bg-[#F8F9FB] border border-[#EEF0F5] rounded-2xl p-3 flex items-center justify-between">
                         <div class="flex items-center space-x-3 min-w-0">
-                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                 <i class="fa-solid fa-mug-hot text-sm"></i>
                             </div>
                             <div class="min-w-0">
@@ -266,7 +266,7 @@
                         </div>
                         <div class="flex-shrink-0 ml-2">
                             @if(!$startBreak)
-                                <span class="text-[11px] font-bold text-[#FF21A4] bg-[#FFF0F7] px-2.5 py-1 rounded-full">Belum Mulai</span>
+                                <span class="text-[11px] font-bold text-[#F775BA] bg-[#FFF0F7] px-2.5 py-1 rounded-full">Belum Mulai</span>
                             @elseif(!$endBreak)
                                 <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Sedang Istirahat</span>
                             @else
@@ -286,17 +286,17 @@
                         @if($startEvent && $startEvent->selfie_url && $startEvent->selfie_path !== 'dummy/path.jpg')
                             <img src="{{ $startEvent->selfie_url }}"
                                 @click="openLightbox('{{ $startEvent->selfie_url }}', 'Foto Masuk Kerja', '{{ \Carbon\Carbon::parse($startEvent->timestamp)->translatedFormat('d M Y, H:i') }}')"
-                                class="w-9 h-9 rounded-full object-cover border border-[#FF21A4]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
+                                class="w-9 h-9 rounded-full object-cover border border-[#F775BA]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
                                 title="Lihat Foto" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                         @else
-                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                 <i class="fa-solid fa-briefcase text-xs"></i>
                             </div>
                         @endif
                         <div class="min-w-0">
                             <div class="flex items-center space-x-1">
                                 <span class="text-[12px] text-[#8E8E93] font-normal truncate">Jam Masuk</span>
-                                <span class="text-[11px] font-semibold text-[#FF21A4]" x-text="'(' + selectedShiftStart + ')'">
+                                <span class="text-[11px] font-semibold text-[#F775BA]" x-text="'(' + selectedShiftStart + ')'">
                                     ({{ $activeShiftStart }})
                                 </span>
                             </div>
@@ -332,17 +332,17 @@
                         @if($endEvent && $endEvent->selfie_url && $endEvent->selfie_path !== 'dummy/path.jpg')
                             <img src="{{ $endEvent->selfie_url }}"
                                 @click="openLightbox('{{ $endEvent->selfie_url }}', 'Foto Pulang Kerja', '{{ \Carbon\Carbon::parse($endEvent->timestamp)->translatedFormat('d M Y, H:i') }}')"
-                                class="w-9 h-9 rounded-full object-cover border border-[#FF21A4]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
+                                class="w-9 h-9 rounded-full object-cover border border-[#F775BA]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
                                 title="Lihat Foto" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                         @else
-                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                 <i class="fa-solid fa-house text-xs"></i>
                             </div>
                         @endif
                         <div class="min-w-0">
                             <div class="flex items-center space-x-1">
                                 <span class="text-[12px] text-[#8E8E93] font-normal truncate">Jam Pulang</span>
-                                <span class="text-[11px] font-semibold text-[#FF21A4]" x-text="'(' + selectedShiftEnd + ')'">
+                                <span class="text-[11px] font-semibold text-[#F775BA]" x-text="'(' + selectedShiftEnd + ')'">
                                     ({{ $activeShiftEnd }})
                                 </span>
                             </div>
@@ -367,17 +367,17 @@
                         @if($startBreak && $startBreak->selfie_url && $startBreak->selfie_path !== 'dummy/path.jpg')
                             <img src="{{ $startBreak->selfie_url }}"
                                 @click="openLightbox('{{ $startBreak->selfie_url }}', 'Foto Mulai Istirahat', '{{ \Carbon\Carbon::parse($startBreak->timestamp)->translatedFormat('d M Y, H:i') }}')"
-                                class="w-9 h-9 rounded-full object-cover border border-[#FF21A4]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
+                                class="w-9 h-9 rounded-full object-cover border border-[#F775BA]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
                                 title="Lihat Foto" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                         @else
-                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                 <i class="fa-solid fa-mug-hot text-xs"></i>
                             </div>
                         @endif
                         <div class="min-w-0">
                             <div class="flex items-center space-x-1">
                                 <span class="text-[12px] text-[#8E8E93] font-normal truncate">Mulai</span>
-                                <span class="text-[11px] font-semibold text-[#FF21A4]">({{ $displayBreakStart }})</span>
+                                <span class="text-[11px] font-semibold text-[#F775BA]">({{ $displayBreakStart }})</span>
                             </div>
                             <div class="flex items-center space-x-1 mt-0.5">
                                 @if($startBreak)
@@ -401,17 +401,17 @@
                         @if($endBreak && $endBreak->selfie_url && $endBreak->selfie_path !== 'dummy/path.jpg')
                             <img src="{{ $endBreak->selfie_url }}"
                                 @click="openLightbox('{{ $endBreak->selfie_url }}', 'Foto Selesai Istirahat', '{{ \Carbon\Carbon::parse($endBreak->timestamp)->translatedFormat('d M Y, H:i') }}')"
-                                class="w-9 h-9 rounded-full object-cover border border-[#FF21A4]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
+                                class="w-9 h-9 rounded-full object-cover border border-[#F775BA]/40 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
                                 title="Lihat Foto" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                         @else
-                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                 <i class="fa-solid fa-briefcase text-xs"></i>
                             </div>
                         @endif
                         <div class="min-w-0">
                             <div class="flex items-center space-x-1">
                                 <span class="text-[12px] text-[#8E8E93] font-normal truncate">Selesai</span>
-                                <span class="text-[11px] font-semibold text-[#FF21A4]">({{ $displayBreakEnd }})</span>
+                                <span class="text-[11px] font-semibold text-[#F775BA]">({{ $displayBreakEnd }})</span>
                             </div>
                             <div class="flex items-center space-x-1 mt-0.5">
                                 @if($endBreak)
@@ -444,7 +444,7 @@
                                 <input type="hidden" name="shift_id" :value="selectedShiftId">
                                 <input type="file" name="selfie" id="selfie_input" accept="image/*" capture="user" class="hidden" required>
                                 <button type="button" onclick="openCameraUI('attendanceForm')"
-                                    class="w-full h-[50px] bg-[#FF21A4] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
+                                    class="w-full h-[50px] bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
                                     <i class="fa-solid fa-briefcase text-base"></i>
                                     <span>Masuk Kerja</span>
                                 </button>
@@ -468,7 +468,7 @@
                                     </button>
                                 @else
                                     <button type="button" onclick="openCameraUI('attendanceForm')"
-                                        class="w-full h-[50px] bg-[#FF21A4] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
+                                        class="w-full h-[50px] bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
                                         <i class="fa-solid fa-house text-base"></i>
                                         <span>Pulang Kerja</span>
                                     </button>
@@ -511,7 +511,7 @@
                                     </button>
                                 @else
                                     <button type="button" onclick="openCameraUI('breakForm')"
-                                        class="w-full h-[50px] bg-[#FF21A4] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
+                                        class="w-full h-[50px] bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
                                         <i class="fa-solid fa-mug-hot text-base"></i>
                                         <span>Mulai Istirahat</span>
                                     </button>
@@ -519,7 +519,7 @@
                             @elseif(!$endBreak)
                                 <input type="hidden" name="event_type" value="END_BREAK">
                                 <button type="button" onclick="openCameraUI('breakForm')"
-                                    class="w-full h-[50px] bg-[#FF21A4] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
+                                    class="w-full h-[50px] bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
                                     <i class="fa-solid fa-briefcase text-base"></i>
                                     <span>Selesai Istirahat</span>
                                 </button>
@@ -540,7 +540,7 @@
                     <h3 class="text-base font-bold text-[#1C1C1E]">Aktivitas Hari Ini</h3>
                     <a href="{{ route('attendance.history') }}"
                         @click.prevent="currentNav = 'history'; window.history.pushState({}, '', '{{ route('attendance.history') }}')"
-                        class="text-xs font-semibold text-[#FF21A4] hover:underline flex items-center gap-1 transition">
+                        class="text-xs font-semibold text-[#F775BA] hover:underline flex items-center gap-1 transition">
                         <span>Riwayat Lengkap</span>
                         <i class="fa-solid fa-chevron-right text-[10px]"></i>
                     </a>
@@ -589,7 +589,7 @@
                                             class="w-11 h-11 rounded-full object-cover border border-gray-200 cursor-pointer hover:scale-105 transition flex-shrink-0 shadow-sm"
                                             title="Lihat Foto" onerror="this.onerror=null;this.src='{{ asset('placeholder.svg') }}';">
                                     @else
-                                        <div class="w-11 h-11 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center flex-shrink-0">
+                                        <div class="w-11 h-11 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center flex-shrink-0">
                                             <i class="fa-solid {{ $icon }} text-sm"></i>
                                         </div>
                                     @endif
@@ -599,7 +599,7 @@
                                         @if($event->latitude && $event->longitude)
                                             <button type="button"
                                                 @click="openMapModal({{ $event->latitude }}, {{ $event->longitude }}, '{{ $title }}', '{{ \Carbon\Carbon::parse($event->timestamp)->translatedFormat('d M Y, H:i') }}')"
-                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 mt-0.5 rounded-full text-[10px] font-semibold bg-[#FFF0F7] text-[#FF21A4] hover:bg-[#FFE2F1] transition active:scale-95">
+                                                class="inline-flex items-center space-x-1 px-2.5 py-0.5 mt-0.5 rounded-full text-[10px] font-semibold bg-[#FFF0F7] text-[#F775BA] hover:bg-[#FFE2F1] transition active:scale-95">
                                                 <i class="fa-solid fa-location-dot text-[9px]"></i>
                                                 <span>Titik Lokasi</span>
                                             </button>
@@ -627,7 +627,7 @@
                 <h2 class="text-xl font-bold text-[#1C1C1E]">Riwayat Presensi</h2>
                 <button type="button" @click="showFilterSheet = !showFilterSheet"
                     class="px-3 py-1.5 rounded-full text-xs font-bold border border-gray-200 bg-white shadow-sm flex items-center gap-1.5 transition active:scale-95"
-                    :class="showFilterSheet ? 'text-[#FF21A4] border-[#FF21A4]' : 'text-[#1C1C1E]'">
+                    :class="showFilterSheet ? 'text-[#F775BA] border-[#F775BA]' : 'text-[#1C1C1E]'">
                     <i class="fa-solid fa-sliders text-xs"></i>
                     <span>Filter</span>
                 </button>
@@ -641,17 +641,17 @@
                             <div>
                                 <label class="block text-[11px] font-semibold text-[#8E8E93] mb-1">Dari Tanggal</label>
                                 <input type="date" name="start_date" value="{{ request('start_date') }}"
-                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-xs text-[#1C1C1E] px-3 py-2 focus:outline-none focus:border-[#FF21A4]">
+                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-xs text-[#1C1C1E] px-3 py-2 focus:outline-none focus:border-[#F775BA]">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-semibold text-[#8E8E93] mb-1">Sampai Tanggal</label>
                                 <input type="date" name="end_date" value="{{ request('end_date') }}"
-                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-xs text-[#1C1C1E] px-3 py-2 focus:outline-none focus:border-[#FF21A4]">
+                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-xs text-[#1C1C1E] px-3 py-2 focus:outline-none focus:border-[#F775BA]">
                             </div>
                         </div>
                         <div class="flex gap-2 pt-1">
                             <button type="submit"
-                                class="flex-1 bg-[#FF21A4] text-white py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-[#E01890] transition">
+                                class="flex-1 bg-[#F775BA] text-white py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-[#E01890] transition">
                                 Terapkan Filter
                             </button>
                             @if(request()->hasAny(['start_date', 'end_date']))
@@ -701,7 +701,7 @@
                                 @if($inEvent && $inEvent->latitude && $inEvent->longitude)
                                     <button type="button"
                                         @click="openMapModal({{ $inEvent->latitude }}, {{ $inEvent->longitude }}, 'Masuk ({{ \Carbon\Carbon::parse($att->date)->translatedFormat('d M Y') }})', '{{ \Carbon\Carbon::parse($inEvent->timestamp)->format('H:i') }} WIB')"
-                                        class="text-[9px] font-semibold text-[#FF21A4] bg-[#FFF0F7] px-2 py-0.5 rounded-full mt-1 hover:bg-[#FFE2F1] transition">
+                                        class="text-[9px] font-semibold text-[#F775BA] bg-[#FFF0F7] px-2 py-0.5 rounded-full mt-1 hover:bg-[#FFE2F1] transition">
                                         <i class="fa-solid fa-location-dot"></i> Titik
                                     </button>
                                 @endif
@@ -718,7 +718,7 @@
                                 @if($outEvent && $outEvent->selfie_url && $outEvent->selfie_path !== 'dummy/path.jpg')
                                     <img src="{{ $outEvent->selfie_url }}"
                                         @click="openLightbox('{{ $outEvent->selfie_url }}', 'Pulang ({{ \Carbon\Carbon::parse($att->date)->translatedFormat('d M Y') }})', '{{ \Carbon\Carbon::parse($outEvent->timestamp)->format('H:i') }} WIB')"
-                                        class="w-10 h-10 rounded-full object-cover border-2 border-[#FF21A4] shadow-sm my-1 cursor-pointer hover:scale-105 transition"
+                                        class="w-10 h-10 rounded-full object-cover border-2 border-[#F775BA] shadow-sm my-1 cursor-pointer hover:scale-105 transition"
                                         alt="Selfie Pulang">
                                 @endif
                                 <p class="font-bold text-sm {{ $outEvent ? 'text-[#1C1C1E]' : 'text-gray-400' }}">
@@ -727,7 +727,7 @@
                                 @if($outEvent && $outEvent->latitude && $outEvent->longitude)
                                     <button type="button"
                                         @click="openMapModal({{ $outEvent->latitude }}, {{ $outEvent->longitude }}, 'Pulang ({{ \Carbon\Carbon::parse($att->date)->translatedFormat('d M Y') }})', '{{ \Carbon\Carbon::parse($outEvent->timestamp)->format('H:i') }} WIB')"
-                                        class="text-[9px] font-semibold text-[#FF21A4] bg-[#FFF0F7] px-2 py-0.5 rounded-full mt-1 hover:bg-[#FFE2F1] transition">
+                                        class="text-[9px] font-semibold text-[#F775BA] bg-[#FFF0F7] px-2 py-0.5 rounded-full mt-1 hover:bg-[#FFE2F1] transition">
                                         <i class="fa-solid fa-location-dot"></i> Titik
                                     </button>
                                 @endif
@@ -759,7 +759,7 @@
 
                 <div class="mt-4 flex justify-center gap-2">
                     <button type="button" @click="showEditProfileModal = true"
-                        class="px-4 py-1.5 bg-[#FFF0F7] text-[#FF21A4] rounded-full text-xs font-bold hover:bg-[#FFE2F1] transition active:scale-95 shadow-sm">
+                        class="px-4 py-1.5 bg-[#FFF0F7] text-[#F775BA] rounded-full text-xs font-bold hover:bg-[#FFE2F1] transition active:scale-95 shadow-sm">
                         <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Profil
                     </button>
                     @if($user->isAdmin())
@@ -814,14 +814,14 @@
             <div class="bg-white/95 backdrop-blur-md rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100/80 px-4 py-2.5 flex items-center justify-between pointer-events-auto">
                 <div class="flex items-center gap-2.5 min-w-0 pr-2">
                     <div class="w-7 h-7 rounded-full bg-pink-50 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-building text-[#FF21A4] text-xs"></i>
+                        <i class="fa-solid fa-building text-[#F775BA] text-xs"></i>
                     </div>
                     <span class="text-[13px] font-bold text-[#1C1C1E] truncate">
                         {{ $user->location->name ?? 'Lokasi Kantor Belum Diatur' }}
                     </span>
                 </div>
                 <button type="button" @click="refreshLiveMapLocation()"
-                    class="w-8 h-8 rounded-full bg-pink-50 hover:bg-pink-100 text-[#FF21A4] flex items-center justify-center transition active:scale-92 shrink-0 shadow-xs"
+                    class="w-8 h-8 rounded-full bg-pink-50 hover:bg-pink-100 text-[#F775BA] flex items-center justify-center transition active:scale-92 shrink-0 shadow-xs"
                     title="Muat Ulang Lokasi">
                     <i class="fa-solid fa-arrow-rotate-right text-xs"></i>
                 </button>
@@ -832,7 +832,7 @@
         <div class="absolute right-4 bottom-64 z-20 flex flex-col pointer-events-auto">
             <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.1)] border border-gray-100/90 flex flex-col overflow-hidden">
                 <button type="button" @click="centerOnUserLiveMap()"
-                    class="w-11 h-11 flex items-center justify-center text-[#FF21A4] hover:bg-pink-50 transition active:scale-92"
+                    class="w-11 h-11 flex items-center justify-center text-[#F775BA] hover:bg-pink-50 transition active:scale-92"
                     title="Pusatkan Lokasi Saya">
                     <i class="fa-solid fa-location-arrow text-[15px]"></i>
                 </button>
@@ -874,7 +874,7 @@
                     <a :href="officeLat && officeLng ? 'https://www.google.com/maps/dir/?api=1&destination=' + officeLat + ',' + officeLng : '#'"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="px-3.5 py-1.5 rounded-full bg-[#FFF0F7] hover:bg-[#FFE0F0] text-[#FF21A4] text-xs font-bold flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-xs">
+                        class="px-3.5 py-1.5 rounded-full bg-[#FFF0F7] hover:bg-[#FFE0F0] text-[#F775BA] text-xs font-bold flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-xs">
                         <i class="fa-solid fa-diamond-turn-right text-[11px]"></i>
                         <span>Rute</span>
                     </a>
@@ -891,7 +891,7 @@
                 <!-- Action Button -->
                 <button type="button" @click="triggerAttendanceFromMap()"
                     :disabled="!locationValid && !{{ $endEvent ? 'true' : 'false' }}"
-                    class="w-full bg-[#FF21A4] hover:bg-[#E00084] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl shadow-sm hover:shadow-md transition active:scale-[0.99] flex items-center justify-center gap-2.5 text-[14px]">
+                    class="w-full bg-[#F775BA] hover:bg-[#E00084] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl shadow-sm hover:shadow-md transition active:scale-[0.99] flex items-center justify-center gap-2.5 text-[14px]">
                     <i class="fa-solid fa-camera text-base"></i>
                     <span x-text="currentMapActionLabel">Ambil Presensi: Pulang Kerja</span>
                 </button>
@@ -904,7 +904,7 @@
         <!-- Beranda (Home) -->
         <a href="{{ route('attendance.index') }}"
             @click.prevent="currentNav = 'home'; window.history.pushState({}, '', '{{ route('attendance.index') }}')"
-            :class="currentNav === 'home' ? 'bg-[#FFF0F7] text-[#FF21A4]' : 'text-[#1C1C1E] hover:text-black'"
+            :class="currentNav === 'home' ? 'bg-[#FFF0F7] text-[#F775BA]' : 'text-[#1C1C1E] hover:text-black'"
             class="flex flex-col items-center justify-center py-1 px-4 rounded-full transition-all duration-200">
             <i class="fa-solid fa-house text-[17px] mb-0.5"></i>
             <span class="text-[10px] font-bold">Beranda</span>
@@ -913,7 +913,7 @@
         <!-- Peta (Map) -->
         <button type="button"
             @click="currentNav = 'map'; initLiveMap();"
-            :class="currentNav === 'map' ? 'bg-[#FFF0F7] text-[#FF21A4]' : 'text-[#1C1C1E] hover:text-black'"
+            :class="currentNav === 'map' ? 'bg-[#FFF0F7] text-[#F775BA]' : 'text-[#1C1C1E] hover:text-black'"
             class="flex flex-col items-center justify-center py-1 px-4 rounded-full transition-all duration-200">
             <i class="fa-solid fa-map text-[17px] mb-0.5"></i>
             <span class="text-[10px] font-bold">Peta</span>
@@ -922,7 +922,7 @@
         <!-- Riwayat (History) -->
         <a href="{{ route('attendance.history') }}"
             @click.prevent="currentNav = 'history'; window.history.pushState({}, '', '{{ route('attendance.history') }}')"
-            :class="currentNav === 'history' ? 'bg-[#FFF0F7] text-[#FF21A4]' : 'text-[#1C1C1E] hover:text-black'"
+            :class="currentNav === 'history' ? 'bg-[#FFF0F7] text-[#F775BA]' : 'text-[#1C1C1E] hover:text-black'"
             class="flex flex-col items-center justify-center py-1 px-4 rounded-full transition-all duration-200">
             <i class="fa-solid fa-clock-rotate-left text-[17px] mb-0.5"></i>
             <span class="text-[10px] font-bold">Riwayat</span>
@@ -931,7 +931,7 @@
         <!-- Profil (Profile) -->
         <a href="{{ route('attendance.profile') }}"
             @click.prevent="currentNav = 'profile'; window.history.pushState({}, '', '{{ route('attendance.profile') }}')"
-            :class="currentNav === 'profile' ? 'bg-[#FFF0F7] text-[#FF21A4]' : 'text-[#1C1C1E] hover:text-black'"
+            :class="currentNav === 'profile' ? 'bg-[#FFF0F7] text-[#F775BA]' : 'text-[#1C1C1E] hover:text-black'"
             class="flex flex-col items-center justify-center py-1 px-4 rounded-full transition-all duration-200">
             <i class="fa-solid fa-circle-user text-[17px] mb-0.5"></i>
             <span class="text-[10px] font-bold">Profil</span>
@@ -957,7 +957,7 @@
             <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 sm:hidden"></div>
 
             <div class="text-center mb-5">
-                <div class="w-12 h-12 rounded-full bg-[#FFF0F7] text-[#FF21A4] flex items-center justify-center mx-auto mb-2.5">
+                <div class="w-12 h-12 rounded-full bg-[#FFF0F7] text-[#F775BA] flex items-center justify-center mx-auto mb-2.5">
                     <i class="fa-solid fa-clock text-xl"></i>
                 </div>
                 <h3 class="text-lg font-bold text-[#1C1C1E]">Pilih Shift Anda</h3>
@@ -975,10 +975,10 @@
                     @endphp
                     <div @click="selectedShiftId = {{ $s->id }}; selectedShiftName = '{{ addslashes($s->shift_name) }}'; selectedShiftHours = '{{ $sStart }} - {{ $sEnd }}'; selectedShiftStart = '{{ $sStart }}'; selectedShiftEnd = '{{ $sEnd }}'"
                         class="p-4 rounded-2xl border cursor-pointer transition flex items-center justify-between"
-                        :class="selectedShiftId === {{ $s->id }} ? 'border-[#FF21A4] bg-[#FFF0F7]/40 ring-1 ring-[#FF21A4]' : 'border-gray-200 bg-white hover:border-gray-300'">
+                        :class="selectedShiftId === {{ $s->id }} ? 'border-[#F775BA] bg-[#FFF0F7]/40 ring-1 ring-[#F775BA]' : 'border-gray-200 bg-white hover:border-gray-300'">
                         <div class="flex items-center space-x-3">
                             <div class="w-9 h-9 rounded-full flex items-center justify-center"
-                                :class="selectedShiftId === {{ $s->id }} ? 'bg-[#FF21A4] text-white' : 'bg-gray-100 text-gray-500'">
+                                :class="selectedShiftId === {{ $s->id }} ? 'bg-[#F775BA] text-white' : 'bg-gray-100 text-gray-500'">
                                 <i class="fa-solid fa-business-time text-sm"></i>
                             </div>
                             <div>
@@ -987,7 +987,7 @@
                             </div>
                         </div>
                         <div class="w-5 h-5 rounded-full border flex items-center justify-center"
-                            :class="selectedShiftId === {{ $s->id }} ? 'border-[#FF21A4] bg-[#FF21A4] text-white' : 'border-gray-300'">
+                            :class="selectedShiftId === {{ $s->id }} ? 'border-[#F775BA] bg-[#F775BA] text-white' : 'border-gray-300'">
                             <i x-show="selectedShiftId === {{ $s->id }}" class="fa-solid fa-check text-[10px]"></i>
                         </div>
                     </div>
@@ -1001,7 +1001,7 @@
                     Batal
                 </button>
                 <button type="button" @click="showShiftPicker = false"
-                    class="flex-1 py-3 bg-[#FF21A4] hover:bg-[#E01890] text-white font-bold text-sm rounded-xl transition shadow-md shadow-pink-500/20">
+                    class="flex-1 py-3 bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-sm rounded-xl transition shadow-md shadow-pink-500/20">
                     Pilih Shift Ini
                 </button>
             </div>
@@ -1099,7 +1099,7 @@
             </div>
 
             <button @click="submitAttendance()" :disabled="!locationValid"
-                class="w-full bg-[#FF21A4] hover:bg-[#E01890] text-white font-bold py-3.5 rounded-2xl transition active:scale-98 shadow-md shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center">
+                class="w-full bg-[#F775BA] hover:bg-[#E01890] text-white font-bold py-3.5 rounded-2xl transition active:scale-98 shadow-md shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center">
                 <span x-show="!isSubmitting">Simpan Presensi</span>
                 <span x-show="isSubmitting" style="display: none;">
                     <i class="fa-solid fa-spinner fa-spin mr-2"></i> Menyimpan...
@@ -1142,7 +1142,7 @@
             <div class="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
                 <div>
                     <h3 class="text-sm font-bold text-[#1C1C1E] flex items-center gap-1.5">
-                        <i class="fa-solid fa-location-dot text-[#FF21A4]"></i>
+                        <i class="fa-solid fa-location-dot text-[#F775BA]"></i>
                         <span x-text="mapModalTitle"></span>
                     </h3>
                     <p class="text-[11px] text-[#8E8E93]" x-text="mapModalSubtitle"></p>
@@ -1166,13 +1166,13 @@
 
             <div class="p-3.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3">
                 <div class="flex items-center space-x-2 text-xs text-[#8E8E93]">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#FF21A4]"></span>
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#F775BA]"></span>
                     <span>Presensi</span>
                     <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 ml-1"></span>
                     <span>Kantor</span>
                 </div>
                 <a :href="'https://maps.google.com/?q=' + mapModalLat + ',' + mapModalLng" target="_blank"
-                    class="px-3.5 py-1.5 bg-[#FF21A4] hover:bg-[#E01890] text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition active:scale-95 shadow-sm">
+                    class="px-3.5 py-1.5 bg-[#F775BA] hover:bg-[#E01890] text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition active:scale-95 shadow-sm">
                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                     <span>Google Maps</span>
                 </a>
@@ -1190,7 +1190,7 @@
 
             <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h3 class="text-base font-bold text-[#1C1C1E] flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-[#FF21A4]"></i>
+                    <i class="fa-solid fa-pen-to-square text-[#F775BA]"></i>
                     <span>Edit Profil</span>
                 </h3>
                 <button type="button" @click="showEditProfileModal = false"
@@ -1208,15 +1208,15 @@
                     <div class="flex flex-col items-center justify-center pb-2">
                         <div class="relative cursor-pointer group" @click="$refs.avatarInput.click()">
                             <img :src="avatarPreview ? avatarPreview : '{{ $user->avatar_url }}'"
-                                class="w-20 h-20 rounded-full border-2 border-gray-200 bg-white object-cover group-hover:border-[#FF21A4] transition shadow-sm">
-                            <span class="absolute bottom-0 right-0 bg-[#FF21A4] text-white rounded-full w-6 h-6 flex items-center justify-center shadow text-[10px]">
+                                class="w-20 h-20 rounded-full border-2 border-gray-200 bg-white object-cover group-hover:border-[#F775BA] transition shadow-sm">
+                            <span class="absolute bottom-0 right-0 bg-[#F775BA] text-white rounded-full w-6 h-6 flex items-center justify-center shadow text-[10px]">
                                 <i class="fa-solid fa-camera"></i>
                             </span>
                         </div>
                         <input type="file" x-ref="avatarInput" name="avatar" class="hidden" accept="image/*"
                             @change="previewAvatar($event)">
                         <button type="button" @click="$refs.avatarInput.click()"
-                            class="mt-2 text-xs text-[#FF21A4] hover:underline font-bold">
+                            class="mt-2 text-xs text-[#F775BA] hover:underline font-bold">
                             Ganti Foto
                         </button>
                         @error('avatar')
@@ -1229,7 +1229,7 @@
                         <label class="block text-xs font-semibold text-[#8E8E93] mb-1">No. Telepon</label>
                         <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
                             placeholder="Contoh: 08123456789"
-                            class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#FF21A4]">
+                            class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#F775BA]">
                         @error('phone')
                             <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
                         @enderror
@@ -1243,7 +1243,7 @@
                             <div>
                                 <label class="block text-xs font-medium text-[#8E8E93] mb-1">Password Baru</label>
                                 <input type="password" name="password" placeholder="Minimal 8 karakter"
-                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#FF21A4]">
+                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#F775BA]">
                                 @error('password')
                                     <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
                                 @enderror
@@ -1251,7 +1251,7 @@
                             <div>
                                 <label class="block text-xs font-medium text-[#8E8E93] mb-1">Konfirmasi Password Baru</label>
                                 <input type="password" name="password_confirmation" placeholder="Ulangi password baru"
-                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#FF21A4]">
+                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#F775BA]">
                             </div>
                         </div>
                     </div>
@@ -1263,7 +1263,7 @@
                         Batal
                     </button>
                     <button type="submit"
-                        class="px-5 py-2 bg-[#FF21A4] hover:bg-[#E01890] text-white rounded-xl text-xs font-bold transition shadow-sm">
+                        class="px-5 py-2 bg-[#F775BA] hover:bg-[#E01890] text-white rounded-xl text-xs font-bold transition shadow-sm">
                         Simpan Perubahan
                     </button>
                 </div>
@@ -1479,7 +1479,7 @@
 
                             const userPinIcon = L.divIcon({
                                 className: 'user-pin-icon',
-                                html: `<div style="background-color: #FF21A4; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(255,33,164,0.4); display: flex; align-items: center; justify-content: center; color: white;">
+                                html: `<div style="background-color: #F775BA; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(255,33,164,0.4); display: flex; align-items: center; justify-content: center; color: white;">
                                         <i class="fa-solid fa-location-dot text-sm"></i>
                                        </div>`,
                                 iconSize: [32, 32],
@@ -1577,7 +1577,7 @@
                         className: 'leaflet-office-pin',
                         html: `<div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); pointer-events: none;">
                             <div style="width: 38px; height: 38px; border-radius: 50%; background: white; box-shadow: 0 4px 14px rgba(0,0,0,0.14); display: flex; align-items: center; justify-content: center; border: 1.5px solid #F0F2F5;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #FF21A4; display: flex; align-items: center; justify-content: center; color: white;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #F775BA; display: flex; align-items: center; justify-content: center; color: white;">
                                     <i class="fa-solid fa-building" style="font-size: 13px;"></i>
                                 </div>
                             </div>
@@ -1709,7 +1709,7 @@
 
             const userIcon = L.divIcon({
                 className: 'custom-pin-marker',
-                html: `<div style="background-color: #FF21A4; width: 34px; height: 34px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(255,33,164,0.4); display: flex; align-items: center; justify-content: center; color: white;">
+                html: `<div style="background-color: #F775BA; width: 34px; height: 34px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(255,33,164,0.4); display: flex; align-items: center; justify-content: center; color: white;">
                         <i class="fa-solid fa-location-dot text-base"></i>
                        </div>`,
                 iconSize: [34, 34],
