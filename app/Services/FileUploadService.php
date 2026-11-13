@@ -48,20 +48,18 @@ class FileUploadService
             // Ignore path resolution issues
         }
 
-        // Store to Cloudflare R2
-        try {
-            Storage::disk('r2')->put($path, $binary, [
-                'visibility' => 'public',
-                'ContentType' => 'image/webp',
-            ]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('R2 upload failed: '.$e->getMessage());
-        }
-
-        // Store to local disk (/tmp or storage/app/public) as cache
+        // Store to local disk (/tmp or storage/app/public) immediately
         try {
             Storage::disk('public')->put($path, $binary);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Local storage put failed: '.$e->getMessage());
+        }
+
+        // Asynchronously offload upload to Cloudflare R2 via Queue Job
+        try {
+            \App\Jobs\UploadFileToR2Job::dispatch($path, 'image/webp');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Dispatch UploadFileToR2Job failed: '.$e->getMessage());
         }
 
         return $path;
@@ -89,20 +87,18 @@ class FileUploadService
             $binary = file_get_contents($file->getRealPath());
         }
 
-        // Store directly to Cloudflare R2
-        try {
-            Storage::disk('r2')->put($path, $binary, [
-                'visibility' => 'public',
-                'ContentType' => 'image/webp',
-            ]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('R2 upload failed: '.$e->getMessage());
-        }
-
-        // Also cache locally
+        // Store to local disk immediately
         try {
             Storage::disk('public')->put($path, $binary);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Local storage put failed in uploadImageWithBase64: '.$e->getMessage());
+        }
+
+        // Asynchronously offload upload to Cloudflare R2 via Queue Job
+        try {
+            \App\Jobs\UploadFileToR2Job::dispatch($path, 'image/webp');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Dispatch UploadFileToR2Job failed in uploadImageWithBase64: '.$e->getMessage());
         }
 
         return [

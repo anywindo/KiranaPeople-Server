@@ -46,7 +46,18 @@ class DashboardController extends Controller
         $absentToday = (clone $absentQuery)->count();
         $absentEmployees = (clone $absentQuery)->take(50)->get();
 
-        // 4. Past 7 days attendance trend
+        // 4. Past 7 days attendance trend (optimized to 1 single aggregated query instead of 14 queries)
+        $sevenDaysAgo = Carbon::today()->subDays(6)->toDateString();
+        $todayStr = $today->toDateString();
+
+        $trendRecords = Attendance::whereBetween('date', [$sevenDaysAgo, $todayStr])
+            ->selectRaw('date, count(*) as total_present, sum(case when status = ? then 1 else 0 end) as total_late', [\App\Enums\AttendanceStatus::LATE->value])
+            ->groupBy('date')
+            ->get()
+            ->keyBy(function ($record) {
+                return Carbon::parse($record->date)->toDateString();
+            });
+
         $trendLabels = [];
         $trendOnTime = [];
         $trendLate = [];
@@ -57,8 +68,9 @@ class DashboardController extends Controller
             $dateStr = $date->toDateString();
             $trendLabels[] = $date->format('d M');
 
-            $dayPresent = Attendance::whereDate('date', $dateStr)->count();
-            $dayLate = Attendance::whereDate('date', $dateStr)->where('status', \App\Enums\AttendanceStatus::LATE)->count();
+            $dayRecord = $trendRecords->get($dateStr);
+            $dayPresent = $dayRecord ? (int) $dayRecord->total_present : 0;
+            $dayLate = $dayRecord ? (int) $dayRecord->total_late : 0;
             $dayOnTime = max(0, $dayPresent - $dayLate);
             $dayAbsent = max(0, $totalEmployees - $dayPresent);
 
@@ -74,43 +86,38 @@ class DashboardController extends Controller
             'absent' => $trendAbsent,
         ];
 
-        // 5. Late employees: only load attendances that actually have a START_SHIFT event today
+        // 5. Late employees: only load attendances marked LATE with events today (bounded query)
         $lateEmployees = Attendance::with(['user.location', 'shift', 'events' => function ($q) {
             $q->where('event_type', EventType::START_SHIFT);
         }])
             ->whereDate('date', '=', $today)
+            ->where('status', \App\Enums\AttendanceStatus::LATE)
             ->whereHas('events', function ($q) {
                 $q->where('event_type', EventType::START_SHIFT);
             })
+            ->take(30)
             ->get()
-            ->filter(function ($attendance) {
-                $checkIn = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::START_SHIFT->value || $e->event_type === EventType::START_SHIFT);
-                $scheduledStart = $attendance->shift?->default_start_time ? Carbon::parse($attendance->shift->default_start_time) : null;
-
-                if ($checkIn && $scheduledStart) {
-                    return $checkIn->timestamp->format('H:i') > $scheduledStart->format('H:i');
-                }
-
-                return false;
-            })
             ->map(function ($attendance) {
                 $checkIn = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::START_SHIFT->value || $e->event_type === EventType::START_SHIFT);
-                $scheduledStart = Carbon::parse($attendance->shift->default_start_time);
-                $actualStart = $checkIn->timestamp;
+                $scheduledStart = $attendance->shift?->default_start_time ? Carbon::parse($attendance->shift->default_start_time) : null;
+                $actualStart = $checkIn?->timestamp;
 
-                $scheduledToday = $actualStart->copy()->setTimeFrom($scheduledStart);
-                $lateMinutes = $scheduledToday->diffInMinutes($actualStart, false);
+                $lateMinutes = 0;
+                if ($checkIn && $scheduledStart) {
+                    $scheduledToday = $actualStart->copy()->setTimeFrom($scheduledStart);
+                    $lateMinutes = max(0, $scheduledToday->diffInMinutes($actualStart, false));
+                }
 
-                $attendance->late_minutes = max(0, $lateMinutes);
-                $attendance->actual_time = $actualStart->format('H:i');
-                $attendance->scheduled_time = $scheduledStart->format('H:i');
+                $attendance->late_minutes = $lateMinutes;
+                $attendance->actual_time = $actualStart ? $actualStart->format('H:i') : '-';
+                $attendance->scheduled_time = $scheduledStart ? $scheduledStart->format('H:i') : '-';
 
                 return $attendance;
             })
             ->sortByDesc('late_minutes')
             ->take(10);
 
-        // 5. Early leavers: only load attendances that actually have an END_SHIFT event today
+        // 6. Early leavers: only load attendances that have an END_SHIFT event today (bounded query)
         $earlyEmployees = Attendance::with(['user.location', 'shift', 'events' => function ($q) {
             $q->where('event_type', EventType::END_SHIFT);
         }])
@@ -118,6 +125,7 @@ class DashboardController extends Controller
             ->whereHas('events', function ($q) {
                 $q->where('event_type', EventType::END_SHIFT);
             })
+            ->take(50)
             ->get()
             ->filter(function ($attendance) {
                 $checkOut = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::END_SHIFT->value || $e->event_type === EventType::END_SHIFT);
