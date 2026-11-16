@@ -118,6 +118,10 @@ class EmployeeController extends Controller
 
     public function edit(User $employee)
     {
+        if ($employee->hasRole('super-admin') && ! auth()->user()->hasRole('super-admin')) {
+            return redirect()->route('admin.employees.index')->with('error', 'Hanya Superadmin yang dapat mengubah akun Superadmin.');
+        }
+
         $rolesQuery = Role::where('guard_name', 'web');
         if (! auth()->user()->hasRole('super-admin')) {
             $rolesQuery->where('name', '!=', 'super-admin');
@@ -136,6 +140,9 @@ class EmployeeController extends Controller
 
     public function update(Request $request, User $employee)
     {
+        if ($employee->hasRole('super-admin') && ! auth()->user()->hasRole('super-admin')) {
+            return redirect()->route('admin.employees.index')->with('error', 'Hanya Superadmin yang dapat mengubah akun Superadmin.');
+        }
         $request->validate([
             'employee_id' => 'nullable|string|max:50|unique:users,employee_id,'.$employee->id,
             'name' => 'required|string|max:255',
@@ -193,16 +200,20 @@ class EmployeeController extends Controller
     public function destroy(User $employee)
     {
         if ($employee->id == auth()->id()) {
-            return redirect()->route('admin.employees.index')->with('error', 'Cannot delete yourself.');
+            return redirect()->route('admin.employees.index')->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
         }
 
         if ($employee->hasRole('super-admin')) {
-            return redirect()->route('admin.employees.index')->with('error', 'Cannot delete a Superadmin account.');
+            return redirect()->route('admin.employees.index')->with('error', 'Akun Superadmin tidak dapat dihapus.');
         }
 
-        $employee->delete();
+        try {
+            $employee->delete();
+        } catch (\DomainException $e) {
+            return redirect()->route('admin.employees.index')->with('error', $e->getMessage());
+        }
 
-        return redirect()->route('admin.employees.index')->with('success', 'Employee deleted successfully.');
+        return redirect()->route('admin.employees.index')->with('success', 'Karyawan berhasil dihapus.');
     }
 
     public function export()

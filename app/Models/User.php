@@ -104,6 +104,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Prevent Superadmin account from being deleted.
+     */
+    public function delete()
+    {
+        if ($this->hasRole('super-admin') || $this->roles()->where('name', 'super-admin')->exists()) {
+            throw new \DomainException('Akun Superadmin tidak dapat dihapus.');
+        }
+
+        return parent::delete();
+    }
+
+    /**
      * Accessor for employee_id with automatic fallback to padded ID if not set.
      */
     public function getEmployeeIdAttribute($value): ?string

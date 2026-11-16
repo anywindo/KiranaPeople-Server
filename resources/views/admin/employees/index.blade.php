@@ -88,8 +88,10 @@
                             </td>
                             <td>{{ $employee->location ? $employee->location->name : '-' }}</td>
                             <td>
-                                <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                                @if($employee->id != auth()->id())
+                                @if(! $employee->hasRole('super-admin') || auth()->user()->hasRole('super-admin'))
+                                    <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                                @endif
+                                @if($employee->id != auth()->id() && ! $employee->hasRole('super-admin'))
                                 <form action="{{ route('admin.employees.destroy', $employee) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus karyawan ini?')">
                                     @csrf
                                     @method('DELETE')

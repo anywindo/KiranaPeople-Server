@@ -154,7 +154,25 @@ class EmployeeController extends Controller
 
     public function destroy(User $employee)
     {
-        $employee->delete();
+        if ($employee->id === auth()->id()) {
+            return response()->json([
+                'message' => 'Tidak dapat menghapus akun Anda sendiri.',
+            ], 422);
+        }
+
+        if ($employee->hasRole('super-admin')) {
+            return response()->json([
+                'message' => 'Akun Superadmin tidak dapat dihapus.',
+            ], 403);
+        }
+
+        try {
+            $employee->delete();
+        } catch (\DomainException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 403);
+        }
 
         return response()->json([
             'message' => 'Employee deleted successfully.',
