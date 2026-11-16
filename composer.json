@@ -18,11 +18,11 @@
         "predis/predis": "^3.4",
         "resend/resend-php": "^1.16",
         "spatie/laravel-permission": "^6.24",
-        "spatie/laravel-query-builder": "^6.4"
+        "spatie/laravel-query-builder": "^6.4",
+        "fakerphp/faker": "^1.23"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",
-        "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.13",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",

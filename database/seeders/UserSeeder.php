@@ -80,7 +80,6 @@ class UserSeeder extends Seeder
         $supervisors = collect();
         foreach ($managers as $manager) {
             $supervisors->push($createWithDobPassword([
-                'immediate_manager_id' => $manager->id,
                 'location_id' => $manager->location_id,
             ]));
         }
@@ -94,8 +93,6 @@ class UserSeeder extends Seeder
             'dob' => '2000-01-01',
             'password' => $defaultPassword,
             'avatar' => 'avatars/6ac7594a71d64_1791449418.webp',
-            'direct_supervisor_id' => $supervisors->first()?->id,
-            'immediate_manager_id' => $managers->first()?->id,
             'location_id' => $locationId,
         ]);
         $employee->roles()->syncWithoutDetaching([$employeeRole->id]);
@@ -104,8 +101,6 @@ class UserSeeder extends Seeder
         foreach ($supervisors as $supervisor) {
             for ($i = 0; $i < 2; $i++) {
                 $createWithDobPassword([
-                    'direct_supervisor_id' => $supervisor->id,
-                    'immediate_manager_id' => $supervisor->immediate_manager_id,
                     'location_id' => $supervisor->location_id,
                 ]);
             }
