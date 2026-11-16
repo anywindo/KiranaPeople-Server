@@ -97,6 +97,8 @@ class AdminDashboardAnalyticsTest extends TestCase
         $hr = User::factory()->create();
         $hr->assignRole('HR');
 
+        \App\Models\Setting::set('attendance_rule_enabled', 'false', 'boolean');
+
         $location = Location::create([
             'name' => 'Kantor Cabang',
             'latitude' => -6.200000,

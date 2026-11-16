@@ -97,4 +97,41 @@ class AdminAttendanceIndexDefaultDateTest extends TestCase
         $this->assertCount(1, $attendancesYesterday);
         $this->assertEquals($attYesterday->id, $attendancesYesterday->first()->id);
     }
+
+    public function test_attendance_index_renders_properly_with_attendance_rule_enabled()
+    {
+        $hr = User::factory()->create();
+        $hr->assignRole('HR');
+
+        \App\Models\Setting::set('attendance_rule_enabled', 'true', 'boolean');
+        \App\Models\Setting::set('attendance_rule_minutes', 15, 'integer');
+
+        $employee = User::factory()->create();
+
+        $shift = \App\Models\Shift::create([
+            'shift_name' => 'Pagi',
+            'default_start_time' => '10:00:00',
+            'default_end_time' => '17:00:00',
+        ]);
+
+        $today = Carbon::today();
+
+        $att = Attendance::create([
+            'user_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'date' => $today->toDateString(),
+        ]);
+        AttendanceEvent::create([
+            'attendance_id' => $att->id,
+            'event_type' => EventType::START_SHIFT,
+            'timestamp' => $today->copy()->setTime(9, 54, 0),
+            'latitude' => -6.2,
+            'longitude' => 106.8,
+            'selfie_path' => 'selfies/today.jpg',
+        ]);
+
+        $response = $this->actingAs($hr, 'web')->get('/admin/attendances');
+        $response->assertStatus(200);
+        $response->assertSee($employee->name);
+    }
 }

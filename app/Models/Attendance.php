@@ -146,6 +146,7 @@ class Attendance extends Model
 
         if ($checkIn && $scheduledStart) {
             $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
+            $ruleMinutes = $ruleEnabled ? (int) Setting::get('attendance_rule_minutes', 15) : 0;
             if ($ruleEnabled && $ruleMinutes > 0) {
                 $cutoff = $scheduledStart->copy()->subMinutes($ruleMinutes);
                 if ($actualStart->format('H:i:s') >= $cutoff->format('H:i:s')) {
