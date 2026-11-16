@@ -29,20 +29,68 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
     }
 
-    public function test_export_modal_renders_include_all_employees_dropdown_by_default_in_attendance_and_break_views()
+    public function test_datatable_renders_include_all_employees_checkbox_and_export_modal_does_not_contain_dropdown()
     {
         $hr = User::factory()->create();
         $hr->assignRole('HR');
 
         $responseAttendance = $this->actingAs($hr)->get(route('admin.attendances.index'));
         $responseAttendance->assertStatus(200);
-        $responseAttendance->assertSee('name="include_all_employees"', false);
-        $responseAttendance->assertSee('Semua Karyawan (Termasuk Mangkir / Belum Presensi)');
+        $responseAttendance->assertSee('type="checkbox" name="include_all_employees"', false);
+        $responseAttendance->assertSee('Include Semua Karyawan');
+        $responseAttendance->assertDontSee('<select class="form-select" name="include_all_employees"', false);
 
         $responseBreak = $this->actingAs($hr)->get(route('admin.breaks.index'));
         $responseBreak->assertStatus(200);
-        $responseBreak->assertSee('name="include_all_employees"', false);
-        $responseBreak->assertSee('Semua Karyawan (Termasuk Mangkir / Belum Presensi / Tidak Istirahat)');
+        $responseBreak->assertSee('type="checkbox" name="include_all_employees"', false);
+        $responseBreak->assertSee('Include Semua Karyawan');
+        $responseBreak->assertDontSee('<select class="form-select" name="include_all_employees"', false);
+    }
+
+    public function test_attendance_datatable_includes_all_employees_when_checkbox_is_checked()
+    {
+        $shift = Shift::create([
+            'shift_name' => 'Pagi',
+            'default_start_time' => '08:00:00',
+            'default_end_time' => '17:00:00',
+        ]);
+
+        $hr = User::factory()->create();
+        $hr->assignRole('HR');
+
+        $attendedUser = User::factory()->create(['name' => 'Budi Hadir', 'is_active' => true]);
+        $mangkirUser = User::factory()->create(['name' => 'Siti Mangkir', 'is_active' => true]);
+
+        $today = Carbon::today();
+        $att = Attendance::create([
+            'user_id' => $attendedUser->id,
+            'shift_id' => $shift->id,
+            'date' => $today->toDateString(),
+        ]);
+        AttendanceEvent::create([
+            'attendance_id' => $att->id,
+            'event_type' => EventType::START_SHIFT,
+            'timestamp' => $today->copy()->setTime(8, 0, 0),
+            'latitude' => -6.2,
+            'longitude' => 106.8,
+            'selfie_path' => 'selfies/test.jpg',
+        ]);
+
+        // When unchecked: Siti Mangkir is not visible in datatable
+        $resUnchecked = $this->actingAs($hr)->get(route('admin.attendances.index', ['date' => $today->toDateString()]));
+        $resUnchecked->assertStatus(200);
+        $resUnchecked->assertSee('Budi Hadir');
+        $resUnchecked->assertDontSee('Siti Mangkir');
+
+        // When checked: Siti Mangkir is visible with Mangkir status
+        $resChecked = $this->actingAs($hr)->get(route('admin.attendances.index', [
+            'date' => $today->toDateString(),
+            'include_all_employees' => '1',
+        ]));
+        $resChecked->assertStatus(200);
+        $resChecked->assertSee('Budi Hadir');
+        $resChecked->assertSee('Siti Mangkir');
+        $resChecked->assertSee('Mangkir / Belum Presensi');
     }
 
     public function test_attendance_export_includes_mangkir_employees_by_default()

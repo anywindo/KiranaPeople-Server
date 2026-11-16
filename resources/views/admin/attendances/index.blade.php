@@ -20,6 +20,14 @@
                                     <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                                 </select>
                             </div>
+
+                            <div class="form-check mb-0 text-nowrap d-flex align-items-center">
+                                <input class="form-check-input mt-0 me-1" type="checkbox" name="include_all_employees" id="includeAllEmployees"
+                                    value="1" {{ request()->boolean('include_all_employees') ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="form-check-label small fw-semibold text-muted" for="includeAllEmployees">
+                                    Include Semua Karyawan
+                                </label>
+                            </div>
                             
                             <div class="input-group input-group-sm">
                                 <select name="location_id" class="form-select" onchange="this.form.submit()">
@@ -43,7 +51,7 @@
                                 <button type="submit" class="btn btn-default" title="Cari">
                                     <i class="bi bi-search"></i>
                                 </button>
-                                @if(!empty($selectedDate) || request()->filled('search') || request()->filled('location_id') || request()->filled('shift_id'))
+                                @if(!empty($selectedDate) || request()->filled('search') || request()->filled('location_id') || request()->filled('shift_id') || request()->boolean('include_all_employees'))
                                     <a href="{{ route('admin.attendances.index', ['date' => '']) }}" class="btn btn-outline-secondary" title="Tampilkan Semua Tanggal / Reset">
                                         <i class="bi bi-x-circle"></i>
                                     </a>
@@ -79,7 +87,8 @@
                                     $outEval = $attendance->check_out_evaluation;
                                     $shiftStatus = $attendance->shift_status;
                                 @endphp
-                                <tr onclick='showAttendanceDetail(@json($attendance->detail_modal_data))' style="cursor: pointer;" class="hover-bg-light">
+                                <tr onclick='showAttendanceDetail(@json($attendance->detail_modal_data))' style="cursor: pointer;"
+                                    class="hover-bg-light {{ isset($attendance->is_absent) && $attendance->is_absent ? 'table-danger' : '' }}">
                                     <td>{{ $attendance->date ? $attendance->date->format('d M Y') : '-' }}</td>
                                     <td>{{ $attendance->user->employee_id ?? '-' }}</td>
                                     <td>
@@ -126,7 +135,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center">Belum ada data presensi.</td>
+                                    <td colspan="9" class="text-center">Belum ada data presensi.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -143,6 +152,7 @@
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form action="{{ route('admin.attendances.export') }}" method="GET">
+                <input type="hidden" name="include_all_employees" value="1">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exportModalLabel">Export Data Presensi</h5>
@@ -157,15 +167,6 @@
                                 <option value="all">Semua Hari</option>
                                 <option value="custom">Ditentukan (Custom)</option>
                             </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Cakupan Karyawan</label>
-                            <select class="form-select" name="include_all_employees" id="include_all_employees">
-                                <option value="1" selected>Semua Karyawan (Termasuk Mangkir / Belum Presensi)</option>
-                                <option value="0">Hanya Karyawan yang Melakukan Presensi</option>
-                            </select>
-                            <div class="form-text text-muted">Secara default mengekspor seluruh karyawan termasuk yang belum presensi / mangkir.</div>
                         </div>
                         
                         <!-- Hidden inputs for filter -->

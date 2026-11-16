@@ -44,8 +44,112 @@ class AttendanceController extends Controller
             });
         }
 
-        $perPage = $request->input('per_page', 10);
-        $attendances = $query->paginate($perPage)->appends(array_merge($request->all(), ['date' => $selectedDate]));
+        $perPage = (int) $request->input('per_page', 10);
+        $includeAll = $request->boolean('include_all_employees');
+
+        if ($includeAll) {
+            $attendancesCollection = $query->get();
+
+            $excludedRoles = json_decode(\App\Models\Setting::get('exclude_roles_from_attendance', '["super-admin"]'), true);
+            if (! is_array($excludedRoles)) {
+                $excludedRoles = ['super-admin'];
+            }
+
+            $userQuery = \App\Models\User::active()
+                ->with(['location'])
+                ->whereDoesntHave('roles', function ($q) use ($excludedRoles) {
+                    $q->whereIn('name', $excludedRoles);
+                });
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $userQuery->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('location_id')) {
+                $userQuery->where('location_id', $request->location_id);
+            }
+
+            $eligibleUsers = $userQuery->orderBy('name', 'asc')->get();
+
+            $dates = collect();
+            if (! empty($selectedDate)) {
+                $dates->push($selectedDate);
+            } else {
+                $distinctDates = Attendance::distinct()
+                    ->orderBy('date', 'desc')
+                    ->pluck('date')
+                    ->map(fn ($d) => \Carbon\Carbon::parse($d)->toDateString())
+                    ->unique()
+                    ->values();
+
+                if ($distinctDates->isNotEmpty()) {
+                    $dates = $distinctDates;
+                } else {
+                    $dates->push(now()->toDateString());
+                }
+            }
+
+            $attendancesByDate = $attendancesCollection->groupBy(function ($att) {
+                return \Carbon\Carbon::parse($att->date)->toDateString();
+            });
+
+            $defaultShift = \App\Models\Shift::first();
+            $targetShift = $request->filled('shift_id') ? \App\Models\Shift::find($request->shift_id) : null;
+            $allRecords = collect();
+
+            foreach ($dates as $dateStr) {
+                $dayAttendances = $attendancesByDate->get($dateStr, collect());
+                $attendedUserIds = $dayAttendances->pluck('user_id')->all();
+
+                foreach ($dayAttendances as $att) {
+                    $allRecords->push($att);
+                }
+
+                foreach ($eligibleUsers as $user) {
+                    if (in_array($user->id, $attendedUserIds)) {
+                        continue;
+                    }
+
+                    $userShift = $user->shift ?? $defaultShift;
+                    if ($request->filled('shift_id') && ($userShift?->id != $request->shift_id)) {
+                        continue;
+                    }
+
+                    $absentAtt = new Attendance([
+                        'user_id' => $user->id,
+                        'date' => \Carbon\Carbon::parse($dateStr),
+                        'shift_id' => $targetShift?->id ?? $userShift?->id,
+                        'status' => \App\Enums\AttendanceStatus::ABSENT,
+                    ]);
+                    $absentAtt->is_absent = true;
+                    $absentAtt->setRelation('user', $user);
+                    $absentAtt->setRelation('shift', $targetShift ?? $userShift);
+                    $absentAtt->setRelation('events', collect());
+
+                    $allRecords->push($absentAtt);
+                }
+            }
+
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $currentItems = $allRecords->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+            $attendances = new \Illuminate\Pagination\LengthAwarePaginator(
+                $currentItems,
+                $allRecords->count(),
+                $perPage,
+                $currentPage,
+                [
+                    'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
+                    'query' => array_merge($request->all(), ['date' => $selectedDate]),
+                ]
+            );
+        } else {
+            $attendances = $query->paginate($perPage)->appends(array_merge($request->all(), ['date' => $selectedDate]));
+        }
 
         $shifts = \App\Models\Shift::getAllCached();
         $locations = \App\Models\Location::getAllCached();

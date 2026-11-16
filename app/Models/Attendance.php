@@ -34,9 +34,13 @@ class Attendance extends Model
 
     public function getShiftStatusAttribute()
     {
+        if (isset($this->is_absent) && $this->is_absent) {
+            return ['label' => 'Mangkir / Belum Presensi', 'color' => 'danger'];
+        }
+
         $startEvent = $this->events->where('event_type', \App\Enums\EventType::START_SHIFT)->first();
         if (! $startEvent || ! $this->shift || ! $this->shift->default_start_time) {
-            return ['label' => $this->status->label(), 'color' => $this->status->color()];
+            return ['label' => $this->status ? $this->status->label() : 'Mangkir / Belum Presensi', 'color' => $this->status ? $this->status->color() : 'danger'];
         }
 
         $actual = \Carbon\Carbon::parse($startEvent->timestamp)->format('H:i:s');
@@ -197,6 +201,31 @@ class Attendance extends Model
 
     public function getDetailModalDataAttribute(): array
     {
+        if (isset($this->is_absent) && $this->is_absent) {
+            return [
+                'employee' => $this->user->name ?? '-',
+                'date' => $this->date ? $this->date->format('d M Y') : '-',
+                'shiftStatusLabel' => 'Mangkir / Belum Presensi',
+                'shiftStatusColor' => 'danger',
+                'in' => [
+                    'time' => '-',
+                    'statusLabel' => 'Belum Presensi',
+                    'statusColor' => 'danger',
+                    'photo' => asset('placeholder.svg'),
+                    'lat' => '',
+                    'lng' => '',
+                ],
+                'out' => [
+                    'time' => '-',
+                    'statusLabel' => 'Belum Presensi',
+                    'statusColor' => 'danger',
+                    'photo' => asset('placeholder.svg'),
+                    'lat' => '',
+                    'lng' => '',
+                ],
+            ];
+        }
+
         $inEval = $this->check_in_evaluation;
         $outEval = $this->check_out_evaluation;
         $shiftStatus = $this->shift_status;
@@ -227,6 +256,42 @@ class Attendance extends Model
 
     public function getBreakEvaluationAttribute(): array
     {
+        if (isset($this->is_absent) && $this->is_absent) {
+            return [
+                'start_break' => null,
+                'end_break' => null,
+                'duration' => '-',
+                'start_color_class' => 'text-muted',
+                'end_color_class' => 'text-muted',
+                'in_photo' => asset('placeholder.svg'),
+                'out_photo' => asset('placeholder.svg'),
+                'break_status_label' => 'Mangkir / Belum Presensi',
+                'break_status_color' => 'danger',
+                'detail_data' => [
+                    'employee' => $this->user->name ?? '-',
+                    'date' => $this->date ? \Carbon\Carbon::parse($this->date)->format('d M Y') : '-',
+                    'shiftStatusLabel' => 'Mangkir / Belum Presensi',
+                    'shiftStatusColor' => 'danger',
+                    'in' => [
+                        'time' => '-',
+                        'statusLabel' => '-',
+                        'statusColor' => 'secondary',
+                        'photo' => asset('placeholder.svg'),
+                        'lat' => null,
+                        'lng' => null,
+                    ],
+                    'out' => [
+                        'time' => '-',
+                        'statusLabel' => '-',
+                        'statusColor' => 'secondary',
+                        'photo' => asset('placeholder.svg'),
+                        'lat' => null,
+                        'lng' => null,
+                    ],
+                ],
+            ];
+        }
+
         $startBreak = $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === \App\Enums\EventType::START_BREAK->value || $e->event_type === \App\Enums\EventType::START_BREAK);
         $endBreak = $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === \App\Enums\EventType::END_BREAK->value || $e->event_type === \App\Enums\EventType::END_BREAK);
 
@@ -236,9 +301,14 @@ class Attendance extends Model
             $duration = sprintf('%02d:%02d:%02d', $diff->h, $diff->i, $diff->s);
         }
 
-        $breakStatus = $this->break_status;
-        $breakStatusLabel = is_array($breakStatus) ? ($breakStatus['label'] ?? '-') : ($breakStatus ?? '-');
-        $breakStatusColor = is_array($breakStatus) ? ($breakStatus['color'] ?? 'secondary') : 'secondary';
+        if (! $startBreak && ! $endBreak) {
+            $breakStatusLabel = 'Tidak Istirahat';
+            $breakStatusColor = 'secondary';
+        } else {
+            $breakStatus = $this->break_status;
+            $breakStatusLabel = is_array($breakStatus) ? ($breakStatus['label'] ?? '-') : ($breakStatus ?? '-');
+            $breakStatusColor = is_array($breakStatus) ? ($breakStatus['color'] ?? 'secondary') : 'secondary';
+        }
         $startColorClass = 'text-muted';
         $endColorClass = 'text-muted';
         $isEarlyBreak = false;
