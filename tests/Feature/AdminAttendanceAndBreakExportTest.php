@@ -230,21 +230,83 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $this->actingAs($hr)->get(route('admin.attendances.export', ['export_type' => 'today']))
             ->assertStatus(200);
 
-        Excel::assertDownloaded('attendance_' . date('Y-m-d_H-i-s') . '.xlsx', function (AttendanceExport $export) {
+        Excel::assertDownloaded('attendance_'.date('Y-m-d_H-i-s').'.xlsx', function (AttendanceExport $export) {
             $reflector = new \ReflectionClass($export);
             $prop = $reflector->getProperty('includeAll');
             $prop->setAccessible(true);
+
             return $prop->getValue($export) === true;
         });
 
         $this->actingAs($hr)->get(route('admin.breaks.export', ['export_type' => 'today']))
             ->assertStatus(200);
 
-        Excel::assertDownloaded('break_history_' . date('Y-m-d_H-i-s') . '.xlsx', function (BreakExport $export) {
+        Excel::assertDownloaded('break_history_'.date('Y-m-d_H-i-s').'.xlsx', function (BreakExport $export) {
             $reflector = new \ReflectionClass($export);
             $prop = $reflector->getProperty('includeAll');
             $prop->setAccessible(true);
+
             return $prop->getValue($export) === true;
         });
+    }
+
+    public function test_attendance_export_applies_yellow_header_and_prettified_conditional_styles()
+    {
+        $export = new AttendanceExport;
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([
+            $export->headings(),
+            [1, 'EMP01', '3201', 'Budi Santoso', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '17:00:00', 'Hadir'],
+            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', 'Mangkir / Belum Presensi'],
+            [3, 'EMP03', '3203', 'Agus Lupa', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '-', 'Hadir (Lupa Checkout)'],
+        ]);
+
+        $export->styles($sheet);
+
+        // Header tests
+        $this->assertEquals('FFFFE599', $sheet->getStyle('A1')->getFill()->getStartColor()->getARGB());
+        $this->assertTrue($sheet->getStyle('A1')->getFont()->getBold());
+        $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
+
+        // Mangkir row (row 3) should have soft red fill
+        $this->assertEquals('FFFFE2E2', $sheet->getStyle('A3')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FF991B1B', $sheet->getStyle('J3')->getFont()->getColor()->getARGB());
+
+        // Lupa presensi row (row 4) should have soft amber fill
+        $this->assertEquals('FFFFF3C7', $sheet->getStyle('A4')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FF92400E', $sheet->getStyle('J4')->getFont()->getColor()->getARGB());
+    }
+
+    public function test_break_export_applies_yellow_header_and_prettified_conditional_styles()
+    {
+        $export = new BreakExport;
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([
+            $export->headings(),
+            [1, 'EMP01', '3201', 'Budi Istirahat', 'Kantor', '2026-11-16', 'Pagi', '12:00:00', '12:45:00', '00:45:00', 'Tepat Waktu'],
+            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', '-', 'Mangkir / Belum Presensi'],
+            [3, 'EMP03', '3203', 'Doni NoBreak', 'Kantor', '2026-11-16', 'Pagi', '-', '-', '-', 'Tidak Istirahat'],
+            [4, 'EMP04', '3204', 'Agus Sedang', 'Kantor', '2026-11-16', 'Pagi', '12:00:00', '-', '-', 'Sedang Istirahat'],
+        ]);
+
+        $export->styles($sheet);
+
+        // Header tests
+        $this->assertEquals('FFFFE599', $sheet->getStyle('A1')->getFill()->getStartColor()->getARGB());
+        $this->assertTrue($sheet->getStyle('A1')->getFont()->getBold());
+        $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
+
+        // Mangkir row (row 3) should have soft red fill
+        $this->assertEquals('FFFFE2E2', $sheet->getStyle('A3')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FF991B1B', $sheet->getStyle('K3')->getFont()->getColor()->getARGB());
+
+        // Tidak istirahat row (row 4) should have subtle slate fill
+        $this->assertEquals('FFF8FAFC', $sheet->getStyle('A4')->getFill()->getStartColor()->getARGB());
+
+        // Sedang / Lupa row (row 5) should have soft amber fill
+        $this->assertEquals('FFFFF3C7', $sheet->getStyle('A5')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FF92400E', $sheet->getStyle('K5')->getFont()->getColor()->getARGB());
     }
 }

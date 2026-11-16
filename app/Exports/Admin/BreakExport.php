@@ -12,8 +12,13 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping
+class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
     protected $rowNumber = 0;
 
@@ -229,6 +234,12 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
 
         if ($startBreak || $endBreak) {
             $status = is_array($attendance->break_status) ? ($attendance->break_status['label'] ?? '-') : ($attendance->break_status ?? '-');
+            $isPastDate = $attendance->date && Carbon::parse($attendance->date)->isBefore(Carbon::today());
+            if ($startBreak && ! $endBreak) {
+                $status = $isPastDate ? 'Lupa Selesai Istirahat' : 'Sedang Istirahat';
+            } elseif (! $startBreak && $endBreak) {
+                $status = 'Lupa Mulai Istirahat';
+            }
         } else {
             $status = 'Tidak Istirahat';
         }
@@ -247,5 +258,122 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
             $status,
         ];
     }
-}
 
+    public function styles(Worksheet $sheet): ?array
+    {
+        $sheet->setShowGridlines(true);
+        $sheet->freezePane('A2');
+
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn(); // 'K'
+
+        // 1. Header Styling (Row 1): Warm Yellow Background, Bold text, Centered
+        $sheet->getRowDimension(1)->setRowHeight(28);
+        $headerRange = "A1:{$highestColumn}1";
+        $sheet->getStyle($headerRange)->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFFFE599');
+
+        $sheet->getStyle($headerRange)->getFont()
+            ->setBold(true)
+            ->setSize(11)
+            ->getColor()->setARGB('FF1E293B');
+
+        $sheet->getStyle($headerRange)->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
+
+        // 2. Full Table Borders and Vertical Alignment
+        $fullRange = "A1:{$highestColumn}{$highestRow}";
+        $sheet->getStyle($fullRange)->getBorders()->getAllBorders()
+            ->setBorderStyle(Border::BORDER_THIN)
+            ->getColor()->setARGB('FFD1D5DB');
+
+        $sheet->getStyle($fullRange)->getAlignment()
+            ->setVertical(Alignment::VERTICAL_CENTER);
+
+        if ($highestRow >= 2) {
+            // Text formatting for IDs and NIK (prevent scientific notation)
+            $sheet->getStyle("B2:C{$highestRow}")->getNumberFormat()
+                ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
+
+            // Column Alignments
+            $sheet->getStyle("A2:C{$highestRow}")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D2:E{$highestRow}")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("F2:K{$highestRow}")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // Row-level prettifying & conditional styling
+            for ($r = 2; $r <= $highestRow; $r++) {
+                $sheet->getRowDimension($r)->setRowHeight(22);
+
+                $mulai = (string) $sheet->getCell("H{$r}")->getValue();
+                $selesai = (string) $sheet->getCell("I{$r}")->getValue();
+                $status = (string) $sheet->getCell("K{$r}")->getValue();
+
+                $isMangkir = str_contains($status, 'Mangkir')
+                    || str_contains($status, 'Belum Presensi');
+
+                $isLupaOrSedang = ! $isMangkir && (
+                    str_contains($status, 'Sedang Istirahat')
+                    || str_contains($status, 'Lupa')
+                    || ($mulai !== '-' && $selesai === '-')
+                );
+
+                $isTidakIstirahat = ($status === 'Tidak Istirahat');
+
+                if ($isMangkir) {
+                    // Soft light red fill for absent/mangkir
+                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFFE2E2');
+
+                    $sheet->getStyle("K{$r}")->getFont()
+                        ->setBold(true)
+                        ->getColor()->setARGB('FF991B1B');
+
+                    $sheet->getStyle("H{$r}:J{$r}")->getFont()
+                        ->getColor()->setARGB('FFDC2626');
+                } elseif ($isLupaOrSedang) {
+                    // Soft warm amber fill
+                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFFF3C7');
+
+                    $sheet->getStyle("K{$r}")->getFont()
+                        ->setBold(true)
+                        ->getColor()->setARGB('FF92400E');
+
+                    if ($selesai === '-') {
+                        $sheet->getStyle("I{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FFB45309');
+                    }
+                } elseif ($isTidakIstirahat) {
+                    // Subtle light slate fill
+                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFF8FAFC');
+
+                    $sheet->getStyle("K{$r}")->getFont()
+                        ->getColor()->setARGB('FF64748B');
+                } else {
+                    if (str_contains($status, 'Terlambat') || str_contains($status, 'Istirahat Awal')) {
+                        $sheet->getStyle("K{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FFDC2626');
+                    } elseif (str_contains($status, 'Tepat Waktu')) {
+                        $sheet->getStyle("K{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FF15803D');
+                    }
+                }
+            }
+        }
+
+        return [];
+    }
+}
