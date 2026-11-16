@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "https://kp.krtekstile.com/api"
+            "url": "https://app.kiranapeople.com/api"
         }
     ],
     "security": [
