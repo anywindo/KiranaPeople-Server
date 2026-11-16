@@ -175,12 +175,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Cakupan Karyawan</label>
-                            <select class="form-select" name="include_all_employees" id="include_all_employees">
-                                <option value="1" selected>Semua Karyawan (Termasuk Mangkir / Belum Presensi / Tidak Istirahat)</option>
-                                <option value="0">Hanya Karyawan yang Mengambil Istirahat</option>
-                            </select>
-                            <div class="form-text text-muted">Secara default mengekspor seluruh karyawan termasuk yang tidak istirahat atau belum presensi.</div>
+                            <label class="form-label fw-semibold">Cakupan Karyawan</label>
+                            <input type="hidden" name="include_all_employees" value="0">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="include_all_employees" id="include_all_employees" value="1" checked>
+                                <label class="form-check-label fw-semibold text-dark" for="include_all_employees">
+                                    Include Semua Karyawan (Termasuk Mangkir / Belum Presensi / Tidak Istirahat)
+                                </label>
+                                <div class="form-text text-muted">Centang untuk mengekspor seluruh karyawan termasuk yang belum presensi atau tidak istirahat (default aktif).</div>
+                            </div>
                         </div>
 
                         <!-- Hidden inputs for filter -->
