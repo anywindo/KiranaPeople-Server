@@ -9,6 +9,20 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $employee_id
+ * @property string|null $nik
+ * @property \Illuminate\Support\Carbon|null $dob
+ * @property string|null $phone
+ * @property int|null $location_id
+ * @property string|null $avatar
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $password_changed_at
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -304,16 +318,7 @@ class User extends Authenticatable
      */
     public function getDefaultPassword(): string
     {
-        if ($this->dob) {
-            return $this->dob->format('dmY');
-        }
-
-        $fromNik = static::parseBirthdayFromNik($this->nik);
-        if ($fromNik) {
-            return $fromNik;
-        }
-
-        return 'password';
+        return static::computeDefaultPassword($this->dob, $this->nik);
     }
 
     /**
