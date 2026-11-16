@@ -269,7 +269,7 @@
                                                 <td>{{ $att->user->location->name ?? '-' }}</td>
                                                 <td>{{ $att->scheduled_time }}</td>
                                                 <td><span class="text-danger fw-bold">{{ $att->actual_time }}</span></td>
-                                                <td><span class="badge text-bg-danger">{{ $att->late_minutes }} Menit</span></td>
+                                                <td><span class="badge text-bg-danger">{{ (int) $att->late_minutes }} Menit</span></td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -307,7 +307,7 @@
                                                 <td>{{ $att->user->location->name ?? '-' }}</td>
                                                 <td>{{ $att->scheduled_end_time }}</td>
                                                 <td><span class="text-warning fw-bold">{{ $att->actual_end_time }}</span></td>
-                                                <td><span class="badge text-bg-warning">{{ $att->early_minutes }} Menit</span></td>
+                                                <td><span class="badge text-bg-warning">{{ (int) $att->early_minutes }} Menit</span></td>
                                             </tr>
                                         @empty
                                             <tr>

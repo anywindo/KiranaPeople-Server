@@ -105,7 +105,7 @@ class DashboardController extends Controller
                 $lateMinutes = 0;
                 if ($checkIn && $scheduledStart) {
                     $scheduledToday = $actualStart->copy()->setTimeFrom($scheduledStart);
-                    $lateMinutes = max(0, $scheduledToday->diffInMinutes($actualStart, false));
+                    $lateMinutes = max(0, (int) $scheduledToday->diffInMinutes($actualStart, false));
                 }
 
                 $attendance->late_minutes = $lateMinutes;
@@ -143,9 +143,9 @@ class DashboardController extends Controller
                 $actualEnd = $checkOut->timestamp;
 
                 $scheduledToday = $actualEnd->copy()->setTimeFrom($scheduledEnd);
-                $earlyMinutes = $actualEnd->diffInMinutes($scheduledToday, false);
+                $earlyMinutes = max(0, (int) $actualEnd->diffInMinutes($scheduledToday, false));
 
-                $attendance->early_minutes = max(0, $earlyMinutes);
+                $attendance->early_minutes = $earlyMinutes;
                 $attendance->actual_end_time = $actualEnd->format('H:i');
                 $attendance->scheduled_end_time = $scheduledEnd->format('H:i');
 
