@@ -29,7 +29,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
     }
 
-    public function test_export_modal_renders_include_all_employees_checkbox_by_default_in_attendance_and_break_views()
+    public function test_export_modal_renders_include_all_employees_dropdown_by_default_in_attendance_and_break_views()
     {
         $hr = User::factory()->create();
         $hr->assignRole('HR');
@@ -37,16 +37,12 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $responseAttendance = $this->actingAs($hr)->get(route('admin.attendances.index'));
         $responseAttendance->assertStatus(200);
         $responseAttendance->assertSee('name="include_all_employees"', false);
-        $responseAttendance->assertSee('type="checkbox"', false);
-        $responseAttendance->assertSee('checked', false);
-        $responseAttendance->assertSee('Include Semua Karyawan (Termasuk Mangkir / Belum Presensi)');
+        $responseAttendance->assertSee('Semua Karyawan (Termasuk Mangkir / Belum Presensi)');
 
         $responseBreak = $this->actingAs($hr)->get(route('admin.breaks.index'));
         $responseBreak->assertStatus(200);
         $responseBreak->assertSee('name="include_all_employees"', false);
-        $responseBreak->assertSee('type="checkbox"', false);
-        $responseBreak->assertSee('checked', false);
-        $responseBreak->assertSee('Include Semua Karyawan (Termasuk Mangkir / Belum Presensi / Tidak Istirahat)');
+        $responseBreak->assertSee('Semua Karyawan (Termasuk Mangkir / Belum Presensi / Tidak Istirahat)');
     }
 
     public function test_attendance_export_includes_mangkir_employees_by_default()
