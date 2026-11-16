@@ -77,6 +77,10 @@ class AttendanceController extends Controller
             $location_id = $request->location_id;
         }
 
-        return Excel::download(new AttendanceExport($startDate, $endDate, $search, $shift_id, $location_id), 'attendance_'.date('Y-m-d_H-i-s').'.xlsx');
+        $includeAll = $request->has('include_all_employees')
+            ? $request->boolean('include_all_employees')
+            : true;
+
+        return Excel::download(new AttendanceExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll), 'attendance_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

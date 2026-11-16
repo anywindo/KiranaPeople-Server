@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h3 class="card-title mb-0">Daftar Karyawan Belum Absen</h3>
+                    <h3 class="card-title mb-0">Daftar Karyawan Belum Presensi</h3>
                     <div class="d-flex align-items-center ms-auto gap-2">
                         <form action="{{ route('admin.absences.index') }}" method="GET"
                             class="d-flex gap-2 align-items-center">
@@ -28,7 +28,8 @@
                                     <option value="">Semua Lokasi</option>
                                     @foreach($locations ?? [] as $loc)
                                         <option value="{{ $loc->id }}" {{ request('location_id') == $loc->id ? 'selected' : '' }}>
-                                            {{ $loc->name }}</option>
+                                            {{ $loc->name }}
+                                        </option>
                                     @endforeach
                                 </select>
 
@@ -60,9 +61,8 @@
                                     <td>{{ $user->employee_id ?? '-' }}</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <img src="{{ $user->avatar_url }}"
-                                                alt="Avatar" class="rounded-circle object-fit-cover"
-                                                style="width: 30px; height: 30px;">
+                                            <img src="{{ $user->avatar_url }}" alt="Avatar"
+                                                class="rounded-circle object-fit-cover" style="width: 30px; height: 30px;">
                                             <div>
                                                 <div class="fw-bold">{{ $user->name ?? '-' }}</div>
                                                 <div class="text-muted small">{{ $user->nik ?? '-' }}</div>
@@ -75,7 +75,7 @@
                                     </td>
                                     <td>{{ $user->location->name ?? '-' }}</td>
                                     <td>
-                                        <span class="badge text-bg-danger">Mangkir / Belum Absen</span>
+                                        <span class="badge text-bg-danger">Mangkir / Belum Presensi</span>
                                     </td>
                                 </tr>
                             @empty

@@ -174,6 +174,15 @@
                             </select>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Cakupan Karyawan</label>
+                            <select class="form-select" name="include_all_employees" id="include_all_employees">
+                                <option value="1" selected>Semua Karyawan (Termasuk Mangkir / Belum Presensi / Tidak Istirahat)</option>
+                                <option value="0">Hanya Karyawan yang Mengambil Istirahat</option>
+                            </select>
+                            <div class="form-text text-muted">Secara default mengekspor seluruh karyawan termasuk yang tidak istirahat atau belum presensi.</div>
+                        </div>
+
                         <!-- Hidden inputs for filter -->
                         <input type="hidden" name="search" value="{{ request('search') }}">
                         <input type="hidden" name="date" value="{{ $selectedDate }}">

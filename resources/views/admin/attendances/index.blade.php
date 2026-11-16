@@ -158,6 +158,15 @@
                                 <option value="custom">Ditentukan (Custom)</option>
                             </select>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Cakupan Karyawan</label>
+                            <select class="form-select" name="include_all_employees" id="include_all_employees">
+                                <option value="1" selected>Semua Karyawan (Termasuk Mangkir / Belum Presensi)</option>
+                                <option value="0">Hanya Karyawan yang Melakukan Presensi</option>
+                            </select>
+                            <div class="form-text text-muted">Secara default mengekspor seluruh karyawan termasuk yang belum presensi / mangkir.</div>
+                        </div>
                         
                         <!-- Hidden inputs for filter -->
                         <input type="hidden" name="search" value="{{ request('search') }}">

@@ -77,6 +77,10 @@ class BreakController extends Controller
             $location_id = $request->location_id;
         }
 
-        return Excel::download(new \App\Exports\Admin\BreakExport($startDate, $endDate, $search, $shift_id, $location_id), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
+        $includeAll = $request->has('include_all_employees')
+            ? $request->boolean('include_all_employees')
+            : true;
+
+        return Excel::download(new \App\Exports\Admin\BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }
