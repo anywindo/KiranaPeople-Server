@@ -120,7 +120,9 @@ class DashboardController extends Controller
 
                 return $attendance;
             })
+            ->filter(fn ($attendance) => (int) $attendance->late_minutes > 0)
             ->sortByDesc('late_minutes')
+            ->values()
             ->take(10);
 
         // 6. Early leavers: only load attendances that have an END_SHIFT event today (bounded query)
@@ -157,7 +159,9 @@ class DashboardController extends Controller
 
                 return $attendance;
             })
+            ->filter(fn ($attendance) => (int) $attendance->early_minutes > 0)
             ->sortByDesc('early_minutes')
+            ->values()
             ->take(10);
 
         // 7. Live Activity Radar (Latest 8 events today)

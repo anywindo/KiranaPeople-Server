@@ -228,4 +228,63 @@ class AdminDashboardAnalyticsTest extends TestCase
         $content = $response->getContent();
         $this->assertStringContainsString('9 Menit', $content);
     }
+
+    public function test_late_employees_excludes_records_with_zero_late_minutes()
+    {
+        $hr = User::factory()->create();
+        $hr->assignRole('HR');
+
+        // Rule is disabled
+        \App\Models\Setting::set('attendance_rule_enabled', 'false', 'boolean');
+
+        $location = Location::create([
+            'name' => 'Kantor Utama',
+            'latitude' => -6.200000,
+            'longitude' => 106.816666,
+            'radius_meters' => 100,
+        ]);
+
+        $shift = Shift::create([
+            'shift_name' => 'Shift 10',
+            'default_start_time' => '10:00:00',
+            'default_end_time' => '17:00:00',
+        ]);
+
+        $employee = User::factory()->create([
+            'name' => 'Alexander',
+            'location_id' => $location->id,
+            'is_active' => true,
+        ]);
+        $employee->assignRole('Employee');
+
+        $today = Carbon::today();
+
+        // Attendance has status LATE in DB (e.g. from previous shift or state), but checked in at 09:54 (before 10:00)
+        $attendance = Attendance::create([
+            'user_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'date' => $today->toDateString(),
+            'status' => AttendanceStatus::LATE,
+        ]);
+
+        AttendanceEvent::create([
+            'attendance_id' => $attendance->id,
+            'event_type' => EventType::START_SHIFT,
+            'timestamp' => $today->copy()->setTime(9, 54, 0),
+            'latitude' => -6.200000,
+            'longitude' => 106.816666,
+            'selfie_path' => 'selfies/alexander.jpg',
+        ]);
+
+        $response = $this->actingAs($hr, 'web')->get('/admin/dashboard');
+
+        $response->assertStatus(200);
+
+        $lateEmployees = $response->viewData('lateEmployees');
+        $this->assertCount(0, $lateEmployees);
+
+        $content = $response->getContent();
+        $this->assertStringNotContainsString('0 Menit', $content);
+        $this->assertStringContainsString('Luar biasa! Tidak ada karyawan yang terlambat hari ini.', $content);
+    }
 }
