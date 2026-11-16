@@ -168,4 +168,64 @@ class AdminDashboardAnalyticsTest extends TestCase
         $this->assertStringNotContainsString('52.', $content);
         $this->assertStringNotContainsString('44.', $content);
     }
+
+    public function test_late_minutes_calculates_against_attendance_rule_cutoff_when_enabled()
+    {
+        $hr = User::factory()->create();
+        $hr->assignRole('HR');
+
+        \App\Models\Setting::set('attendance_rule_enabled', 'true', 'boolean');
+        \App\Models\Setting::set('attendance_rule_minutes', 15, 'integer');
+
+        $location = Location::create([
+            'name' => 'Kantor Utama',
+            'latitude' => -6.200000,
+            'longitude' => 106.816666,
+            'radius_meters' => 100,
+        ]);
+
+        $shift = Shift::create([
+            'shift_name' => 'Shift 10',
+            'default_start_time' => '10:00:00',
+            'default_end_time' => '17:00:00',
+        ]);
+
+        $employee = User::factory()->create([
+            'name' => 'Alexander',
+            'location_id' => $location->id,
+            'is_active' => true,
+        ]);
+        $employee->assignRole('Employee');
+
+        $today = Carbon::today();
+
+        $lateAttendance = Attendance::create([
+            'user_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'date' => $today->toDateString(),
+            'status' => AttendanceStatus::LATE,
+        ]);
+
+        // Clock in at 09:54:00 -> cutoff is 09:45:00, so exactly 9 minutes late
+        AttendanceEvent::create([
+            'attendance_id' => $lateAttendance->id,
+            'event_type' => EventType::START_SHIFT,
+            'timestamp' => $today->copy()->setTime(9, 54, 0),
+            'latitude' => -6.200000,
+            'longitude' => 106.816666,
+            'selfie_path' => 'selfies/alexander.jpg',
+        ]);
+
+        $response = $this->actingAs($hr, 'web')->get('/admin/dashboard');
+
+        $response->assertStatus(200);
+
+        $lateEmployees = $response->viewData('lateEmployees');
+        $this->assertNotEmpty($lateEmployees);
+        $firstLate = $lateEmployees->first();
+        $this->assertSame(9, $firstLate->late_minutes);
+
+        $content = $response->getContent();
+        $this->assertStringContainsString('9 Menit', $content);
+    }
 }

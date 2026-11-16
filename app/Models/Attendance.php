@@ -146,15 +146,10 @@ class Attendance extends Model
 
         if ($checkIn && $scheduledStart) {
             $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
-            if ($ruleEnabled) {
-                $ruleMinutes = (int) Setting::get('attendance_rule_minutes', 15);
+            if ($ruleEnabled && $ruleMinutes > 0) {
                 $cutoff = $scheduledStart->copy()->subMinutes($ruleMinutes);
                 if ($actualStart->format('H:i:s') >= $cutoff->format('H:i:s')) {
-                    if ($actualStart->format('H:i:s') <= $scheduledStart->format('H:i:s')) {
-                        $isWarning = true;
-                    } else {
-                        $isLate = true;
-                    }
+                    $isLate = true;
                 }
             } else {
                 $isLate = $actualStart->format('H:i:s') > $scheduledStart->format('H:i:s');

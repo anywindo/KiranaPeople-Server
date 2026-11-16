@@ -86,6 +86,9 @@ class DashboardController extends Controller
             'absent' => $trendAbsent,
         ];
 
+        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
+        $ruleMinutes = $ruleEnabled ? (int) \App\Models\Setting::get('attendance_rule_minutes', 15) : 0;
+
         // 5. Late employees: only load attendances marked LATE with events today (bounded query)
         $lateEmployees = Attendance::with(['user.location', 'shift', 'events' => function ($q) {
             $q->where('event_type', EventType::START_SHIFT);
@@ -97,7 +100,7 @@ class DashboardController extends Controller
             })
             ->take(30)
             ->get()
-            ->map(function ($attendance) {
+            ->map(function ($attendance) use ($ruleEnabled, $ruleMinutes) {
                 $checkIn = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::START_SHIFT->value || $e->event_type === EventType::START_SHIFT);
                 $scheduledStart = $attendance->shift?->default_start_time ? Carbon::parse($attendance->shift->default_start_time) : null;
                 $actualStart = $checkIn?->timestamp;
@@ -105,7 +108,10 @@ class DashboardController extends Controller
                 $lateMinutes = 0;
                 if ($checkIn && $scheduledStart) {
                     $scheduledToday = $actualStart->copy()->setTimeFrom($scheduledStart);
-                    $lateMinutes = max(0, (int) $scheduledToday->diffInMinutes($actualStart, false));
+                    $threshold = ($ruleEnabled && $ruleMinutes > 0)
+                        ? $scheduledToday->copy()->subMinutes($ruleMinutes)
+                        : $scheduledToday;
+                    $lateMinutes = max(0, (int) $threshold->diffInMinutes($actualStart, false));
                 }
 
                 $attendance->late_minutes = $lateMinutes;
