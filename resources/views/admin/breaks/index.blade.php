@@ -40,12 +40,17 @@
                                 </select>
 
                                 <input type="date" name="date" class="form-control" title="Filter berdasarkan tanggal"
-                                    value="{{ request('date') }}">
+                                    value="{{ $selectedDate }}">
                                 <input type="text" name="search" class="form-control" placeholder="Cari nama, NIK..."
                                     value="{{ request('search') }}">
-                                <button type="submit" class="btn btn-default">
+                                <button type="submit" class="btn btn-default" title="Cari">
                                     <i class="bi bi-search"></i>
                                 </button>
+                                @if(!empty($selectedDate) || request()->filled('search') || request()->filled('location_id') || request()->filled('shift_id'))
+                                    <a href="{{ route('admin.breaks.index', ['date' => '']) }}" class="btn btn-outline-secondary" title="Tampilkan Semua Tanggal / Reset">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                @endif
                             </div>
                         </form>
                         <button type="button" class="btn btn-success btn-sm text-nowrap" data-bs-toggle="modal"
@@ -171,7 +176,7 @@
 
                         <!-- Hidden inputs for filter -->
                         <input type="hidden" name="search" value="{{ request('search') }}">
-                        <input type="hidden" name="date" value="{{ request('date') }}">
+                        <input type="hidden" name="date" value="{{ $selectedDate }}">
                         <input type="hidden" name="shift_id" value="{{ request('shift_id') }}">
                         <input type="hidden" name="location_id" value="{{ request('location_id') }}">
 
