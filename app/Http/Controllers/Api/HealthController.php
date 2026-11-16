@@ -128,7 +128,7 @@ class HealthController extends Controller
         return response()->json([
             'status' => $overallStatus,
             'name' => config('app.name'),
-            'version' => config('app.version', '1.0.1'),
+            'version' => config('app.version', '1.0.5'),
             'environment' => config('app.env'),
             'timestamp' => now()->toIso8601String(),
             'checks' => $checks,

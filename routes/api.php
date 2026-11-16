@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\TeamController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => config('app.version', '1.0.1'), 'status' => 'healthy']));
+Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => config('app.version', '1.0.5'), 'status' => 'healthy']));
 Route::get('health', HealthController::class);
 
 Route::prefix('v1')->group(function () {
