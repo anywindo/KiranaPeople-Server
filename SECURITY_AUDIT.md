@@ -33,7 +33,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-03** | Unverified Password Change in Web Profile Controllers | OWASP ASVS V2.1.12 | CWE-620 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-04** | Public Self-Registration Route Left Exposed on Enterprise API | OWASP API2:2023 | CWE-284 | **Medium** | ✅ **RESOLVED (DISABLED)** |
 | **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ✅ **RESOLVED** |
-| **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
+| **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
@@ -207,8 +207,11 @@ However, several critical and medium-severity authorization flaws and business l
   }
   ```
   The endpoint explicitly distinguishes between registered and non-registered email addresses by returning HTTP 404 versus HTTP 200.
-* **Remediation:**
-  Always return HTTP 200 with a neutral response: `"Jika email Anda terdaftar dalam sistem kami, kode verifikasi OTP telah dikirimkan."`.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Updated `AuthController::forgotPassword` (API) and `ForgotPasswordController::sendResetLinkEmail` (Web) to always return an identical success response regardless of whether the email exists.
+  2. If the email is registered, the reset OTP is dispatched; if unregistered, no email or token is generated.
+  3. Updated and verified `ForgotPasswordTest::test_forgot_password_prevents_user_enumeration_for_unregistered_email` (11/11 tests passing).
 
 ---
 

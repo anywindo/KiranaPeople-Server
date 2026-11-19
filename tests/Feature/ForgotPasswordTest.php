@@ -220,26 +220,30 @@ class ForgotPasswordTest extends TestCase
         $this->assertFalse(Hash::check('NewPassword123!', $this->user->fresh()->password));
     }
 
-    public function test_forgot_password_rejects_unregistered_email(): void
+    public function test_forgot_password_prevents_user_enumeration_for_unregistered_email(): void
     {
         Notification::fake();
 
-        // Web submission with non-existent email
+        // Web submission with non-existent email responds with generic status and no errors
         $webResponse = $this->post('/forgot-password', [
             'email' => 'nobody@example.com',
         ]);
         $webResponse->assertRedirect();
-        $webResponse->assertSessionHasErrors(['email']);
+        $webResponse->assertSessionHas('status');
+        $webResponse->assertSessionHasNoErrors();
 
-        // API submission with non-existent email
+        // API submission with non-existent email responds identically with 200 OK (TN-SEC-06)
         $apiResponse = $this->postJson('/api/v1/auth/forgot-password', [
             'email' => 'nobody@example.com',
         ]);
-        $apiResponse->assertStatus(404);
-        $apiResponse->assertJsonPath('meta.success', false);
-        $apiResponse->assertJsonPath('meta.message', 'Email tidak terdaftar dalam sistem.');
+        $apiResponse->assertStatus(200);
+        $apiResponse->assertJsonPath('meta.success', true);
+        $apiResponse->assertJsonPath('meta.message', 'Kode OTP verifikasi telah dikirimkan ke email Anda.');
 
         Notification::assertNothingSent();
+        $this->assertDatabaseMissing('password_reset_tokens', [
+            'email' => 'nobody@example.com',
+        ]);
     }
 
     public function test_api_verify_otp_with_valid_and_invalid_otp(): void

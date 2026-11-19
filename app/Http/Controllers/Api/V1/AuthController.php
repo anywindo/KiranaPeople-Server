@@ -240,13 +240,8 @@ class AuthController extends BaseController
             'email' => 'required|email',
         ], PasswordResetService::validationMessages());
 
-        $sent = $service->sendResetNotification($request->email);
-
-        if (! $sent) {
-            return $this->error('Email tidak terdaftar dalam sistem.', 404, [
-                'email' => ['Email tidak terdaftar dalam sistem.'],
-            ]);
-        }
+        // Anti-enumeration: dispatch notification if account exists, but always respond identically (TN-SEC-06 / CWE-204)
+        $service->sendResetNotification($request->email);
 
         return $this->success(
             null,
