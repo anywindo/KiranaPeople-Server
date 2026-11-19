@@ -193,60 +193,73 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     });
 });
 
-// Serve storage files (supports serverless /tmp, static files, database cache, and fallbacks)
+// Serve storage files (supports serverless /tmp, public storage disk, R2 object storage, and legacy fallbacks)
 Route::get('/storage/{path}', function ($path) {
-    if (str_contains($path, '../') || str_contains($path, '..\\')) {
+    // 1. Path traversal and sanitization guard
+    if (str_contains($path, '..') || str_contains($path, "\0") || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
         abort(404);
     }
 
     $filename = basename($path);
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    $defaultMime = match ($ext) {
+
+    // 2. Strict allowed extension whitelist (prevent serving PHP source, env files, etc. - TN-SEC-05)
+    $allowedMimes = [
         'webp' => 'image/webp',
         'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
         'gif' => 'image/gif',
         'svg' => 'image/svg+xml',
-        default => 'image/jpeg',
-    };
+        'pdf' => 'application/pdf',
+    ];
 
-    $respondImage = function ($content, $mime) {
+    if (! array_key_exists($ext, $allowedMimes)) {
+        abort(404);
+    }
+
+    $mime = $allowedMimes[$ext];
+
+    $respondFile = function ($content, $mime) {
         return response($content, 200)
             ->header('Content-Type', $mime)
+            ->header('X-Content-Type-Options', 'nosniff')
             ->header('Cache-Control', 'public, max-age=86400');
     };
 
-    // 1. Check in /tmp/storage/app/public/ (local lambda container cache)
+    // 3. Check in /tmp/storage/app/public/ (local lambda container cache)
     $tmpPath = '/tmp/storage/app/public/'.$path;
     if (file_exists($tmpPath) && is_file($tmpPath)) {
-        return $respondImage(file_get_contents($tmpPath), $defaultMime);
+        return $respondFile(file_get_contents($tmpPath), $mime);
     }
 
-    // 2. Fetch directly from Cloudflare R2 bucket (fast object storage)
+    // 4. Fetch directly from Cloudflare R2 bucket
     try {
         if (Storage::disk('r2')->exists($path)) {
             $content = Storage::disk('r2')->get($path);
             @mkdir(dirname($tmpPath), 0777, true);
             @file_put_contents($tmpPath, $content);
 
-            return $respondImage($content, $defaultMime);
+            return $respondFile($content, $mime);
         }
     } catch (\Throwable $e) {
     }
 
-    // 3. Check in public/
-    $publicFile = public_path($path);
-    if (file_exists($publicFile) && is_file($publicFile)) {
-        return $respondImage(file_get_contents($publicFile), $defaultMime);
+    // 5. Check in local public storage disk (storage/app/public/)
+    try {
+        if (Storage::disk('public')->exists($path)) {
+            return $respondFile(Storage::disk('public')->get($path), $mime);
+        }
+    } catch (\Throwable $e) {
     }
 
-    // 4. Check in public/selfies/ or public/avatars/
-    $publicSelfie = public_path('selfies/'.$filename);
-    if (file_exists($publicSelfie) && is_file($publicSelfie)) {
-        return $respondImage(file_get_contents($publicSelfie), $defaultMime);
-    }
-    $publicAvatar = public_path('avatars/'.$filename);
-    if (file_exists($publicAvatar) && is_file($publicAvatar)) {
-        return $respondImage(file_get_contents($publicAvatar), $defaultMime);
+    // 6. Check only whitelisted legacy upload subdirectories in public_path() (never root public_path)
+    $legacyDirs = ['selfies', 'avatars', 'attendance-selfies'];
+    foreach ($legacyDirs as $dir) {
+        $legacyFile = public_path($dir.'/'.$filename);
+        if (file_exists($legacyFile) && is_file($legacyFile)) {
+            return $respondFile(file_get_contents($legacyFile), $mime);
+        }
     }
 
     abort(404);

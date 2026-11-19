@@ -32,7 +32,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-02** | Broken Object Level Authorization (BOLA / IDOR) in Attendance Correction | OWASP API1:2023 | CWE-639 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-03** | Unverified Password Change in Web Profile Controllers | OWASP ASVS V2.1.12 | CWE-620 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-04** | Public Self-Registration Route Left Exposed on Enterprise API | OWASP API2:2023 | CWE-284 | **Medium** | ✅ **RESOLVED (DISABLED)** |
-| **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ⚠️ **OPEN / ACTION REQUIRED** |
+| **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
@@ -182,8 +182,14 @@ However, several critical and medium-severity authorization flaws and business l
   When a file is not in R2 or `/tmp`, the route falls back to reading `public_path($path)`. Requesting `/storage/index.php` returns the raw PHP source code of `public/index.php` as plain text (with an `image/jpeg` header).
 * **Impact:**
   Bypasses PHP execution and exposes any static scripts, configuration files, or build artifacts located in the `public/` folder.
-* **Remediation:**
-  Remove the fallback to `public_path($path)` and restrict the route strictly to allowed storage disks/directories (`selfies/`, `avatars/`, `archives/`).
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Removed the arbitrary `public_path($path)` fallback in `routes/web.php`.
+  2. Enforced strict path sanitization guarding against `..`, leading slashes, and null bytes.
+  3. Added an explicit whitelist for allowed extensions (`webp`, `png`, `jpg`, `jpeg`, `gif`, `svg`, `pdf`); all other extensions (including `.php`, `.env`, `.json`) return HTTP 404 immediately.
+  4. Added `X-Content-Type-Options: nosniff` header to prevent MIME-sniffing attacks.
+  5. Fallbacks are restricted exclusively to predefined public storage subdirectories (`selfies`, `avatars`, `attendance-selfies`).
+  6. Verified via automated tests in `StorageEndpointSecurityTest` (5/5 tests passing).
 
 ---
 
