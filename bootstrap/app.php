@@ -125,8 +125,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 $message = app()->environment('production')
-                    ? ($e->getMessage() ?: 'Internal server error')
-                    : $e->getMessage();
+                    ? 'Internal server error'
+                    : ($e->getMessage() ?: 'Internal server error');
 
                 return response()->json([
                     'meta' => ['success' => false, 'message' => $message],

@@ -34,7 +34,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-04** | Public Self-Registration Route Left Exposed on Enterprise API | OWASP API2:2023 | CWE-284 | **Medium** | ✅ **RESOLVED (DISABLED)** |
 | **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ✅ **RESOLVED** |
-| **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
+| **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
@@ -226,11 +226,11 @@ However, several critical and medium-severity authorization flaws and business l
       : $e->getMessage();
   ```
   In production, if `$e->getMessage()` is non-empty (such as database query exceptions containing raw SQL statements, column names, or connection strings), it is directly returned in JSON error responses.
-* **Remediation:**
-  In production, return a static generic message for unhandled 500 exceptions:
-  ```php
-  $message = app()->environment('production') ? 'Internal server error' : $e->getMessage();
-  ```
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Updated `bootstrap/app.php` exception handler so that unhandled 500 exceptions in production strictly return the generic message `'Internal server error'`.
+  2. Preserves detailed `$e->getMessage()` in local/testing environments for developer debugging.
+  3. Added and verified automated test coverage in `ExceptionHandlingSecurityTest` asserting that raw SQL queries or exception details are never leaked in production responses.
 
 ---
 
