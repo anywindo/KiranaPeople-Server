@@ -38,7 +38,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
-| **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ℹ️ **BACKLOG** |
+| **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ✅ **RESOLVED** |
 
 ---
 
@@ -273,14 +273,22 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-11] Interactive API Documentation (`/docs/api`) Publicly Accessible
 * **Category:** OWASP API9:2023 / CWE-200 (Improper Inventory Management)
 * **Severity:** **Info**
-* **Location:** `app/Providers/AppServiceProvider.php` (lines 31-33)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `app/Providers/AppServiceProvider.php` (lines 31-37)
 * **Description:**
-  `Gate::define('viewApiDocs', fn ($user = null) => (bool) env('API_DOCS_ENABLED', true));` defaults to enabled for public unauthenticated visitors.
-* **Remediation:**
-  Restrict API documentation in production to authenticated admin users:
+  `Gate::define('viewApiDocs', fn ($user = null) => (bool) env('API_DOCS_ENABLED', true));` defaulted to enabled for public unauthenticated visitors.
+* **Remediation Implemented:**
+  Restricted API documentation access so that in non-local environments (`production`, `staging`, etc.), access requires an authenticated admin/HR user (`$user->isAdmin()`), while preserving open access for `local` development:
   ```php
-  Gate::define('viewApiDocs', fn ($user = null) => app()->environment('local') || ($user && $user->isAdmin()));
+  Gate::define('viewApiDocs', function ($user = null) {
+      if (! (bool) env('API_DOCS_ENABLED', true)) {
+          return false;
+      }
+
+      return app()->environment('local') || ($user !== null && $user->isAdmin());
+  });
   ```
+  Comprehensive feature tests added to `tests/Feature/OpenApiDocumentationTest.php` verifying that guests and regular employees receive 403 Forbidden in non-local environments, while authorized admins and local developers receive 200 OK.
 
 ---
 

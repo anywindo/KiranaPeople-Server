@@ -29,7 +29,11 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         \Illuminate\Support\Facades\Gate::define('viewApiDocs', function ($user = null) {
-            return (bool) env('API_DOCS_ENABLED', true);
+            if (! (bool) env('API_DOCS_ENABLED', true)) {
+                return false;
+            }
+
+            return app()->environment('local') || ($user !== null && $user->isAdmin());
         });
 
         \Illuminate\Support\Facades\RateLimiter::for('api', function (\Illuminate\Http\Request $request) {
