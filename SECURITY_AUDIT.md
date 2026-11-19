@@ -31,7 +31,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-01** | Broken Function Level Authorization (BFLA) on Team Management API | OWASP API5:2023 | CWE-285 | **High** | ✅ **RESOLVED (COMMENTED OUT)** |
 | **TN-SEC-02** | Broken Object Level Authorization (BOLA / IDOR) in Attendance Correction | OWASP API1:2023 | CWE-639 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-03** | Unverified Password Change in Web Profile Controllers | OWASP ASVS V2.1.12 | CWE-620 | **Medium** | ✅ **RESOLVED** |
-| **TN-SEC-04** | Public Self-Registration Route Left Exposed on Enterprise API | OWASP API2:2023 | CWE-284 | **Medium** | ⚠️ **OPEN / ACTION REQUIRED** |
+| **TN-SEC-04** | Public Self-Registration Route Left Exposed on Enterprise API | OWASP API2:2023 | CWE-284 | **Medium** | ✅ **RESOLVED (DISABLED)** |
 | **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ⚠️ **OPEN / ACTION REQUIRED** |
 | **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
@@ -156,8 +156,10 @@ However, several critical and medium-severity authorization flaws and business l
   `Route::post('register', [AuthController::class, 'register'])` is exposed without restriction. Any anonymous client can call this endpoint to register a new user account with role `user` and receive an active Sanctum token.
 * **Impact:**
   In an enterprise employee-management system, accounts should only be provisioned by HR or via administrative invitations. Leaving public registration open allows arbitrary external actors to obtain bearer tokens and chain with **TN-SEC-01** and **TN-SEC-02**.
-* **Remediation:**
-  Disable the public `register` route, or restrict registration to authorized internal invitation tokens.
+* **Remediation & Status:**
+  ✅ **Resolved (Disabled):**
+  1. Disabled and commented out `Route::post('register')` in `routes/api.php` with notes that employee accounts are strictly managed and provisioned by HR / Admin.
+  2. Verified via automated test `SanctumTokenExpirationTest::test_public_registration_endpoint_is_disabled` that requests to `POST /api/v1/auth/register` return `404 Not Found` and create no user records.
 
 ---
 

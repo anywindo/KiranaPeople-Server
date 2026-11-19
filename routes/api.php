@@ -15,7 +15,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::middleware('throttle:auth')->group(function () {
             Route::post('login', [AuthController::class, 'login']);
-            Route::post('register', [AuthController::class, 'register']);
+            // Public self-registration is disabled for enterprise workforce security (TN-SEC-04).
+            // Accounts are provisioned exclusively by Admin/HR.
+            // Route::post('register', [AuthController::class, 'register']);
         });
 
         Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,15');

@@ -55,6 +55,21 @@ class SanctumTokenExpirationTest extends TestCase
         $this->assertTrue($tokenRecord->expires_at->isFuture());
     }
 
+    public function test_public_registration_endpoint_is_disabled(): void
+    {
+        $response = $this->postJson('/api/v1/auth/register', [
+            'name' => 'Adversary User',
+            'email' => 'adversary@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ]);
+
+        $response->assertStatus(404);
+        $this->assertDatabaseMissing('users', [
+            'email' => 'adversary@example.com',
+        ]);
+    }
+
     public function test_authenticated_request_succeeds_with_valid_token(): void
     {
         $loginResponse = $this->postJson('/api/v1/auth/login', [
