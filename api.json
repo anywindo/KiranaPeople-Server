@@ -2,7 +2,7 @@
     "openapi": "3.1.2",
     "info": {
         "title": "Kirana People API Documentation",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "description": "Dokumentasi Resmi API Kirana People Backend untuk Aplikasi Mobile (Flutter) & Web Client."
     },
     "servers": [

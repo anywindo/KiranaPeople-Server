@@ -319,7 +319,7 @@
 
             <!-- Version Section -->
             <div class="version-section">
-                Versi {{ config('app.version', '1.0.5') }}
+                Versi {{ config('app.version', '1.0.6') }}
             </div>
         </div>
     </div>

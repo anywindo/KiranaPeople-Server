@@ -41,6 +41,9 @@ it('performs deep health check and returns 200 when services are healthy', funct
 it('returns 503 and unhealthy status when database connection fails', function () {
     DB::shouldReceive('connection->getPdo')
         ->andThrow(new \Exception('Database connection timeout'));
+    DB::shouldReceive('getConnections')
+        ->zeroOrMoreTimes()
+        ->andReturn([]);
 
     $response = $this->getJson('/api/health');
 

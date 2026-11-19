@@ -61,7 +61,7 @@ Base URL: `http://localhost:8000/api/v1` (atau URL domain production dengan pref
   ```json
   {
     "name": "KiranaPeople",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "status": "healthy"
   }
   ```
@@ -75,7 +75,7 @@ Base URL: `http://localhost:8000/api/v1` (atau URL domain production dengan pref
   {
     "status": "healthy",
     "name": "KiranaPeople",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "environment": "production",
     "timestamp": "2026-11-11T11:49:07+07:00",
     "checks": {
