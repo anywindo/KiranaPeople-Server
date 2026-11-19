@@ -68,4 +68,25 @@ class CsrfProtectionTest extends TestCase
         $this->assertEquals(419, $response->getStatusCode());
         $this->assertStringContainsString('Sesi telah kedaluwarsa', $response->getContent());
     }
+
+    public function test_logout_rejects_get_method_to_prevent_involuntary_csrf_logout(): void
+    {
+        $user = User::factory()->create();
+
+        // Involuntary GET /logout request must be rejected (405 Method Not Allowed)
+        $response = $this->actingAs($user)->get('/logout');
+
+        $response->assertStatus(405);
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_authenticated_user_can_logout_via_post(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/logout');
+
+        $response->assertRedirect('/');
+        $this->assertGuest();
+    }
 }

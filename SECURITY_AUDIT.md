@@ -35,7 +35,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ✅ **RESOLVED** |
-| **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
+| **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
 | **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ℹ️ **BACKLOG** |
@@ -240,8 +240,11 @@ However, several critical and medium-severity authorization flaws and business l
 * **Location:** `routes/web.php` (line 44)
 * **Description:**
   `Route::any('/logout', [AuthController::class, 'logout'])->name('logout');` allows unauthenticated GET requests to trigger session termination without CSRF tokens.
-* **Remediation:**
-  Restrict logout to `Route::post('/logout')` protected by CSRF verification.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Changed `Route::any('/logout')` to `Route::post('/logout')` in `routes/web.php`.
+  2. Confirmed all Blade templates already implement `<form method="POST" action="{{ route('logout') }}">` with `@csrf`.
+  3. Added and verified automated test coverage in `CsrfProtectionTest`: `GET /logout` returns `405 Method Not Allowed`, preventing cross-site involuntary logouts.
 
 ---
 
