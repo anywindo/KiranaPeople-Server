@@ -26,7 +26,15 @@ class ProfileController extends Controller
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'dob' => 'nullable|date',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'current_password' => ['required_with:password', 'current_password'],
             'password' => 'nullable|string|min:8|confirmed',
+        ], [
+            'current_password.required_with' => 'Password saat ini wajib diisi untuk mengubah password.',
+            'current_password.current_password' => 'Password saat ini tidak cocok dengan data kami.',
+            'password.min' => 'Password baru minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'avatar.max' => 'Ukuran foto profil tidak boleh melebihi 5MB.',
+            'avatar.image' => 'File harus berupa gambar.',
         ]);
 
         if ($request->hasFile('avatar')) {
@@ -46,9 +54,11 @@ class ProfileController extends Controller
 
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
+            $validated['password_changed_at'] = now();
         } else {
             unset($validated['password']);
         }
+        unset($validated['current_password']);
 
         $user->update($validated);
 

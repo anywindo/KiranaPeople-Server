@@ -30,7 +30,7 @@ However, several critical and medium-severity authorization flaws and business l
 | :--- | :--- | :--- | :---: | :---: | :---: |
 | **TN-SEC-01** | Broken Function Level Authorization (BFLA) on Team Management API | OWASP API5:2023 | CWE-285 | **High** | ✅ **RESOLVED (COMMENTED OUT)** |
 | **TN-SEC-02** | Broken Object Level Authorization (BOLA / IDOR) in Attendance Correction | OWASP API1:2023 | CWE-639 | **High** | ✅ **RESOLVED** |
-| **TN-SEC-03** | Unverified Password Change in Web Profile Controllers | OWASP ASVS V2.1.12 | CWE-620 | **Medium** | ⚠️ **OPEN / ACTION REQUIRED** |
+| **TN-SEC-03** | Unverified Password Change in Web Profile Controllers | OWASP ASVS V2.1.12 | CWE-620 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-04** | Public Self-Registration Route Left Exposed on Enterprise API | OWASP API2:2023 | CWE-284 | **Medium** | ⚠️ **OPEN / ACTION REQUIRED** |
 | **TN-SEC-05** | Arbitrary Source File Access & Information Disclosure in `/storage/{path}` | OWASP A01:2021 | CWE-552 | **Medium** | ⚠️ **OPEN / ACTION REQUIRED** |
 | **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
@@ -139,14 +139,12 @@ However, several critical and medium-severity authorization flaws and business l
   While the Mobile API endpoint (`Api/V1/AuthController::changePassword`) strictly requires and checks `current_password` via `Hash::check()`, both Web interfaces omit `current_password` verification completely.
 * **Impact:**
   If a user, manager, or superadmin leaves their browser session open, or if session tokens are hijacked, an adversary can change the account's password without knowing the existing password.
-* **Remediation:**
-  Require `current_password` in validation:
-  ```php
-  $request->validate([
-      'current_password' => 'required_with:password|current_password',
-      'password' => 'nullable|string|min:8|confirmed',
-  ]);
-  ```
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Enforced `'current_password' => ['required_with:password', 'current_password']` in `AttendanceController::updateProfile` and `Admin\ProfileController::update`.
+  2. Automatically updates `password_changed_at = now()` and sanitizes `$validated['current_password']` before updating the user model.
+  3. Added the "Password Saat Ini" (`current_password`) form input field with error reporting to both `resources/views/attendance/index.blade.php` and `resources/views/admin/profile/index.blade.php`.
+  4. Added and verified comprehensive tests in `EmployeeProfileUpdateTest` and `AdminProfileUpdateTest`.
 
 ---
 

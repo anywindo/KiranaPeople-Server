@@ -39,7 +39,7 @@ class EmployeeProfileUpdateTest extends TestCase
         $this->assertEquals('0899999999', $user->fresh()->phone);
     }
 
-    public function test_employee_can_change_password_without_current_password(): void
+    public function test_employee_cannot_change_password_without_current_password(): void
     {
         $user = User::factory()->create([
             'password' => Hash::make('old-password-123'),
@@ -51,10 +51,46 @@ class EmployeeProfileUpdateTest extends TestCase
             'password_confirmation' => 'new-secret-password-456',
         ]);
 
+        $response->assertSessionHasErrors(['current_password']);
+        $this->assertTrue(Hash::check('old-password-123', $user->fresh()->password));
+    }
+
+    public function test_employee_cannot_change_password_with_wrong_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('old-password-123'),
+            'password_changed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->put(route('attendance.profile.update'), [
+            'current_password' => 'wrong-current-password',
+            'password' => 'new-secret-password-456',
+            'password_confirmation' => 'new-secret-password-456',
+        ]);
+
+        $response->assertSessionHasErrors(['current_password']);
+        $this->assertTrue(Hash::check('old-password-123', $user->fresh()->password));
+    }
+
+    public function test_employee_can_change_password_with_valid_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('old-password-123'),
+            'password_changed_at' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($user)->put(route('attendance.profile.update'), [
+            'current_password' => 'old-password-123',
+            'password' => 'new-secret-password-456',
+            'password_confirmation' => 'new-secret-password-456',
+        ]);
+
         $response->assertRedirect(route('attendance.profile'));
         $response->assertSessionHas('success');
 
-        $this->assertTrue(Hash::check('new-secret-password-456', $user->fresh()->password));
+        $refreshed = $user->fresh();
+        $this->assertTrue(Hash::check('new-secret-password-456', $refreshed->password));
+        $this->assertNotNull($refreshed->password_changed_at);
     }
 
     public function test_employee_can_update_profile_without_password(): void

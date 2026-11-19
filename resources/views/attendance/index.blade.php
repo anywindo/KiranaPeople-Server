@@ -1241,6 +1241,14 @@
 
                         <div class="space-y-3">
                             <div>
+                                <label class="block text-xs font-medium text-[#8E8E93] mb-1">Password Saat Ini</label>
+                                <input type="password" name="current_password" placeholder="Masukkan password saat ini"
+                                    class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#F775BA]">
+                                @error('current_password')
+                                    <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
                                 <label class="block text-xs font-medium text-[#8E8E93] mb-1">Password Baru</label>
                                 <input type="password" name="password" placeholder="Minimal 8 karakter"
                                     class="w-full bg-[#F6F7FA] border border-gray-200 rounded-xl text-sm text-[#1C1C1E] px-3.5 py-2.5 focus:outline-none focus:border-[#F775BA]">

@@ -129,6 +129,17 @@
                     <h5 class="fw-bold mb-4 text-secondary"><i class="bi bi-shield-lock me-2"></i>Ubah Password <span class="fs-6 fw-normal text-muted">(Opsional)</span></h5>
 
                     <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Password Saat Ini</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror" placeholder="Masukkan password saat ini jika ingin mengubah password">
+                            </div>
+                            @error('current_password')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Password Baru</label>
                             <div class="input-group">

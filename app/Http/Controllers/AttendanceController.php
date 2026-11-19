@@ -209,8 +209,11 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'phone' => 'nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'current_password' => ['required_with:password', 'current_password'],
             'password' => 'nullable|string|min:8|confirmed',
         ], [
+            'current_password.required_with' => 'Current password is required to set a new password.',
+            'current_password.current_password' => 'The provided current password does not match our records.',
             'password.min' => 'New password must be at least 8 characters.',
             'password.confirmed' => 'New password confirmation does not match.',
             'avatar.max' => 'Profile picture size must not exceed 5MB.',
@@ -233,6 +236,7 @@ class AttendanceController extends Controller
 
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
+            $validated['password_changed_at'] = now();
         } else {
             unset($validated['password']);
         }
