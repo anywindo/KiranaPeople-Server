@@ -20,6 +20,13 @@ class AttendanceCorrectionRequestService extends BaseService
      */
     public function submitRequest(User $employee, int $attendanceId, string $reason, array $requestedChanges): AttendanceCorrectionRequest
     {
+        $attendanceExists = $employee->attendances()->where('id', $attendanceId)->exists();
+        if (! $attendanceExists) {
+            throw ValidationException::withMessages([
+                'attendance_id' => 'The selected attendance does not exist or does not belong to you.',
+            ]);
+        }
+
         return $this->repository->create([
             'user_id' => $employee->id,
             'attendance_id' => $attendanceId,

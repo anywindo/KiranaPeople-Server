@@ -74,3 +74,15 @@ it('throws exception when processing already processed request', function () {
     // Try processing again using the updated state
     $service->processRequest($processed, $manager, RequestStatus::REJECTED);
 })->throws(ValidationException::class);
+
+it('rejects correction request when attendance belongs to another user in service', function () {
+    [$userA, $manager, $shift, $attendanceA, $service] = setupCorrectionServiceTest();
+    $userB = User::factory()->create();
+
+    $service->submitRequest(
+        $userB,
+        $attendanceA->id,
+        'Attempting to edit another user attendance',
+        ['START_SHIFT' => '08:00:00']
+    );
+})->throws(ValidationException::class);

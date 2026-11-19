@@ -55,9 +55,10 @@ Route::prefix('v1')->group(function () {
             Route::put('correction-requests/{id}/process', [\App\Http\Controllers\Api\V1\Admin\AttendanceCorrectionRequestController::class, 'process']);
         });
 
-        // Teams
-        Route::post('teams/{team}/members', [TeamController::class, 'addMember']);
-        Route::delete('teams/{team}/members/{user}', [TeamController::class, 'removeMember']);
-        Route::apiResource('teams', TeamController::class);
+        // Teams (Unused feature - commented out to eliminate exposure / TN-SEC-01.
+        // If expanding in the future, ensure proper RBAC / policy middleware is attached: e.g. role:admin|super-admin|HR)
+        // Route::post('teams/{team}/members', [TeamController::class, 'addMember']);
+        // Route::delete('teams/{team}/members/{user}', [TeamController::class, 'removeMember']);
+        // Route::apiResource('teams', TeamController::class);
     });
 });
