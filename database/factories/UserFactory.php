@@ -2,12 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Models\Location;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
@@ -33,7 +35,7 @@ class UserFactory extends Factory
             'nik' => fake('id_ID')->unique()->numerify('################'),
             'dob' => $dobFormatted,
             'phone' => fake('id_ID')->phoneNumber(),
-            'location_id' => \App\Models\Location::inRandomOrder()->first()?->id ?? \App\Models\Location::factory(),
+            'location_id' => Location::inRandomOrder()->first()?->id ?? Location::factory(),
             'avatar' => null, // Factory won't generate real image files, we'll leave it null
             'is_active' => true,
             'email_verified_at' => now(),

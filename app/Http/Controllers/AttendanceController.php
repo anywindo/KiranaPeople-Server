@@ -4,11 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\AttendanceEvent;
+use App\Models\Setting;
+use App\Models\Shift;
+use App\Models\User;
+use App\Notifications\EmployeeLateNotification;
 use App\Services\FileUploadService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class AttendanceController extends Controller
@@ -81,13 +87,13 @@ class AttendanceController extends Controller
             ->take(30)
             ->get();
 
-        $availableShifts = \App\Models\Shift::getAllCached();
-        $shift = $attendance ? $attendance->shift : ($user->shift ?? \App\Models\Shift::getFirstCached());
+        $availableShifts = Shift::getAllCached();
+        $shift = $attendance ? $attendance->shift : ($user->shift ?? Shift::getFirstCached());
 
         return view('attendance.index', compact('user', 'events', 'historyEvents', 'attendancesHistory', 'nextAction', 'activeBreak', 'shift', 'availableShifts', 'activeNav'));
     }
 
-    public function store(Request $request, \App\Services\FileUploadService $fileUploadService)
+    public function store(Request $request, FileUploadService $fileUploadService)
     {
         $request->validate([
             'event_type' => 'required|in:START_SHIFT,START_BREAK,END_BREAK,END_SHIFT',
@@ -130,16 +136,16 @@ class AttendanceController extends Controller
         $status = 'EXACT';
         $latenessMinutes = 0;
 
-        $shift = ($request->filled('shift_id') ? \App\Models\Shift::findCached($request->shift_id) : null)
+        $shift = ($request->filled('shift_id') ? Shift::findCached($request->shift_id) : null)
             ?? $user->shift
-            ?? \App\Models\Shift::getFirstCached();
+            ?? Shift::getFirstCached();
         $shiftId = $shift ? $shift->id : 1;
 
         if ($request->event_type === 'START_SHIFT') {
             if ($shift && $shift->default_start_time) {
-                $scheduledStart = \Carbon\Carbon::parse($today->format('Y-m-d').' '.$shift->default_start_time);
-                $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
-                $cutoffMinutes = $ruleEnabled ? (int) \App\Models\Setting::get('attendance_rule_minutes', 15) : 0;
+                $scheduledStart = Carbon::parse($today->format('Y-m-d').' '.$shift->default_start_time);
+                $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
+                $cutoffMinutes = $ruleEnabled ? (int) Setting::get('attendance_rule_minutes', 15) : 0;
 
                 $now = now();
                 if ($ruleEnabled && $cutoffMinutes > 0) {
@@ -188,12 +194,12 @@ class AttendanceController extends Controller
         // Notification for late check-in
         if ($request->event_type === 'START_SHIFT' && $status === 'LATE') {
             try {
-                $admins = \App\Models\User::role(['super-admin', 'HR'], 'web')->get();
+                $admins = User::role(['super-admin', 'HR'], 'web')->get();
                 if ($admins->isNotEmpty()) {
-                    \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\EmployeeLateNotification($user, $latenessMinutes));
+                    Notification::send($admins, new EmployeeLateNotification($user, $latenessMinutes));
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Late notification warning: '.$e->getMessage());
+                Log::warning('Late notification warning: '.$e->getMessage());
             }
 
             $message .= ' Anda terlambat '.$latenessMinutes.' menit.';

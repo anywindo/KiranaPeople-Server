@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AttendanceStatus;
 use App\Enums\EventType;
 use App\Models\Attendance;
 use App\Models\AttendanceEvent;
@@ -44,7 +45,7 @@ it('evaluates check in and check out attributes cleanly on attendance model', fu
         'user_id' => $user->id,
         'shift_id' => $shift->id,
         'date' => '2026-11-13',
-        'status' => \App\Enums\AttendanceStatus::EXACT,
+        'status' => AttendanceStatus::EXACT,
     ]);
 
     // Check-in on time
@@ -100,7 +101,7 @@ it('evaluates break status and modal data cleanly on attendance model', function
         'user_id' => $user->id,
         'shift_id' => $shift->id,
         'date' => '2026-11-13',
-        'status' => \App\Enums\AttendanceStatus::EXACT,
+        'status' => AttendanceStatus::EXACT,
     ]);
 
     AttendanceEvent::create([

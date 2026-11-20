@@ -45,6 +45,7 @@ class UploadFileToR2Job implements ShouldQueue
         $localDisk = Storage::disk('public');
         if (! $localDisk->exists($this->path)) {
             Log::warning("UploadFileToR2Job: Local file not found at {$this->path}");
+
             return;
         }
 

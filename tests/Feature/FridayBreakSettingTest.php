@@ -9,10 +9,12 @@ use App\Models\AttendanceEvent;
 use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\User;
+use App\Services\AttendanceService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class FridayBreakSettingTest extends TestCase
@@ -23,7 +25,7 @@ class FridayBreakSettingTest extends TestCase
     {
         parent::setUp();
 
-        $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app[PermissionRegistrar::class]->forgetCachedPermissions();
         Role::firstOrCreate(['name' => 'HR', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
     }
@@ -194,7 +196,7 @@ class FridayBreakSettingTest extends TestCase
             'break_end' => '13:00',
         ]);
 
-        $service = app(\App\Services\AttendanceService::class);
+        $service = app(AttendanceService::class);
 
         // Simulate Friday 08:05:00 for check-in
         Carbon::setTestNow(Carbon::parse('2026-10-16 08:05:00'));
@@ -233,7 +235,7 @@ class FridayBreakSettingTest extends TestCase
             'break_end' => '13:00',
         ]);
 
-        $service = app(\App\Services\AttendanceService::class);
+        $service = app(AttendanceService::class);
 
         // Simulate Friday 08:05:00 for check-in
         Carbon::setTestNow(Carbon::parse('2026-10-16 08:05:00'));

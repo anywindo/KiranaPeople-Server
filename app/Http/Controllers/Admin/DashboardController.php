@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AttendanceStatus;
 use App\Enums\EventType;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\AttendanceEvent;
 use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
@@ -29,7 +31,7 @@ class DashboardController extends Controller
         // 2. Present & Late counts today via direct database index
         $presentToday = Attendance::whereDate('date', '=', $today)->count();
         $lateCountToday = Attendance::whereDate('date', '=', $today)
-            ->where('status', \App\Enums\AttendanceStatus::LATE)
+            ->where('status', AttendanceStatus::LATE)
             ->count();
         $onTimeToday = max(0, $presentToday - $lateCountToday);
         $onTimeRate = $presentToday > 0 ? round(($onTimeToday / $presentToday) * 100) : 0;
@@ -51,7 +53,7 @@ class DashboardController extends Controller
         $todayStr = $today->toDateString();
 
         $trendRecords = Attendance::whereBetween('date', [$sevenDaysAgo, $todayStr])
-            ->selectRaw('date, count(*) as total_present, sum(case when status = ? then 1 else 0 end) as total_late', [\App\Enums\AttendanceStatus::LATE->value])
+            ->selectRaw('date, count(*) as total_present, sum(case when status = ? then 1 else 0 end) as total_late', [AttendanceStatus::LATE->value])
             ->groupBy('date')
             ->get()
             ->keyBy(function ($record) {
@@ -86,15 +88,15 @@ class DashboardController extends Controller
             'absent' => $trendAbsent,
         ];
 
-        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
-        $ruleMinutes = $ruleEnabled ? (int) \App\Models\Setting::get('attendance_rule_minutes', 15) : 0;
+        $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
+        $ruleMinutes = $ruleEnabled ? (int) Setting::get('attendance_rule_minutes', 15) : 0;
 
         // 5. Late employees: only load attendances marked LATE with events today (bounded query)
         $lateEmployees = Attendance::with(['user.location', 'shift', 'events' => function ($q) {
             $q->where('event_type', EventType::START_SHIFT);
         }])
             ->whereDate('date', '=', $today)
-            ->where('status', \App\Enums\AttendanceStatus::LATE)
+            ->where('status', AttendanceStatus::LATE)
             ->whereHas('events', function ($q) {
                 $q->where('event_type', EventType::START_SHIFT);
             })
@@ -165,7 +167,7 @@ class DashboardController extends Controller
             ->take(10);
 
         // 7. Live Activity Radar (Latest 8 events today)
-        $liveActivity = \App\Models\AttendanceEvent::with(['attendance.user.location', 'attendance.shift'])
+        $liveActivity = AttendanceEvent::with(['attendance.user.location', 'attendance.shift'])
             ->whereDate('timestamp', $today)
             ->latest('timestamp')
             ->take(8)

@@ -2,16 +2,18 @@
 
 namespace Tests\Feature;
 
-use App\Enums\EventType;
 use App\Enums\AttendanceStatus;
+use App\Enums\EventType;
 use App\Models\Attendance;
 use App\Models\AttendanceEvent;
 use App\Models\Location;
+use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class AdminDashboardAnalyticsTest extends TestCase
@@ -21,7 +23,7 @@ class AdminDashboardAnalyticsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app[PermissionRegistrar::class]->forgetCachedPermissions();
 
         Role::firstOrCreate(['name' => 'HR', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
@@ -97,7 +99,7 @@ class AdminDashboardAnalyticsTest extends TestCase
         $hr = User::factory()->create();
         $hr->assignRole('HR');
 
-        \App\Models\Setting::set('attendance_rule_enabled', 'false', 'boolean');
+        Setting::set('attendance_rule_enabled', 'false', 'boolean');
 
         $location = Location::create([
             'name' => 'Kantor Cabang',
@@ -176,8 +178,8 @@ class AdminDashboardAnalyticsTest extends TestCase
         $hr = User::factory()->create();
         $hr->assignRole('HR');
 
-        \App\Models\Setting::set('attendance_rule_enabled', 'true', 'boolean');
-        \App\Models\Setting::set('attendance_rule_minutes', 15, 'integer');
+        Setting::set('attendance_rule_enabled', 'true', 'boolean');
+        Setting::set('attendance_rule_minutes', 15, 'integer');
 
         $location = Location::create([
             'name' => 'Kantor Utama',
@@ -237,7 +239,7 @@ class AdminDashboardAnalyticsTest extends TestCase
         $hr->assignRole('HR');
 
         // Rule is disabled
-        \App\Models\Setting::set('attendance_rule_enabled', 'false', 'boolean');
+        Setting::set('attendance_rule_enabled', 'false', 'boolean');
 
         $location = Location::create([
             'name' => 'Kantor Utama',

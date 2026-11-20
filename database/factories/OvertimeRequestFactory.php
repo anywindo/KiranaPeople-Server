@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\OvertimeRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\OvertimeRequest>
+ * @extends Factory<OvertimeRequest>
  */
 class OvertimeRequestFactory extends Factory
 {

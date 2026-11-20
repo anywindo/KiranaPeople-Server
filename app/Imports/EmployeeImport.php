@@ -4,9 +4,11 @@ namespace App\Imports;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class EmployeeImport implements ToModel, WithHeadingRow
 {
@@ -23,12 +25,12 @@ class EmployeeImport implements ToModel, WithHeadingRow
 
         if ($dob && is_numeric($dob)) {
             try {
-                $dob = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($dob)->format('Y-m-d');
+                $dob = Date::excelToDateTimeObject($dob)->format('Y-m-d');
             } catch (\Throwable $e) {
             }
         } elseif ($dob) {
             try {
-                $dob = \Illuminate\Support\Carbon::parse($dob)->format('Y-m-d');
+                $dob = Carbon::parse($dob)->format('Y-m-d');
             } catch (\Throwable $e) {
                 $dob = null;
             }

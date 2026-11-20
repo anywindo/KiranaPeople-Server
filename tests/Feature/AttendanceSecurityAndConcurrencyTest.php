@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\EventType;
+use App\Models\AttendanceEvent;
 use App\Models\Location;
 use App\Models\Role;
 use App\Models\Shift;
@@ -241,7 +242,7 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
             ->postJson('/api/v1/employee/attendance/events', $payload);
 
         $response1->assertStatus(201);
-        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+        $this->assertEquals(1, AttendanceEvent::count());
 
         // Second attempt with exact same Idempotency Key -> returns cached 201 and no new record
         $response2 = $this->actingAs($this->user)
@@ -250,7 +251,7 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
 
         $response2->assertStatus(201);
         $response2->assertHeader('X-Cache-Lookup', 'HIT');
-        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+        $this->assertEquals(1, AttendanceEvent::count());
     }
 
     public function test_atomic_lock_rejects_concurrent_requests_with_429(): void
@@ -304,7 +305,7 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
         // First click
         $response1 = $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', $payload);
         $response1->assertStatus(201);
-        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+        $this->assertEquals(1, AttendanceEvent::count());
 
         // Fast second click 1 second later (simulating cellular lag tap)
         $response2 = $this->actingAs($this->user)->postJson('/api/v1/employee/attendance/events', $payload);
@@ -318,7 +319,7 @@ class AttendanceSecurityAndConcurrencyTest extends TestCase
                 'event_type' => 'START_SHIFT',
             ],
         ]);
-        $this->assertEquals(1, \App\Models\AttendanceEvent::count());
+        $this->assertEquals(1, AttendanceEvent::count());
     }
 
     public function test_rate_limiter_throttles_excessive_attendance_requests(): void

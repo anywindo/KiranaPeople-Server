@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
@@ -11,7 +13,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('employees:sync-birthdays', function () {
-    $users = \App\Models\User::all();
+    $users = User::all();
     $dobUpdated = 0;
     $passwordUpdated = 0;
     $empIdUpdated = 0;
@@ -28,7 +30,7 @@ Artisan::command('employees:sync-birthdays', function () {
 
         // Populate dob from NIK if missing
         if (! $user->dob && $user->nik) {
-            $dob = \App\Models\User::parseDobDateFromNik($user->nik);
+            $dob = User::parseDobDateFromNik($user->nik);
             if ($dob) {
                 $user->dob = $dob;
                 $dirty = true;
@@ -39,8 +41,8 @@ Artisan::command('employees:sync-birthdays', function () {
         // Only check password if user has a valid birthday (avoid slow Hash::check on unrelated users)
         $birthdayPwd = $user->getDefaultPassword();
         if ($birthdayPwd !== 'password') {
-            if (\Illuminate\Support\Facades\Hash::check('password', $user->password)) {
-                $user->password = \Illuminate\Support\Facades\Hash::make($birthdayPwd);
+            if (Hash::check('password', $user->password)) {
+                $user->password = Hash::make($birthdayPwd);
                 $dirty = true;
                 $passwordUpdated++;
             }

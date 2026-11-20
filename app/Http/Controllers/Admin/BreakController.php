@@ -2,9 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AttendanceStatus;
+use App\Exports\Admin\BreakExport;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\Location;
+use App\Models\Setting;
+use App\Models\Shift;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BreakController extends Controller
@@ -73,12 +81,12 @@ class BreakController extends Controller
 
             $attendancesCollection = $baseAttendanceQuery->get();
 
-            $excludedRoles = json_decode(\App\Models\Setting::get('exclude_roles_from_attendance', '["super-admin"]'), true);
+            $excludedRoles = json_decode(Setting::get('exclude_roles_from_attendance', '["super-admin"]'), true);
             if (! is_array($excludedRoles)) {
                 $excludedRoles = ['super-admin'];
             }
 
-            $userQuery = \App\Models\User::active()
+            $userQuery = User::active()
                 ->with(['location'])
                 ->whereDoesntHave('roles', function ($q) use ($excludedRoles) {
                     $q->whereIn('name', $excludedRoles);
@@ -105,7 +113,7 @@ class BreakController extends Controller
                 $distinctDates = Attendance::distinct()
                     ->orderBy('date', 'desc')
                     ->pluck('date')
-                    ->map(fn ($d) => \Carbon\Carbon::parse($d)->toDateString())
+                    ->map(fn ($d) => Carbon::parse($d)->toDateString())
                     ->unique()
                     ->values();
 
@@ -117,11 +125,11 @@ class BreakController extends Controller
             }
 
             $attendancesByDate = $attendancesCollection->groupBy(function ($att) {
-                return \Carbon\Carbon::parse($att->date)->toDateString();
+                return Carbon::parse($att->date)->toDateString();
             });
 
-            $defaultShift = \App\Models\Shift::first();
-            $targetShift = $request->filled('shift_id') ? \App\Models\Shift::find($request->shift_id) : null;
+            $defaultShift = Shift::first();
+            $targetShift = $request->filled('shift_id') ? Shift::find($request->shift_id) : null;
             $allRecords = collect();
 
             foreach ($dates as $dateStr) {
@@ -144,9 +152,9 @@ class BreakController extends Controller
 
                     $absentAtt = new Attendance([
                         'user_id' => $user->id,
-                        'date' => \Carbon\Carbon::parse($dateStr),
+                        'date' => Carbon::parse($dateStr),
                         'shift_id' => $targetShift?->id ?? $userShift?->id,
-                        'status' => \App\Enums\AttendanceStatus::ABSENT,
+                        'status' => AttendanceStatus::ABSENT,
                     ]);
                     $absentAtt->is_absent = true;
                     $absentAtt->setRelation('user', $user);
@@ -157,16 +165,16 @@ class BreakController extends Controller
                 }
             }
 
-            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
             $currentItems = $allRecords->slice(($currentPage - 1) * $perPage, $perPage)->values();
 
-            $attendances = new \Illuminate\Pagination\LengthAwarePaginator(
+            $attendances = new LengthAwarePaginator(
                 $currentItems,
                 $allRecords->count(),
                 $perPage,
                 $currentPage,
                 [
-                    'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
+                    'path' => LengthAwarePaginator::resolveCurrentPath(),
                     'query' => array_merge($request->all(), ['date' => $selectedDate]),
                 ]
             );
@@ -174,8 +182,8 @@ class BreakController extends Controller
             $attendances = $query->paginate($perPage)->appends(array_merge($request->all(), ['date' => $selectedDate]));
         }
 
-        $shifts = \App\Models\Shift::getAllCached();
-        $locations = \App\Models\Location::getAllCached();
+        $shifts = Shift::getAllCached();
+        $locations = Location::getAllCached();
 
         return view('admin.breaks.index', compact('attendances', 'shifts', 'locations', 'selectedDate'));
     }
@@ -208,6 +216,6 @@ class BreakController extends Controller
             ? $request->boolean('include_all_employees')
             : true;
 
-        return Excel::download(new \App\Exports\Admin\BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
+        return Excel::download(new BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

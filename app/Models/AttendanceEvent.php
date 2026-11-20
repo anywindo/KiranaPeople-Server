@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\EventType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class AttendanceEvent extends Model
 {
@@ -12,7 +14,7 @@ class AttendanceEvent extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'event_type' => \App\Enums\EventType::class,
+        'event_type' => EventType::class,
         'timestamp' => 'datetime',
         'device_timestamp' => 'datetime',
         'latitude' => 'decimal:8',
@@ -46,6 +48,6 @@ class AttendanceEvent extends Model
             return rtrim($r2Url, '/').'/'.ltrim($this->selfie_path, '/');
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->selfie_path);
+        return Storage::disk('public')->url($this->selfie_path);
     }
 }

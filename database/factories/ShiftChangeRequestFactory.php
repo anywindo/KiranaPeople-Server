@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\ShiftChangeRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ShiftChangeRequest>
+ * @extends Factory<ShiftChangeRequest>
  */
 class ShiftChangeRequestFactory extends Factory
 {

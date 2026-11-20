@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,7 +49,7 @@ class LoginRequest extends FormRequest
             ?? $this->input('employee_id')
             ?? $this->input('username');
 
-        $user = \App\Models\User::findByLogin($login);
+        $user = User::findByLogin($login);
 
         $credentials = [
             'email' => $user ? $user->email : $login,

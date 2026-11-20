@@ -7,6 +7,7 @@ use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\FileUploadService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
@@ -79,7 +80,7 @@ class EmployeeController extends Controller
             'phone' => $validated['phone'],
             'location_id' => $validated['location_id'],
             'avatar' => $avatarPath,
-            'password' => \Illuminate\Support\Facades\Hash::make($passwordString),
+            'password' => Hash::make($passwordString),
         ];
 
         if (! empty($validated['employee_id'])) {
@@ -139,7 +140,7 @@ class EmployeeController extends Controller
         }
 
         if (! empty($validated['password'])) {
-            $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
+            $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
         }

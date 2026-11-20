@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +14,7 @@ class AttendanceCorrectionRequest extends Model
 
     protected $casts = [
         'requested_changes' => 'array',
-        'status' => \App\Enums\RequestStatus::class,
+        'status' => RequestStatus::class,
     ];
 
     public function user()

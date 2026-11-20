@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Location;
 use Illuminate\Database\Seeder;
 
 class LocationSeeder extends Seeder
@@ -33,7 +34,7 @@ class LocationSeeder extends Seeder
         ];
 
         foreach ($locations as $location) {
-            \App\Models\Location::create($location);
+            Location::create($location);
         }
     }
 }

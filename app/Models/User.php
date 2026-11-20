@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Traits\HasAuditLog;
+use Carbon\CarbonInterface;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -15,17 +18,17 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $email
  * @property string|null $employee_id
  * @property string|null $nik
- * @property \Illuminate\Support\Carbon|null $dob
+ * @property Carbon|null $dob
  * @property string|null $phone
  * @property int|null $location_id
  * @property string|null $avatar
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $password_changed_at
- * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property Carbon|null $password_changed_at
+ * @property Carbon|null $email_verified_at
  */
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasAuditLog, HasFactory, HasRoles, Notifiable;
 
     /**
@@ -327,11 +330,11 @@ class User extends Authenticatable
     public static function computeDefaultPassword($dob = null, ?string $nik = null): string
     {
         if ($dob) {
-            if ($dob instanceof \Carbon\CarbonInterface || $dob instanceof \DateTimeInterface) {
+            if ($dob instanceof CarbonInterface || $dob instanceof \DateTimeInterface) {
                 return $dob->format('dmY');
             }
             try {
-                return \Illuminate\Support\Carbon::parse($dob)->format('dmY');
+                return Carbon::parse($dob)->format('dmY');
             } catch (\Throwable $e) {
                 // fall through
             }

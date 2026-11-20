@@ -2,12 +2,14 @@
 
 namespace App\Exports\Admin;
 
+use App\Enums\EventType;
 use App\Models\Attendance;
 use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -16,6 +18,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
@@ -50,7 +53,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
         $this->includeAll = (bool) $includeAll;
     }
 
-    public function collection(): \Illuminate\Support\Collection
+    public function collection(): Collection
     {
         $query = Attendance::with(['user.location', 'shift', 'events'])->orderBy('date', 'desc');
 
@@ -218,8 +221,8 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
             ];
         }
 
-        $checkInEvent = $attendance->events->where('event_type', \App\Enums\EventType::START_SHIFT)->first();
-        $checkOutEvent = $attendance->events->where('event_type', \App\Enums\EventType::END_SHIFT)->first();
+        $checkInEvent = $attendance->events->where('event_type', EventType::START_SHIFT)->first();
+        $checkOutEvent = $attendance->events->where('event_type', EventType::END_SHIFT)->first();
 
         $status = is_array($attendance->shift_status) ? ($attendance->shift_status['label'] ?? '-') : ($attendance->shift_status ?? '-');
 
@@ -286,7 +289,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
         if ($highestRow >= 2) {
             // Text formatting for IDs and NIK (prevent scientific notation)
             $sheet->getStyle("B2:C{$highestRow}")->getNumberFormat()
-                ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
+                ->setFormatCode(NumberFormat::FORMAT_TEXT);
 
             // Column Alignments
             $sheet->getStyle("A2:C{$highestRow}")->getAlignment()

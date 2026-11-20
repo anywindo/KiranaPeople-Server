@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Enums\EventType;
 use App\Models\Attendance;
 use App\Models\AttendanceEvent;
+use App\Models\Setting;
+use App\Models\Shift;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class AdminAttendanceIndexDefaultDateTest extends TestCase
@@ -18,7 +21,7 @@ class AdminAttendanceIndexDefaultDateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app[PermissionRegistrar::class]->forgetCachedPermissions();
 
         Role::firstOrCreate(['name' => 'HR', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
@@ -32,7 +35,7 @@ class AdminAttendanceIndexDefaultDateTest extends TestCase
         $employee1 = User::factory()->create();
         $employee2 = User::factory()->create();
 
-        $shift = \App\Models\Shift::create([
+        $shift = Shift::create([
             'shift_name' => 'Pagi',
             'default_start_time' => '08:00:00',
             'default_end_time' => '17:00:00',
@@ -103,12 +106,12 @@ class AdminAttendanceIndexDefaultDateTest extends TestCase
         $hr = User::factory()->create();
         $hr->assignRole('HR');
 
-        \App\Models\Setting::set('attendance_rule_enabled', 'true', 'boolean');
-        \App\Models\Setting::set('attendance_rule_minutes', 15, 'integer');
+        Setting::set('attendance_rule_enabled', 'true', 'boolean');
+        Setting::set('attendance_rule_minutes', 15, 'integer');
 
         $employee = User::factory()->create();
 
-        $shift = \App\Models\Shift::create([
+        $shift = Shift::create([
             'shift_name' => 'Pagi',
             'default_start_time' => '10:00:00',
             'default_end_time' => '17:00:00',
