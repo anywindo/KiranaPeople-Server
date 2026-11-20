@@ -69,7 +69,7 @@ return [
             'region' => env('CLOUDFLARE_R2_DEFAULT_REGION', env('AWS_DEFAULT_REGION', 'auto')),
             'bucket' => env('CLOUDFLARE_R2_BUCKET', env('AWS_BUCKET', 'kiranapeople')),
             'url' => env('CLOUDFLARE_R2_URL', env('AWS_URL')),
-            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', env('AWS_ENDPOINT', 'https://d84f9d5770d7659665092bdd2ab2661c.r2.cloudflarestorage.com')),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', env('AWS_ENDPOINT')),
             'use_path_style_endpoint' => env('CLOUDFLARE_R2_USE_PATH_STYLE_ENDPOINT', env('AWS_USE_PATH_STYLE_ENDPOINT', false)),
             'throw' => false,
             'report' => false,

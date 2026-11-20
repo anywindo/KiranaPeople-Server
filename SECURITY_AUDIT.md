@@ -36,8 +36,8 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-06** | User Account Enumeration in Forgot Password Endpoint | OWASP WSTG-IDNT-04 | CWE-204 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-07** | Raw Exception Message Leakage in Production 500 Responses | OWASP API10:2023 | CWE-209 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-08** | Involuntary CSRF Logout via GET Method | OWASP A01:2021 | CWE-352 | **Low** | ✅ **RESOLVED** |
-| **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
-| **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ⚠️ **OPEN / RECOMMENDED** |
+| **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ✅ **RESOLVED** |
+| **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ✅ **RESOLVED** |
 
 ---
@@ -251,22 +251,27 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-09] Cloudflare R2 Account Identifier Exposed in Configuration
 * **Category:** OWASP Top 10 A05:2021 / CWE-200 (Information Disclosure)
 * **Severity:** **Low**
-* **Location:** `config/filesystems.php` (line 72), `.env.example` (lines 65-66)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `config/filesystems.php` (line 72), `.env.example` (lines 65-66, 74)
 * **Description:**
-  The Cloudflare Account ID `d84f9d5770d7659665092bdd2ab2661c` is hardcoded as default fallback in `config/filesystems.php` and `.env.example`.
-* **Remediation:**
-  Remove the hardcoded default from `config/filesystems.php` (`env('CLOUDFLARE_R2_ENDPOINT')` without default) and sanitize `.env.example`.
+  The Cloudflare Account ID `d84f9d5770d7659665092bdd2ab2661c` was hardcoded as default fallback in `config/filesystems.php` and `.env.example`.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Removed the hardcoded fallback endpoint containing the Cloudflare account ID from `config/filesystems.php` (`env('CLOUDFLARE_R2_ENDPOINT', env('AWS_ENDPOINT'))`).
+  2. Sanitized `.env.example` by stripping the exposed account identifier and endpoints (`CLOUDFLARE_R2_ENDPOINT=`, `CLOUDFLARE_R2_ACCOUNT_ID=`, and `AWS_ENDPOINT=`).
+  3. Real account credentials and endpoints are strictly kept in private `.env` files.
 
 ---
 
 ### [TN-SEC-10] 14 Known Vulnerability Advisories in Third-Party Packages
 * **Category:** OWASP Top 10 A06:2021 / CWE-1395 (Use of Vulnerable Third-Party Component)
 * **Severity:** **Low**
+* **Status:** ✅ **RESOLVED**
 * **Location:** `composer.lock`
 * **Description:**
-  Running `composer audit` reports 14 advisories across 7 packages, including `laravel/framework` (<12.71.0) and `symfony/*` components (<7.4.23).
-* **Remediation:**
-  Run `composer update` to pull in the latest patched security releases.
+  Prior security scan identified known CVE advisories across third-party Composer packages.
+* **Remediation Implemented:**
+  Dependencies verified and resolved. Executing `composer audit` confirms 0 vulnerability advisories remaining in the dependency tree (`No security vulnerability advisories found.`).
 
 ---
 
