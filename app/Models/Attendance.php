@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\AttendanceStatus;
+use App\Enums\EventType;
 use App\Traits\HasAuditLog;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +16,7 @@ class Attendance extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'status' => \App\Enums\AttendanceStatus::class,
+        'status' => AttendanceStatus::class,
         'date' => 'date',
     ];
 
@@ -38,20 +41,20 @@ class Attendance extends Model
             return ['label' => 'Mangkir / Belum Presensi', 'color' => 'danger'];
         }
 
-        $startEvent = $this->events->where('event_type', \App\Enums\EventType::START_SHIFT)->first();
+        $startEvent = $this->events->where('event_type', EventType::START_SHIFT)->first();
         if (! $startEvent || ! $this->shift || ! $this->shift->default_start_time) {
             return ['label' => $this->status ? $this->status->label() : 'Mangkir / Belum Presensi', 'color' => $this->status ? $this->status->color() : 'danger'];
         }
 
-        $actual = \Carbon\Carbon::parse($startEvent->timestamp)->format('H:i:s');
-        $expected = \Carbon\Carbon::parse($this->shift->default_start_time);
+        $actual = Carbon::parse($startEvent->timestamp)->format('H:i:s');
+        $expected = Carbon::parse($this->shift->default_start_time);
 
-        $endEvent = $this->events->where('event_type', \App\Enums\EventType::END_SHIFT)->first();
+        $endEvent = $this->events->where('event_type', EventType::END_SHIFT)->first();
         $isEarlyOut = false;
 
         if ($endEvent && $this->shift->default_end_time) {
-            $actualEnd = \Carbon\Carbon::parse($endEvent->timestamp)->format('H:i:s');
-            $expectedEnd = \Carbon\Carbon::parse($this->shift->default_end_time)->format('H:i:s');
+            $actualEnd = Carbon::parse($endEvent->timestamp)->format('H:i:s');
+            $expectedEnd = Carbon::parse($this->shift->default_end_time)->format('H:i:s');
             if ($actualEnd < $expectedEnd) {
                 $isEarlyOut = true;
             }
@@ -59,9 +62,9 @@ class Attendance extends Model
 
         $earlyOutSuffix = $isEarlyOut ? ', Pulang awal' : '';
 
-        $ruleEnabled = \App\Models\Setting::get('attendance_rule_enabled', false);
+        $ruleEnabled = Setting::get('attendance_rule_enabled', false);
         if ($ruleEnabled) {
-            $ruleMinutes = \App\Models\Setting::get('attendance_rule_minutes', 15);
+            $ruleMinutes = Setting::get('attendance_rule_minutes', 15);
             $cutoffTimeStr = $expected->copy()->subMinutes($ruleMinutes)->format('H:i:s');
 
             if ($actual >= $cutoffTimeStr) {
@@ -92,23 +95,23 @@ class Attendance extends Model
             return ['label' => 'Sedang Istirahat', 'color' => 'warning'];
         }
 
-        $actualDuration = \Carbon\Carbon::parse($endBreakEvent->timestamp)->diffInMinutes(\Carbon\Carbon::parse($startBreakEvent->timestamp), true);
+        $actualDuration = Carbon::parse($endBreakEvent->timestamp)->diffInMinutes(Carbon::parse($startBreakEvent->timestamp), true);
 
         $breakStart = $this->shift->break_start;
         $breakEnd = $this->shift->break_end;
 
-        $isFriday = $this->date ? \Carbon\Carbon::parse($this->date)->isFriday() : \Carbon\Carbon::parse($startBreakEvent->timestamp)->isFriday();
-        if ($isFriday && \App\Models\Setting::get('friday_break_enabled', true)) {
-            $breakStart = \App\Models\Setting::get('friday_break_start', '11:30');
-            $breakEnd = \App\Models\Setting::get('friday_break_end', '13:00');
+        $isFriday = $this->date ? Carbon::parse($this->date)->isFriday() : Carbon::parse($startBreakEvent->timestamp)->isFriday();
+        if ($isFriday && Setting::get('friday_break_enabled', true)) {
+            $breakStart = Setting::get('friday_break_start', '11:30');
+            $breakEnd = Setting::get('friday_break_end', '13:00');
         }
 
-        $expectedStartTime = \Carbon\Carbon::parse($breakStart)->format('H:i:s');
-        $expectedEndTime = \Carbon\Carbon::parse($breakEnd)->format('H:i:s');
-        $actualStartTime = \Carbon\Carbon::parse($startBreakEvent->timestamp)->format('H:i:s');
-        $actualEndTime = \Carbon\Carbon::parse($endBreakEvent->timestamp)->format('H:i:s');
+        $expectedStartTime = Carbon::parse($breakStart)->format('H:i:s');
+        $expectedEndTime = Carbon::parse($breakEnd)->format('H:i:s');
+        $actualStartTime = Carbon::parse($startBreakEvent->timestamp)->format('H:i:s');
+        $actualEndTime = Carbon::parse($endBreakEvent->timestamp)->format('H:i:s');
 
-        $expectedDuration = \Carbon\Carbon::parse($breakEnd)->diffInMinutes(\Carbon\Carbon::parse($breakStart), true);
+        $expectedDuration = Carbon::parse($breakEnd)->diffInMinutes(Carbon::parse($breakStart), true);
 
         $isEarlyBreak = ($actualStartTime < $expectedStartTime);
         $isLateBreak = ($actualStartTime > $expectedEndTime)
@@ -131,18 +134,18 @@ class Attendance extends Model
 
     public function getCheckInEventAttribute()
     {
-        return $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === \App\Enums\EventType::START_SHIFT->value || $e->event_type === \App\Enums\EventType::START_SHIFT);
+        return $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::START_SHIFT->value || $e->event_type === EventType::START_SHIFT);
     }
 
     public function getCheckOutEventAttribute()
     {
-        return $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === \App\Enums\EventType::END_SHIFT->value || $e->event_type === \App\Enums\EventType::END_SHIFT);
+        return $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::END_SHIFT->value || $e->event_type === EventType::END_SHIFT);
     }
 
     public function getCheckInEvaluationAttribute(): array
     {
         $checkIn = $this->check_in_event;
-        $scheduledStart = $this->shift?->default_start_time ? \Carbon\Carbon::parse($this->shift->default_start_time) : null;
+        $scheduledStart = $this->shift?->default_start_time ? Carbon::parse($this->shift->default_start_time) : null;
         $actualStart = $checkIn ? $checkIn->timestamp : null;
 
         $isLate = false;
@@ -180,7 +183,7 @@ class Attendance extends Model
     public function getCheckOutEvaluationAttribute(): array
     {
         $checkOut = $this->check_out_event;
-        $scheduledEnd = $this->shift?->default_end_time ? \Carbon\Carbon::parse($this->shift->default_end_time) : null;
+        $scheduledEnd = $this->shift?->default_end_time ? Carbon::parse($this->shift->default_end_time) : null;
         $actualEnd = $checkOut ? $checkOut->timestamp : null;
 
         $isEarly = $checkOut && $scheduledEnd && $actualEnd->format('H:i') < $scheduledEnd->format('H:i');
@@ -269,7 +272,7 @@ class Attendance extends Model
                 'break_status_color' => 'danger',
                 'detail_data' => [
                     'employee' => $this->user->name ?? '-',
-                    'date' => $this->date ? \Carbon\Carbon::parse($this->date)->format('d M Y') : '-',
+                    'date' => $this->date ? Carbon::parse($this->date)->format('d M Y') : '-',
                     'shiftStatusLabel' => 'Mangkir / Belum Presensi',
                     'shiftStatusColor' => 'danger',
                     'in' => [
@@ -292,12 +295,12 @@ class Attendance extends Model
             ];
         }
 
-        $startBreak = $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === \App\Enums\EventType::START_BREAK->value || $e->event_type === \App\Enums\EventType::START_BREAK);
-        $endBreak = $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === \App\Enums\EventType::END_BREAK->value || $e->event_type === \App\Enums\EventType::END_BREAK);
+        $startBreak = $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::START_BREAK->value || $e->event_type === EventType::START_BREAK);
+        $endBreak = $this->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === EventType::END_BREAK->value || $e->event_type === EventType::END_BREAK);
 
         $duration = '-';
         if ($startBreak && $endBreak) {
-            $diff = \Carbon\Carbon::parse($endBreak->timestamp)->diff(\Carbon\Carbon::parse($startBreak->timestamp));
+            $diff = Carbon::parse($endBreak->timestamp)->diff(Carbon::parse($startBreak->timestamp));
             $duration = sprintf('%02d:%02d:%02d', $diff->h, $diff->i, $diff->s);
         }
 
@@ -321,24 +324,24 @@ class Attendance extends Model
 
             $breakStartCfg = $this->shift->break_start;
             $breakEndCfg = $this->shift->break_end;
-            $isFriday = $this->date ? \Carbon\Carbon::parse($this->date)->isFriday() : \Carbon\Carbon::parse($startBreak->timestamp)->isFriday();
+            $isFriday = $this->date ? Carbon::parse($this->date)->isFriday() : Carbon::parse($startBreak->timestamp)->isFriday();
             if ($isFriday && Setting::get('friday_break_enabled', true)) {
                 $breakStartCfg = Setting::get('friday_break_start', '11:30');
                 $breakEndCfg = Setting::get('friday_break_end', '13:00');
             }
 
-            $actualStartTime = \Carbon\Carbon::parse($startBreak->timestamp)->format('H:i:s');
-            $expectedStartTime = \Carbon\Carbon::parse($breakStartCfg)->format('H:i:s');
-            $expectedEndTime = \Carbon\Carbon::parse($breakEndCfg)->format('H:i:s');
+            $actualStartTime = Carbon::parse($startBreak->timestamp)->format('H:i:s');
+            $expectedStartTime = Carbon::parse($breakStartCfg)->format('H:i:s');
+            $expectedEndTime = Carbon::parse($breakEndCfg)->format('H:i:s');
 
             $isEarlyBreak = ($actualStartTime < $expectedStartTime);
             $isLateStartBreak = ($actualStartTime > $expectedEndTime);
             $startColorClass = ($isEarlyBreak || $isLateStartBreak) ? 'text-danger' : 'text-success';
 
             if ($endBreak) {
-                $actualEndTime = \Carbon\Carbon::parse($endBreak->timestamp)->format('H:i:s');
-                $actualDuration = \Carbon\Carbon::parse($endBreak->timestamp)->diffInMinutes(\Carbon\Carbon::parse($startBreak->timestamp), true);
-                $expectedDuration = \Carbon\Carbon::parse($breakEndCfg)->diffInMinutes(\Carbon\Carbon::parse($breakStartCfg), true);
+                $actualEndTime = Carbon::parse($endBreak->timestamp)->format('H:i:s');
+                $actualDuration = Carbon::parse($endBreak->timestamp)->diffInMinutes(Carbon::parse($startBreak->timestamp), true);
+                $expectedDuration = Carbon::parse($breakEndCfg)->diffInMinutes(Carbon::parse($breakStartCfg), true);
 
                 $isLateBreak = ($actualEndTime > $expectedEndTime)
                     || ($actualEndTime < $expectedStartTime)
@@ -358,11 +361,11 @@ class Attendance extends Model
 
         $detailData = [
             'employee' => $this->user->name ?? '-',
-            'date' => \Carbon\Carbon::parse($this->date)->format('d M Y'),
+            'date' => Carbon::parse($this->date)->format('d M Y'),
             'shiftStatusLabel' => $breakStatusLabel,
             'shiftStatusColor' => $breakStatusColor,
             'in' => [
-                'time' => $startBreak ? \Carbon\Carbon::parse($startBreak->timestamp)->format('H:i') : '-',
+                'time' => $startBreak ? Carbon::parse($startBreak->timestamp)->format('H:i') : '-',
                 'statusLabel' => $inStatusLabel,
                 'statusColor' => $inStatusColor,
                 'photo' => $inPhoto,
@@ -370,7 +373,7 @@ class Attendance extends Model
                 'lng' => $startBreak->longitude ?? null,
             ],
             'out' => [
-                'time' => $endBreak ? \Carbon\Carbon::parse($endBreak->timestamp)->format('H:i') : '-',
+                'time' => $endBreak ? Carbon::parse($endBreak->timestamp)->format('H:i') : '-',
                 'statusLabel' => $outStatusLabel,
                 'statusColor' => $outStatusColor,
                 'photo' => $outPhoto,

@@ -6,7 +6,6 @@ use App\Jobs\UploadFileToR2Job;
 use App\Services\FileUploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -18,7 +17,7 @@ class UploadFileToR2JobTest extends TestCase
         Storage::fake('r2');
 
         $file = UploadedFile::fake()->image('selfie.jpg', 640, 480);
-        $service = new FileUploadService();
+        $service = new FileUploadService;
 
         $path = $service->uploadImage($file, 'selfies');
 

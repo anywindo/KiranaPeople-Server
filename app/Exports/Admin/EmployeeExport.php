@@ -43,7 +43,7 @@ class EmployeeExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
             $this->rowNumber,
             $employee->employee_id,
             $employee->nik ?? '-',
-            $employee->dob ? $employee->dob->format('Y-m-d') : ($employee->nik ? (\App\Models\User::parseDobDateFromNik($employee->nik) ?? '-') : '-'),
+            $employee->dob ? $employee->dob->format('Y-m-d') : ($employee->nik ? (User::parseDobDateFromNik($employee->nik) ?? '-') : '-'),
             $employee->name,
             $employee->email,
             $employee->location->name ?? '-',

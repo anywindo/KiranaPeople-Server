@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Standardized JSON API response envelope.
@@ -48,7 +49,7 @@ trait ApiResponseTrait
     /**
      * Paginated response
      */
-    protected function paginated(\Illuminate\Pagination\LengthAwarePaginator $paginator, string $message = 'Success'): JsonResponse
+    protected function paginated(LengthAwarePaginator $paginator, string $message = 'Success'): JsonResponse
     {
         return response()->json([
             'data' => $paginator->items(),

@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Shift;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Shift>
+ * @extends Factory<Shift>
  */
 class ShiftFactory extends Factory
 {

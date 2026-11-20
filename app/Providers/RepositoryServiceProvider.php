@@ -2,6 +2,18 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\AttendanceCorrectionRequestRepositoryInterface;
+use App\Repositories\Contracts\AttendanceRepositoryInterface;
+use App\Repositories\Contracts\LocationRepositoryInterface;
+use App\Repositories\Contracts\ShiftRepositoryInterface;
+use App\Repositories\Contracts\TeamRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\AttendanceCorrectionRequestRepository;
+use App\Repositories\Eloquent\AttendanceRepository;
+use App\Repositories\Eloquent\LocationRepository;
+use App\Repositories\Eloquent\ShiftRepository;
+use App\Repositories\Eloquent\TeamRepository;
+use App\Repositories\Eloquent\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -12,33 +24,33 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
-            \App\Repositories\Contracts\UserRepositoryInterface::class,
-            \App\Repositories\Eloquent\UserRepository::class
+            UserRepositoryInterface::class,
+            UserRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\TeamRepositoryInterface::class,
-            \App\Repositories\Eloquent\TeamRepository::class
+            TeamRepositoryInterface::class,
+            TeamRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\AttendanceRepositoryInterface::class,
-            \App\Repositories\Eloquent\AttendanceRepository::class
+            AttendanceRepositoryInterface::class,
+            AttendanceRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\AttendanceCorrectionRequestRepositoryInterface::class,
-            \App\Repositories\Eloquent\AttendanceCorrectionRequestRepository::class
+            AttendanceCorrectionRequestRepositoryInterface::class,
+            AttendanceCorrectionRequestRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\ShiftRepositoryInterface::class,
-            \App\Repositories\Eloquent\ShiftRepository::class
+            ShiftRepositoryInterface::class,
+            ShiftRepository::class
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\LocationRepositoryInterface::class,
-            \App\Repositories\Eloquent\LocationRepository::class
+            LocationRepositoryInterface::class,
+            LocationRepository::class
         );
     }
 

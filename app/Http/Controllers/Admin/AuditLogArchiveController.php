@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -142,7 +143,7 @@ class AuditLogArchiveController extends Controller
             $user->notify(new AuditPurgeOtpNotification($otp, $archive));
             $emailSent = true;
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("[AuditPurgeOTP] Failed sending email to {$user->email}: ".$e->getMessage());
+            Log::warning("[AuditPurgeOTP] Failed sending email to {$user->email}: ".$e->getMessage());
             $errorMessage = $e->getMessage();
         }
 

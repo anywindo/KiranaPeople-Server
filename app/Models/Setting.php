@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
@@ -35,12 +36,13 @@ class Setting extends Model
         // Preload all settings from persistent cache or DB into runtime cache
         if (empty(self::$runtimeCache)) {
             try {
-                $cached = \Illuminate\Support\Facades\Cache::rememberForever(self::CACHE_KEY, function () {
+                $cached = Cache::rememberForever(self::CACHE_KEY, function () {
                     $all = self::all();
                     $settings = [];
                     foreach ($all as $item) {
                         $settings[$item->key] = self::castValue($item->value, $item->type);
                     }
+
                     return $settings;
                 });
 
@@ -90,7 +92,7 @@ class Setting extends Model
     {
         self::$runtimeCache = [];
         try {
-            \Illuminate\Support\Facades\Cache::forget(self::CACHE_KEY);
+            Cache::forget(self::CACHE_KEY);
         } catch (\Throwable $e) {
         }
     }

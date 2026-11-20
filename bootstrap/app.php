@@ -1,14 +1,23 @@
 <?php
 
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\SanitizeInput;
 use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -42,19 +51,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Rate limiters are registered in AppServiceProvider
         $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-            'password.changed' => \App\Http\Middleware\EnsurePasswordIsChanged::class,
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'password.changed' => EnsurePasswordIsChanged::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
         // Always render exceptions as JSON for API context
-        $exceptions->render(function (\Throwable $e, Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             // CSRF Token Mismatch / Page Expired (419)
-            $is419 = ($e instanceof \Illuminate\Session\TokenMismatchException)
-                || ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $e->getStatusCode() === 419);
+            $is419 = ($e instanceof TokenMismatchException)
+                || ($e instanceof HttpException && $e->getStatusCode() === 419);
 
             if ($is419) {
                 if ($request->expectsJson() || $request->is('api/*')) {
@@ -70,7 +79,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson() || $request->is('api/*')) {
 
                 // Direct HTTP Response Exception (e.g. rate limit response callback)
-                if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) {
+                if ($e instanceof HttpResponseException) {
                     return $e->getResponse();
                 }
 
@@ -90,14 +99,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 // Authorization → 403
-                if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+                if ($e instanceof AuthorizationException) {
                     return response()->json([
                         'meta' => ['success' => false, 'message' => 'Forbidden'],
                     ], 403);
                 }
 
                 // Model not found → 404
-                if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                if ($e instanceof ModelNotFoundException) {
                     return response()->json([
                         'meta' => ['success' => false, 'message' => 'Resource not found'],
                     ], 404);
@@ -111,7 +120,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 // Rate limit → 429
-                if ($e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException) {
+                if ($e instanceof ThrottleRequestsException) {
                     return response()->json([
                         'meta' => ['success' => false, 'message' => 'Too many requests. Slow down.'],
                     ], 429);

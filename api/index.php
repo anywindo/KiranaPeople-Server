@@ -39,7 +39,7 @@ if (isset($_SERVER['REQUEST_URI'])) {
 
 try {
     require __DIR__.'/../public/index.php';
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     header('Content-Type: application/json');
     echo json_encode([

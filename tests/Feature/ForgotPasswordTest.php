@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class ForgotPasswordTest extends TestCase
@@ -23,7 +24,7 @@ class ForgotPasswordTest extends TestCase
     {
         parent::setUp();
 
-        $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app[PermissionRegistrar::class]->forgetCachedPermissions();
         Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
 
         $location = Location::create([

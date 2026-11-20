@@ -80,8 +80,8 @@ class UserSeeder extends Seeder
             $dobPassword = $dobDateTime ? $dobDateTime->format('dmY') : '15051992';
 
             $defaultAttributes = [
-                'name' => 'Karyawan ' . $seedCounter,
-                'email' => 'karyawan' . $seedCounter . '@example.com',
+                'name' => 'Karyawan '.$seedCounter,
+                'email' => 'karyawan'.$seedCounter.'@example.com',
                 'employee_id' => sprintf('EMP-%05d', $seedCounter + 100),
                 'nik' => sprintf('3201%012d', $seedCounter),
                 'phone' => sprintf('08123456%04d', $seedCounter),

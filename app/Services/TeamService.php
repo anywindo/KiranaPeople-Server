@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Team;
 use App\Repositories\Contracts\TeamRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TeamService extends BaseService
 {
@@ -11,17 +13,17 @@ class TeamService extends BaseService
         parent::__construct($repository);
     }
 
-    public function list(int $perPage): \Illuminate\Pagination\LengthAwarePaginator
+    public function list(int $perPage): LengthAwarePaginator
     {
         return $this->repository->paginate($perPage);
     }
 
-    public function get(int $id): \App\Models\Team
+    public function get(int $id): Team
     {
         return $this->repository->findOrFail($id)->loadMissing('members:id,name,email');
     }
 
-    public function create(array $data): \App\Models\Team
+    public function create(array $data): Team
     {
         return $this->repository->create($data);
     }

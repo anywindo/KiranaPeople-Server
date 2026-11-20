@@ -12,7 +12,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class AdminAttendanceAndBreakExportTest extends TestCase
@@ -22,7 +24,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app[PermissionRegistrar::class]->forgetCachedPermissions();
 
         Role::firstOrCreate(['name' => 'HR', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);
@@ -301,7 +303,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
     public function test_attendance_export_applies_yellow_header_and_prettified_conditional_styles()
     {
         $export = new AttendanceExport;
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray([
             $export->headings(),
@@ -329,7 +331,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
     public function test_break_export_applies_yellow_header_and_prettified_conditional_styles()
     {
         $export = new BreakExport;
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray([
             $export->headings(),

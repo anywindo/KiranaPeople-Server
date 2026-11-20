@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\EventType;
+use App\Models\AttendanceEvent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AttendanceEvent>
+ * @extends Factory<AttendanceEvent>
  */
 class AttendanceEventFactory extends Factory
 {
@@ -17,7 +19,7 @@ class AttendanceEventFactory extends Factory
     public function definition(): array
     {
         return [
-            'event_type' => \App\Enums\EventType::START_SHIFT,
+            'event_type' => EventType::START_SHIFT,
             'timestamp' => now(),
             'latitude' => $this->faker->latitude(-6.2, -6.1), // Near Jakarta
             'longitude' => $this->faker->longitude(106.8, 106.9),

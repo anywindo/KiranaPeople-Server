@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
+use App\Models\AttendanceEvent;
 use App\Models\Location;
 use App\Models\Role;
 use App\Models\Shift;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -85,17 +88,17 @@ class AttendanceWebPageTest extends TestCase
         ]);
         $user->assignRole('employee');
 
-        $attendance = \App\Models\Attendance::create([
+        $attendance = Attendance::create([
             'user_id' => $user->id,
-            'date' => \Carbon\Carbon::today(),
+            'date' => Carbon::today(),
             'status' => 'EXACT',
             'shift_id' => $shift->id,
         ]);
 
-        \App\Models\AttendanceEvent::create([
+        AttendanceEvent::create([
             'attendance_id' => $attendance->id,
             'event_type' => 'START_SHIFT',
-            'timestamp' => \Carbon\Carbon::today()->setHour(8)->setMinute(5),
+            'timestamp' => Carbon::today()->setHour(8)->setMinute(5),
             'latitude' => -6.2088,
             'longitude' => 106.8456,
             'selfie_path' => 'selfies/test.jpg',

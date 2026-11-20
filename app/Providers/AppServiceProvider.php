@@ -2,7 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,13 +27,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->environment('production') || request()->header('x-forwarded-proto') === 'https') {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         Vite::prefetch(concurrency: 3);
         Paginator::useBootstrapFive();
 
-        \Illuminate\Support\Facades\Gate::define('viewApiDocs', function ($user = null) {
+        Gate::define('viewApiDocs', function ($user = null) {
             if (! (bool) env('API_DOCS_ENABLED', true)) {
                 return false;
             }
@@ -36,16 +41,16 @@ class AppServiceProvider extends ServiceProvider
             return app()->environment('local') || ($user !== null && $user->isAdmin());
         });
 
-        \Illuminate\Support\Facades\RateLimiter::for('api', function (\Illuminate\Http\Request $request) {
-            return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
-        \Illuminate\Support\Facades\RateLimiter::for('auth', function (\Illuminate\Http\Request $request) {
-            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by($request->ip());
+        RateLimiter::for('auth', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
         });
 
-        \Illuminate\Support\Facades\RateLimiter::for('attendance-events', function (\Illuminate\Http\Request $request) {
-            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)
+        RateLimiter::for('attendance-events', function (Request $request) {
+            return Limit::perMinute(10)
                 ->by($request->user()?->id ?: $request->ip())
                 ->response(function () {
                     return response()->json([

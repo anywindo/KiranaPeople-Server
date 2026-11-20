@@ -1,44 +1,41 @@
 <?php
 
+use App\Http\Controllers\Admin\AbsenceController;
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use App\Http\Controllers\Admin\AuditLogArchiveController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BreakController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ShiftController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OnboardingController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
-Route::get('/', function () {
+$showLoginOrRedirect = function () {
     if (auth()->check()) {
         if (auth()->user()->mustChangePassword()) {
             return redirect()->route('onboarding.password');
         }
 
-        // HR & Admin langsung ke dashboard admin
+        // HR & Admin directly routed to admin dashboard
         return redirect()->intended(auth()->user()->isAdmin() ? '/admin/dashboard' : '/attendance');
     }
 
     return view('auth.login');
-});
+};
 
-Route::get('/login', function () {
-    if (auth()->check()) {
-        if (auth()->user()->mustChangePassword()) {
-            return redirect()->route('onboarding.password');
-        }
-
-        // HR & Admin langsung ke dashboard admin
-        return redirect()->intended(auth()->user()->isAdmin() ? '/admin/dashboard' : '/attendance');
-    }
-
-    return view('auth.login');
-})->name('login');
+Route::get('/', $showLoginOrRedirect);
+Route::get('/login', $showLoginOrRedirect)->name('login');
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -100,18 +97,14 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
             return redirect()->route('maintenance');
         })->where('any', '.*');
-
-        Route::get('/attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
-        Route::get('/attendance/profile', [AttendanceController::class, 'profile'])->name('attendance.profile');
-        Route::put('/attendance/profile', [AttendanceController::class, 'updateProfile'])->name('attendance.profile.update');
-        Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     } else {
         Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
-        Route::get('/attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
-        Route::get('/attendance/profile', [AttendanceController::class, 'profile'])->name('attendance.profile');
-        Route::put('/attendance/profile', [AttendanceController::class, 'updateProfile'])->name('attendance.profile.update');
-        Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     }
+
+    Route::get('/attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
+    Route::get('/attendance/profile', [AttendanceController::class, 'profile'])->name('attendance.profile');
+    Route::put('/attendance/profile', [AttendanceController::class, 'updateProfile'])->name('attendance.profile.update');
+    Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
 
     // HR / Admin Routes
     Route::middleware(['role:admin|HR|super-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -134,11 +127,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::get('breaks', [BreakController::class, 'index'])->name('breaks.index');
 
         // Absences
-        Route::get('absences', [\App\Http\Controllers\Admin\AbsenceController::class, 'index'])->name('absences.index');
+        Route::get('absences', [AbsenceController::class, 'index'])->name('absences.index');
 
         // Settings
-        Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
-        Route::post('settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
 
         // Notifications
         Route::match(['get', 'post'], 'notifications/clear', function () {
@@ -159,7 +152,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
             $employeeName = null;
             if ($notification && isset($notification->data['employee_id'])) {
-                $employeeName = \App\Models\User::find($notification->data['employee_id'])?->name;
+                $employeeName = User::find($notification->data['employee_id'])?->name;
             }
             if (! $employeeName && $notification && isset($notification->data['message'])) {
                 $parts = explode(' terlambat ', $notification->data['message']);
@@ -174,21 +167,21 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         })->name('notifications.read');
 
         // Profile
-        Route::get('profile', [\App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
-        Route::put('profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+        Route::get('profile', [ProfileController::class, 'index'])->name('profile.index');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
 
         // Audit Logs (Superadmin Only)
         Route::middleware(['role:super-admin'])->group(function () {
             // Archives & Safe Purge (Dual-Gate: Mandatory Download + OTP)
-            Route::get('audit-logs/archives', [\App\Http\Controllers\Admin\AuditLogArchiveController::class, 'index'])->name('audit-logs.archives.index');
-            Route::post('audit-logs/archives', [\App\Http\Controllers\Admin\AuditLogArchiveController::class, 'store'])->name('audit-logs.archives.store');
-            Route::get('audit-logs/archives/{archive}/download', [\App\Http\Controllers\Admin\AuditLogArchiveController::class, 'download'])->name('audit-logs.archives.download');
-            Route::post('audit-logs/archives/{archive}/request-otp', [\App\Http\Controllers\Admin\AuditLogArchiveController::class, 'requestOtp'])->name('audit-logs.archives.request-otp');
-            Route::post('audit-logs/archives/{archive}/purge', [\App\Http\Controllers\Admin\AuditLogArchiveController::class, 'purge'])->name('audit-logs.archives.purge');
+            Route::get('audit-logs/archives', [AuditLogArchiveController::class, 'index'])->name('audit-logs.archives.index');
+            Route::post('audit-logs/archives', [AuditLogArchiveController::class, 'store'])->name('audit-logs.archives.store');
+            Route::get('audit-logs/archives/{archive}/download', [AuditLogArchiveController::class, 'download'])->name('audit-logs.archives.download');
+            Route::post('audit-logs/archives/{archive}/request-otp', [AuditLogArchiveController::class, 'requestOtp'])->name('audit-logs.archives.request-otp');
+            Route::post('audit-logs/archives/{archive}/purge', [AuditLogArchiveController::class, 'purge'])->name('audit-logs.archives.purge');
 
-            Route::get('audit-logs/export', [\App\Http\Controllers\Admin\AuditLogController::class, 'export'])->name('audit-logs.export');
-            Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
-            Route::get('audit-logs/{auditLog}', [\App\Http\Controllers\Admin\AuditLogController::class, 'show'])->name('audit-logs.show');
+            Route::get('audit-logs/export', [AuditLogController::class, 'export'])->name('audit-logs.export');
+            Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+            Route::get('audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         });
     });
 });
@@ -242,7 +235,7 @@ Route::get('/storage/{path}', function ($path) {
 
             return $respondFile($content, $mime);
         }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
     }
 
     // 5. Check in local public storage disk (storage/app/public/)
@@ -250,7 +243,7 @@ Route::get('/storage/{path}', function ($path) {
         if (Storage::disk('public')->exists($path)) {
             return $respondFile(Storage::disk('public')->get($path), $mime);
         }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
     }
 
     // 6. Check only whitelisted legacy upload subdirectories in public_path() (never root public_path)

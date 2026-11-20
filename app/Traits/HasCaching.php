@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -15,7 +16,7 @@ trait HasCaching
     /**
      * Get the cache driver from config (defaults to 'file').
      */
-    protected function cacheDriver(): \Illuminate\Cache\Repository
+    protected function cacheDriver(): Repository
     {
         $driver = config('api.cache.driver', 'file');
 

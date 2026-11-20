@@ -12,6 +12,7 @@ class OpenApiDocumentationTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $employee;
 
     protected function setUp(): void
@@ -76,4 +77,3 @@ class OpenApiDocumentationTest extends TestCase
         $this->get('/docs/api.json')->assertStatus(200);
     }
 }
-

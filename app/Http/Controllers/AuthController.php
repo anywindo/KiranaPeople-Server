@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,7 +25,7 @@ class AuthController extends Controller
             ?? $request->input('employee_id')
             ?? $request->input('username');
 
-        $user = \App\Models\User::findByLogin($login);
+        $user = User::findByLogin($login);
 
         $credentials = [
             'email' => $user ? $user->email : $login,

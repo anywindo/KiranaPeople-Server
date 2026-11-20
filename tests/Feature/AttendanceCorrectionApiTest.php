@@ -15,8 +15,11 @@ class AttendanceCorrectionApiTest extends TestCase
     use RefreshDatabase;
 
     private User $userA;
+
     private User $userB;
+
     private Attendance $attendanceA;
+
     private Attendance $attendanceB;
 
     protected function setUp(): void

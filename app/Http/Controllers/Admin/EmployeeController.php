@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Exports\Admin\EmployeeExport;
+use App\Exports\EmployeeTemplateExport;
 use App\Http\Controllers\Controller;
+use App\Imports\EmployeesImport;
+use App\Models\Location;
 use App\Models\User;
 use App\Services\FileUploadService;
 use Illuminate\Http\Request;
@@ -54,7 +57,7 @@ class EmployeeController extends Controller
             $roles->push($employeeRole);
         }
 
-        $locations = \App\Models\Location::getAllCached();
+        $locations = Location::getAllCached();
 
         return view('admin.employees.create', compact('roles', 'locations'));
     }
@@ -133,7 +136,7 @@ class EmployeeController extends Controller
             $roles->push($employeeRole);
         }
 
-        $locations = \App\Models\Location::getAllCached();
+        $locations = Location::getAllCached();
 
         return view('admin.employees.edit', compact('employee', 'roles', 'locations'));
     }
@@ -225,7 +228,7 @@ class EmployeeController extends Controller
 
     public function downloadTemplate()
     {
-        return Excel::download(new \App\Exports\EmployeeTemplateExport, 'Employee_Import_Template.xlsx');
+        return Excel::download(new EmployeeTemplateExport, 'Employee_Import_Template.xlsx');
     }
 
     public function import(Request $request)
@@ -235,7 +238,7 @@ class EmployeeController extends Controller
         ]);
 
         try {
-            Excel::import(new \App\Imports\EmployeesImport, $request->file('file'));
+            Excel::import(new EmployeesImport, $request->file('file'));
 
             return redirect()->route('admin.employees.index')->with('success', 'Employees imported successfully.');
         } catch (\Exception $e) {

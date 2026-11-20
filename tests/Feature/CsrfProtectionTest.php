@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Location;
 use App\Models\User;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -40,8 +42,8 @@ class CsrfProtectionTest extends TestCase
 
     public function test_token_mismatch_exception_redirects_to_login_with_flash_error()
     {
-        $handler = app()->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
-        $request = \Illuminate\Http\Request::create('/attendance', 'POST');
+        $handler = app()->make(ExceptionHandler::class);
+        $request = Request::create('/attendance', 'POST');
         $response = $handler->render($request, new TokenMismatchException);
 
         $this->assertEquals(302, $response->getStatusCode());
@@ -50,8 +52,8 @@ class CsrfProtectionTest extends TestCase
 
     public function test_http_419_exception_redirects_to_login_with_flash_error()
     {
-        $handler = app()->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
-        $request = \Illuminate\Http\Request::create('/attendance', 'POST');
+        $handler = app()->make(ExceptionHandler::class);
+        $request = Request::create('/attendance', 'POST');
         $response = $handler->render($request, new HttpException(419, 'Page Expired'));
 
         $this->assertEquals(302, $response->getStatusCode());
@@ -60,8 +62,8 @@ class CsrfProtectionTest extends TestCase
 
     public function test_json_request_receives_419_json()
     {
-        $handler = app()->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
-        $request = \Illuminate\Http\Request::create('/attendance', 'POST');
+        $handler = app()->make(ExceptionHandler::class);
+        $request = Request::create('/attendance', 'POST');
         $request->headers->set('Accept', 'application/json');
         $response = $handler->render($request, new TokenMismatchException);
 

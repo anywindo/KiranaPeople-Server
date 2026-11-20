@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\AttendanceCorrectionRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AttendanceCorrectionRequest>
+ * @extends Factory<AttendanceCorrectionRequest>
  */
 class AttendanceCorrectionRequestFactory extends Factory
 {

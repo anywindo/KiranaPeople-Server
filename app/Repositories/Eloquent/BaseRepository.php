@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Repositories\Contracts\RepositoryInterface;
 use App\Traits\HasCaching;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -50,7 +51,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Boot the model instance.
      */
-    protected function newQuery(): \Illuminate\Database\Eloquent\Builder
+    protected function newQuery(): Builder
     {
         return app($this->model)->newQuery()->with($this->with);
     }

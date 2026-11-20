@@ -2,14 +2,17 @@
 
 namespace App\Imports;
 
+use App\Models\Location;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Spatie\Permission\Models\Role;
 
 class EmployeesImport implements ToModel, WithHeadingRow
 {
-    public function model(array $row): \Illuminate\Database\Eloquent\Model|array|null
+    public function model(array $row): Model|array|null
     {
         if (! isset($row['employee_id'])) {
             return null;
@@ -17,7 +20,7 @@ class EmployeesImport implements ToModel, WithHeadingRow
 
         $locationId = null;
         if (! empty($row['location'])) {
-            $loc = \App\Models\Location::where('name', $row['location'])->first();
+            $loc = Location::where('name', $row['location'])->first();
             if ($loc) {
                 $locationId = $loc->id;
             }
@@ -35,7 +38,7 @@ class EmployeesImport implements ToModel, WithHeadingRow
             ]
         );
 
-        $roleWeb = \Spatie\Permission\Models\Role::findByName('Employee', 'web');
+        $roleWeb = Role::findByName('Employee', 'web');
         $user->roles()->syncWithoutDetaching([$roleWeb->id]);
 
         return $user;

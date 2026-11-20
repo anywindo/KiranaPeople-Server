@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\RequestStatus;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProcessCorrectionRequest extends FormRequest
 {
@@ -17,12 +20,12 @@ class ProcessCorrectionRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'status' => ['required', \Illuminate\Validation\Rule::in([\App\Enums\RequestStatus::APPROVED->value, \App\Enums\RequestStatus::REJECTED->value])],
+            'status' => ['required', Rule::in([RequestStatus::APPROVED->value, RequestStatus::REJECTED->value])],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

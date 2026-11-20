@@ -22,14 +22,14 @@ return new class extends Migration
             if (Schema::hasColumn('users', 'direct_supervisor_id')) {
                 try {
                     $table->dropForeign(['direct_supervisor_id']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                 }
             }
 
             if (Schema::hasColumn('users', 'immediate_manager_id')) {
                 try {
                     $table->dropForeign(['immediate_manager_id']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                 }
             }
 

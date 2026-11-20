@@ -16,7 +16,7 @@ it('prevents superadmin deletion at model level', function () {
     $superadmin->assignRole('super-admin');
 
     expect(fn () => $superadmin->delete())
-        ->toThrow(\DomainException::class, 'Akun Superadmin tidak dapat dihapus.');
+        ->toThrow(DomainException::class, 'Akun Superadmin tidak dapat dihapus.');
 
     expect(User::where('id', $superadmin->id)->exists())->toBeTrue();
 });

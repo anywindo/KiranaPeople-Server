@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class WebAuthenticationTest extends TestCase
@@ -15,7 +16,7 @@ class WebAuthenticationTest extends TestCase
     {
         parent::setUp();
 
-        $this->app[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app[PermissionRegistrar::class]->forgetCachedPermissions();
 
         Role::firstOrCreate(['name' => 'HR', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Employee', 'guard_name' => 'web']);

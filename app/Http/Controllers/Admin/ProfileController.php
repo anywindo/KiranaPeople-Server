@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -48,7 +49,7 @@ class ProfileController extends Controller
                 } catch (\Throwable $e) {
                 }
             }
-            $fileUploadService = new \App\Services\FileUploadService;
+            $fileUploadService = new FileUploadService;
             $validated['avatar'] = $fileUploadService->uploadImage($request->file('avatar'), 'avatars');
         }
 

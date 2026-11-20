@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EventType;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAttendanceEventRequest extends FormRequest
 {
@@ -17,13 +20,13 @@ class StoreAttendanceEventRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'shift_id' => ['nullable', 'exists:shifts,id'],
-            'event_type' => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\EventType::class)],
+            'event_type' => ['required', Rule::enum(EventType::class)],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'selfie' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'], // Max 10MB

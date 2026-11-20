@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceEventRequest;
 use App\Http\Resources\AttendanceResource;
 use App\Models\Attendance;
+use App\Models\Setting;
 use App\Models\Shift;
 use App\Repositories\Contracts\AttendanceRepositoryInterface;
 use App\Services\AttendanceService;
@@ -80,8 +81,8 @@ class AttendanceController extends Controller
         // Build available shifts list for the shift picker
         $availableShifts = Shift::getAllCached()->map(fn ($s) => $this->formatShift($s));
 
-        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
-        $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+        $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
+        $ruleMinutes = (int) Setting::get('attendance_rule_minutes', 15);
 
         return response()->json([
             'meta' => [
@@ -123,16 +124,16 @@ class AttendanceController extends Controller
         $breakStart = $shift->break_start ? Carbon::parse($shift->break_start)->format('H:i:s') : null;
         $breakEnd = $shift->break_end ? Carbon::parse($shift->break_end)->format('H:i:s') : null;
 
-        $fridayBreakEnabled = \App\Models\Setting::get('friday_break_enabled', true);
+        $fridayBreakEnabled = Setting::get('friday_break_enabled', true);
         if (now()->isFriday() && $fridayBreakEnabled && $shift->break_start) {
-            $fridayStart = \App\Models\Setting::get('friday_break_start', '11:30');
-            $fridayEnd = \App\Models\Setting::get('friday_break_end', '13:00');
+            $fridayStart = Setting::get('friday_break_start', '11:30');
+            $fridayEnd = Setting::get('friday_break_end', '13:00');
             $breakStart = Carbon::parse($fridayStart)->format('H:i:s');
             $breakEnd = Carbon::parse($fridayEnd)->format('H:i:s');
         }
 
-        $ruleEnabled = (bool) \App\Models\Setting::get('attendance_rule_enabled', false);
-        $ruleMinutes = (int) \App\Models\Setting::get('attendance_rule_minutes', 15);
+        $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
+        $ruleMinutes = (int) Setting::get('attendance_rule_minutes', 15);
 
         return [
             'id' => $shift->id,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Location;
+use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class AbsenceController extends Controller
     {
         // Default to today if no date selected
         $date = $request->input('date', Carbon::today()->toDateString());
-        $excludedRoles = json_decode(\App\Models\Setting::get('exclude_roles_from_attendance', '["super-admin"]'), true);
+        $excludedRoles = json_decode(Setting::get('exclude_roles_from_attendance', '["super-admin"]'), true);
         if (! is_array($excludedRoles)) {
             $excludedRoles = ['super-admin'];
         }
