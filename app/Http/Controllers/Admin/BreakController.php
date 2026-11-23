@@ -223,6 +223,8 @@ class BreakController extends Controller
             $showStatus = $request->boolean('show_status');
         }
 
-        return Excel::download(new BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll, $showStatus), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
+        $colorCoded = $showStatus && $request->boolean('color_coded');
+
+        return Excel::download(new BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll, $showStatus, $colorCoded), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

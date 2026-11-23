@@ -42,6 +42,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $responseAttendance->assertSee('type="checkbox" name="include_all_employees"', false);
         $responseAttendance->assertSee('Include Semua Karyawan');
         $responseAttendance->assertSee('name="hide_status"', false);
+        $responseAttendance->assertSee('id="attendance_color_coded_btn"', false);
         $responseAttendance->assertDontSee('<select class="form-select" name="include_all_employees"', false);
 
         $responseBreak = $this->actingAs($hr)->get(route('admin.breaks.index'));
@@ -49,6 +50,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $responseBreak->assertSee('type="checkbox" name="include_all_employees"', false);
         $responseBreak->assertSee('Include Semua Karyawan');
         $responseBreak->assertSee('name="hide_status"', false);
+        $responseBreak->assertSee('id="break_color_coded_btn"', false);
         $responseBreak->assertDontSee('<select class="form-select" name="include_all_employees"', false);
     }
 
@@ -487,5 +489,66 @@ class AdminAttendanceAndBreakExportTest extends TestCase
 
             return $prop->getValue($export) === false;
         });
+
+        // Attendance with color_coded = 1 and show_status = 1
+        $this->actingAs($hr)->get(route('admin.attendances.export', ['export_type' => 'today', 'color_coded' => '1']))
+            ->assertStatus(200);
+
+        Excel::assertDownloaded('attendance_'.date('Y-m-d_H-i-s').'.xlsx', function (AttendanceExport $export) {
+            $reflector = new \ReflectionClass($export);
+            $propStatus = $reflector->getProperty('showStatus');
+            $propStatus->setAccessible(true);
+            $propColor = $reflector->getProperty('colorCoded');
+            $propColor->setAccessible(true);
+
+            return $propStatus->getValue($export) === true && $propColor->getValue($export) === true;
+        });
+
+        // Attendance with color_coded = 1 but hide_status = 1 (should force colorCoded to false)
+        $this->actingAs($hr)->get(route('admin.attendances.export', ['export_type' => 'today', 'color_coded' => '1', 'hide_status' => '1']))
+            ->assertStatus(200);
+
+        Excel::assertDownloaded('attendance_'.date('Y-m-d_H-i-s').'.xlsx', function (AttendanceExport $export) {
+            $reflector = new \ReflectionClass($export);
+            $propColor = $reflector->getProperty('colorCoded');
+            $propColor->setAccessible(true);
+
+            return $propColor->getValue($export) === false;
+        });
+    }
+
+    public function test_attendance_and_break_export_can_apply_color_coding_when_requested()
+    {
+        // Attendance with color-coding enabled
+        $export = new AttendanceExport(null, null, null, null, null, true, true, true);
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([
+            $export->headings(),
+            [1, 'EMP01', '3201', 'Budi Santoso', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '17:00:00', 'Hadir'],
+            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', 'Mangkir / Belum Presensi'],
+            [3, 'EMP03', '3203', 'Agus Lupa', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '-', 'Hadir (Lupa Checkout)'],
+        ]);
+        $export->styles($sheet);
+
+        $this->assertEquals('FFFFE2E2', $sheet->getStyle('A3')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FFFFF3C7', $sheet->getStyle('A4')->getFill()->getStartColor()->getARGB());
+
+        // Break with color-coding enabled
+        $exportBreak = new BreakExport(null, null, null, null, null, true, true, true);
+        $spreadsheetBreak = new Spreadsheet;
+        $sheetBreak = $spreadsheetBreak->getActiveSheet();
+        $sheetBreak->fromArray([
+            $exportBreak->headings(),
+            [1, 'EMP01', '3201', 'Budi Istirahat', 'Kantor', '2026-11-16', 'Pagi', '12:00:00', '12:45:00', '00:45:00', 'Tepat Waktu'],
+            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', '-', 'Mangkir / Belum Presensi'],
+            [3, 'EMP03', '3203', 'Doni NoBreak', 'Kantor', '2026-11-16', 'Pagi', '-', '-', '-', 'Tidak Istirahat'],
+            [4, 'EMP04', '3204', 'Agus Sedang', 'Kantor', '2026-11-16', 'Pagi', '12:00:00', '-', '-', 'Sedang Istirahat'],
+        ]);
+        $exportBreak->styles($sheetBreak);
+
+        $this->assertEquals('FFFFE2E2', $sheetBreak->getStyle('A3')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FFF8FAFC', $sheetBreak->getStyle('A4')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals('FFFFF3C7', $sheetBreak->getStyle('A5')->getFill()->getStartColor()->getARGB());
     }
 }

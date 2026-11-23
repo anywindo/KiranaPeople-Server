@@ -186,15 +186,22 @@
                         </div>
 
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="hide_status" id="hide_status" value="1">
+                            <input class="form-check-input" type="checkbox" name="hide_status" id="hide_status" value="1" onchange="toggleStatusExportOption()">
                             <label class="form-check-label" for="hide_status">
                                 Jangan tampilkan kolom Status
                             </label>
                         </div>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer d-flex justify-content-between align-items-center">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success"><i class="bi bi-download"></i> Download Excel</button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="color_coded" value="1" id="attendance_color_coded_btn" class="btn btn-outline-success">
+                                <i class="bi bi-palette"></i> Download Color Coded
+                            </button>
+                            <button type="submit" name="color_coded" value="0" class="btn btn-success">
+                                <i class="bi bi-download"></i> Download Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -374,5 +381,21 @@
                 container.style.display = 'none';
             }
         }
+
+        function toggleStatusExportOption() {
+            var hideStatus = document.getElementById('hide_status');
+            var colorBtn = document.getElementById('attendance_color_coded_btn');
+            if (hideStatus && colorBtn) {
+                colorBtn.style.display = hideStatus.checked ? 'none' : 'inline-block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleStatusExportOption();
+            var modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.addEventListener('show.bs.modal', toggleStatusExportOption);
+            }
+        });
     </script>
 @endsection

@@ -39,6 +39,8 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
 
     protected $showStatus;
 
+    protected $colorCoded;
+
     public function __construct(
         $startDate = null,
         $endDate = null,
@@ -46,7 +48,8 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
         $shift_id = null,
         $location_id = null,
         $includeAll = true,
-        $showStatus = true
+        $showStatus = true,
+        $colorCoded = false
     ) {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
@@ -55,6 +58,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
         $this->location_id = $location_id;
         $this->includeAll = (bool) $includeAll;
         $this->showStatus = (bool) $showStatus;
+        $this->colorCoded = $this->showStatus && (bool) $colorCoded;
     }
 
     public function collection(): Collection
@@ -330,9 +334,74 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
             $sheet->getStyle("F2:{$highestColumn}{$highestRow}")->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            // Row-level formatting (Row height 22, no row color-coding)
+            // Row-level formatting
             for ($r = 2; $r <= $highestRow; $r++) {
                 $sheet->getRowDimension($r)->setRowHeight(22);
+
+                if (! $this->colorCoded) {
+                    continue;
+                }
+
+                $masuk = (string) $sheet->getCell("H{$r}")->getValue();
+                $keluar = (string) $sheet->getCell("I{$r}")->getValue();
+                $status = (string) $sheet->getCell("J{$r}")->getValue();
+
+                $isMangkir = str_contains($status, 'Mangkir')
+                    || str_contains($status, 'Tidak Hadir')
+                    || str_contains($status, 'Belum Presensi')
+                    || str_contains($status, 'Alpha')
+                    || ($masuk === '-' && $keluar === '-');
+
+                $isLupaPresensi = ! $isMangkir && (
+                    str_contains($status, 'Lupa')
+                    || str_contains($status, 'Belum Checkout')
+                    || ($masuk === '-' && $keluar !== '-')
+                    || ($masuk !== '-' && $keluar === '-')
+                );
+
+                if ($isMangkir) {
+                    // Soft light red fill for absent/mangkir
+                    $sheet->getStyle("A{$r}:J{$r}")->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFFE2E2');
+
+                    $sheet->getStyle("J{$r}")->getFont()
+                        ->setBold(true)
+                        ->getColor()->setARGB('FF991B1B');
+
+                    $sheet->getStyle("H{$r}:I{$r}")->getFont()
+                        ->getColor()->setARGB('FFDC2626');
+                } elseif ($isLupaPresensi) {
+                    // Soft warm amber fill for lupa presensi / incomplete
+                    $sheet->getStyle("A{$r}:J{$r}")->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFFF3C7');
+
+                    $sheet->getStyle("J{$r}")->getFont()
+                        ->setBold(true)
+                        ->getColor()->setARGB('FF92400E');
+
+                    if ($masuk === '-') {
+                        $sheet->getStyle("H{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FFB45309');
+                    }
+                    if ($keluar === '-') {
+                        $sheet->getStyle("I{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FFB45309');
+                    }
+                } else {
+                    if (str_contains($status, 'Terlambat')) {
+                        $sheet->getStyle("J{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FFDC2626');
+                    } elseif (str_contains($status, 'Hadir') || str_contains($status, 'Tepat Waktu')) {
+                        $sheet->getStyle("J{$r}")->getFont()
+                            ->setBold(true)
+                            ->getColor()->setARGB('FF15803D');
+                    }
+                }
             }
         }
 

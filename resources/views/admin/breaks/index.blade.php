@@ -201,15 +201,22 @@
                         </div>
 
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="hide_status" id="break_hide_status" value="1">
+                            <input class="form-check-input" type="checkbox" name="hide_status" id="break_hide_status" value="1" onchange="toggleBreakStatusExportOption()">
                             <label class="form-check-label" for="break_hide_status">
                                 Jangan tampilkan kolom Status
                             </label>
                         </div>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer d-flex justify-content-between align-items-center">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success"><i class="bi bi-download"></i> Download Excel</button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="color_coded" value="1" id="break_color_coded_btn" class="btn btn-outline-success">
+                                <i class="bi bi-palette"></i> Download Color Coded
+                            </button>
+                            <button type="submit" name="color_coded" value="0" class="btn btn-success">
+                                <i class="bi bi-download"></i> Download Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -399,5 +406,21 @@
                 container.style.display = 'none';
             }
         }
+
+        function toggleBreakStatusExportOption() {
+            var hideStatus = document.getElementById('break_hide_status');
+            var colorBtn = document.getElementById('break_color_coded_btn');
+            if (hideStatus && colorBtn) {
+                colorBtn.style.display = hideStatus.checked ? 'none' : 'inline-block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleBreakStatusExportOption();
+            var modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.addEventListener('show.bs.modal', toggleBreakStatusExportOption);
+            }
+        });
     </script>
 @endsection
