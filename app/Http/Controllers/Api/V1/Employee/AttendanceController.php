@@ -54,11 +54,7 @@ class AttendanceController extends Controller
             $nextAction = 'END_BREAK';
             $activeBreak = true;
         } elseif ($hasStartedShift) {
-            if ($hasEndedBreak) {
-                $nextAction = 'END_SHIFT';
-            } else {
-                $nextAction = 'START_BREAK';
-            }
+            $nextAction = 'END_SHIFT';
         }
 
         $shift = $attendance?->shift ?? Shift::getFirstCached();

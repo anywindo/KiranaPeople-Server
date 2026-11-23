@@ -450,9 +450,6 @@
                                 </button>
                             </form>
                         @elseif(!$endEvent)
-                            @php
-                                $hasActiveBreak = $events->contains(fn($e) => ($e->event_type?->value ?? $e->event_type) === 'START_BREAK') && !$events->contains(fn($e) => ($e->event_type?->value ?? $e->event_type) === 'END_BREAK');
-                            @endphp
                             <form action="{{ route('attendance.store') }}" method="POST" id="attendanceForm" enctype="multipart/form-data">
                                 @csrf
                                 <input type="hidden" name="latitude" id="lat">
@@ -460,19 +457,11 @@
                                 <input type="hidden" name="event_type" value="END_SHIFT">
                                 <input type="hidden" name="shift_id" :value="selectedShiftId">
                                 <input type="file" name="selfie" id="selfie_input" accept="image/*" capture="user" class="hidden" required>
-                                @if($hasActiveBreak)
-                                    <button type="button" disabled
-                                        class="w-full h-[50px] bg-[#E5E7EB] text-[#9CA3AF] font-bold text-sm rounded-[14px] flex flex-col items-center justify-center cursor-not-allowed">
-                                        <span>Pulang Kerja</span>
-                                        <span class="text-[10px] font-normal">Selesaikan istirahat terlebih dahulu</span>
-                                    </button>
-                                @else
-                                    <button type="button" onclick="openCameraUI('attendanceForm')"
-                                        class="w-full h-[50px] bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
-                                        <i class="fa-solid fa-house text-base"></i>
-                                        <span>Pulang Kerja</span>
-                                    </button>
-                                @endif
+                                <button type="button" onclick="openCameraUI('attendanceForm')"
+                                    class="w-full h-[50px] bg-[#F775BA] hover:bg-[#E01890] text-white font-bold text-base rounded-[14px] flex items-center justify-center gap-2.5 shadow-[0_4px_16px_rgba(255,33,164,0.35)] transition active:scale-[0.98]">
+                                    <i class="fa-solid fa-house text-base"></i>
+                                    <span>Pulang Kerja</span>
+                                </button>
                             </form>
                         @else
                             <button type="button" disabled

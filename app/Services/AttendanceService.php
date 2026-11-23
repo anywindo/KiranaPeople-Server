@@ -38,7 +38,7 @@ class AttendanceService extends BaseService
 
         return DB::transaction(function () use ($employee, $shift, $eventType, $data) {
             $attendance = $this->getOrCreateTodayAttendance($employee, $shift, $eventType);
-            $this->validateEventSequence($attendance, $eventType, $shift);
+            $this->validateEventSequence($attendance, $eventType, $shift, $data);
 
             if ($eventType === EventType::START_SHIFT) {
                 [$status, $latenessMinutes] = $this->determineShiftStartStatus($shift, now());
@@ -229,7 +229,7 @@ class AttendanceService extends BaseService
     /**
      * Enforce strict sequential state machine transitions for shift and breaks.
      */
-    protected function validateEventSequence(Attendance $attendance, EventType $eventType, Shift $shift): void
+    protected function validateEventSequence(Attendance $attendance, EventType $eventType, Shift $shift, array $data = []): void
     {
         /** @var Collection $events */
         $events = $attendance->events()->lockForUpdate()->orderBy('timestamp')->get();
@@ -269,9 +269,7 @@ class AttendanceService extends BaseService
                     ]);
                 }
                 if ($hasStartedBreak && ! $hasEndedBreak) {
-                    throw ValidationException::withMessages([
-                        'event_type' => 'Tidak dapat pulang kerja saat masih istirahat. Selesaikan istirahat terlebih dahulu.',
-                    ]);
+                    $this->createAttendanceEvent($attendance, EventType::END_BREAK, $data);
                 }
                 break;
         }

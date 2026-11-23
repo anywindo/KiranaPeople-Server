@@ -106,3 +106,53 @@ it('sets late status when clocking in at 07:46 with 08:00 shift and 15m rule', f
     expect($attendance->shift_status['color'])->toBe('danger');
     Carbon::setTestNow();
 });
+
+it('can record END_SHIFT directly without starting a break', function () {
+    [$user, $shift, $service] = setupAttendanceServiceTest();
+
+    $service->recordEvent($user, $shift, EventType::START_SHIFT, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/dummy.jpg',
+    ]);
+
+    $attendance = $service->recordEvent($user, $shift, EventType::END_SHIFT, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/dummy2.jpg',
+    ]);
+
+    expect($attendance->events)->toHaveCount(2);
+    expect($attendance->events->pluck('event_type'))->toContain(EventType::START_SHIFT, EventType::END_SHIFT);
+});
+
+it('can record END_SHIFT while on break and automatically completes break without exception', function () {
+    [$user, $shift, $service] = setupAttendanceServiceTest();
+
+    $service->recordEvent($user, $shift, EventType::START_SHIFT, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/dummy.jpg',
+    ]);
+
+    $service->recordEvent($user, $shift, EventType::START_BREAK, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/break_start.jpg',
+    ]);
+
+    // Clock out without manual END_BREAK
+    $attendance = $service->recordEvent($user, $shift, EventType::END_SHIFT, [
+        'latitude' => -6.200000,
+        'longitude' => 106.816666,
+        'selfie_path' => 'selfies/end_shift.jpg',
+    ]);
+
+    // Break is automatically closed and shift is ended
+    expect($attendance->events->pluck('event_type'))->toContain(
+        EventType::START_SHIFT,
+        EventType::START_BREAK,
+        EventType::END_BREAK,
+        EventType::END_SHIFT
+    );
+});
