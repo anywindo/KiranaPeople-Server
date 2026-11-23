@@ -158,6 +158,18 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
         $defaultShift = Shift::first();
         $targetShift = $this->shift_id ? Shift::find($this->shift_id) : null;
 
+        // Pre-resolve each user's latest shift in a single query to prevent N+1 query timeouts
+        $latestAttendances = Attendance::with('shift')
+            ->whereIn('user_id', $eligibleUsers->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->get()
+            ->groupBy('user_id');
+
+        $userShifts = [];
+        foreach ($eligibleUsers as $user) {
+            $userShifts[$user->id] = $latestAttendances->get($user->id)?->first()?->shift ?? $defaultShift;
+        }
+
         $results = collect();
 
         foreach ($dates as $dateStr) {
@@ -173,7 +185,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
                     continue;
                 }
 
-                $userShift = $user->shift ?? $defaultShift;
+                $userShift = $userShifts[$user->id] ?? $defaultShift;
                 if ($this->shift_id && ($userShift?->id != $this->shift_id)) {
                     continue;
                 }

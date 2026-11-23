@@ -463,6 +463,19 @@ class AdminAttendanceAndBreakExportTest extends TestCase
             return $prop->getValue($export) === false;
         });
 
+        // Attendance with export_type = all and hide_status = 1
+        $this->actingAs($hr)->get(route('admin.attendances.export', [
+            'include_all_employees' => '1',
+            'export_type' => 'all',
+            'search' => '',
+            'date' => '',
+            'shift_id' => '',
+            'location_id' => '',
+            'start_date' => '',
+            'end_date' => '',
+            'hide_status' => '1',
+        ]))->assertStatus(200);
+
         // Break with hide_status = 1
         $this->actingAs($hr)->get(route('admin.breaks.export', ['export_type' => 'today', 'hide_status' => '1']))
             ->assertStatus(200);
