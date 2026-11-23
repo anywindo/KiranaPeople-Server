@@ -42,7 +42,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $responseAttendance->assertSee('type="checkbox" name="include_all_employees"', false);
         $responseAttendance->assertSee('Include Semua Karyawan');
         $responseAttendance->assertSee('name="hide_status"', false);
-        $responseAttendance->assertSee('id="attendance_color_coded_btn"', false);
+        $responseAttendance->assertSee('name="color_coded"', false);
         $responseAttendance->assertDontSee('<select class="form-select" name="include_all_employees"', false);
 
         $responseBreak = $this->actingAs($hr)->get(route('admin.breaks.index'));
@@ -50,7 +50,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $responseBreak->assertSee('type="checkbox" name="include_all_employees"', false);
         $responseBreak->assertSee('Include Semua Karyawan');
         $responseBreak->assertSee('name="hide_status"', false);
-        $responseBreak->assertSee('id="break_color_coded_btn"', false);
+        $responseBreak->assertSee('name="color_coded"', false);
         $responseBreak->assertDontSee('<select class="form-select" name="include_all_employees"', false);
     }
 

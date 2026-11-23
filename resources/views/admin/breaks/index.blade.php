@@ -206,17 +206,17 @@
                                 Jangan tampilkan kolom Status
                             </label>
                         </div>
-                    </div>
-                    <div class="modal-footer d-flex justify-content-between align-items-center">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <div class="d-flex gap-2">
-                            <button type="submit" name="color_coded" value="1" id="break_color_coded_btn" class="btn btn-outline-success">
-                                <i class="bi bi-palette"></i> Download Color Coded
-                            </button>
-                            <button type="submit" name="color_coded" value="0" class="btn btn-success">
-                                <i class="bi bi-download"></i> Download Excel
-                            </button>
+
+                        <div class="form-check mb-2" id="break_color_coded_container">
+                            <input class="form-check-input" type="checkbox" name="color_coded" id="break_color_coded" value="1">
+                            <label class="form-check-label" for="break_color_coded">
+                                Color coded
+                            </label>
                         </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-download"></i> Download Excel</button>
                     </div>
                 </div>
             </form>
@@ -409,9 +409,17 @@
 
         function toggleBreakStatusExportOption() {
             var hideStatus = document.getElementById('break_hide_status');
-            var colorBtn = document.getElementById('break_color_coded_btn');
-            if (hideStatus && colorBtn) {
-                colorBtn.style.display = hideStatus.checked ? 'none' : 'inline-block';
+            var colorContainer = document.getElementById('break_color_coded_container');
+            var colorCheckbox = document.getElementById('break_color_coded');
+            if (hideStatus && colorContainer) {
+                if (hideStatus.checked) {
+                    colorContainer.style.display = 'none';
+                    if (colorCheckbox) {
+                        colorCheckbox.checked = false;
+                    }
+                } else {
+                    colorContainer.style.display = 'block';
+                }
             }
         }
 
