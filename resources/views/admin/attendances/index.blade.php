@@ -184,6 +184,13 @@
                                 <input type="date" name="end_date" class="form-control">
                             </div>
                         </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="hide_status" id="hide_status" value="1">
+                            <label class="form-check-label" for="hide_status">
+                                Jangan tampilkan kolom Status
+                            </label>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>

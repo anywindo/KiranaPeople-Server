@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -40,12 +41,14 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $responseAttendance->assertStatus(200);
         $responseAttendance->assertSee('type="checkbox" name="include_all_employees"', false);
         $responseAttendance->assertSee('Include Semua Karyawan');
+        $responseAttendance->assertSee('name="hide_status"', false);
         $responseAttendance->assertDontSee('<select class="form-select" name="include_all_employees"', false);
 
         $responseBreak = $this->actingAs($hr)->get(route('admin.breaks.index'));
         $responseBreak->assertStatus(200);
         $responseBreak->assertSee('type="checkbox" name="include_all_employees"', false);
         $responseBreak->assertSee('Include Semua Karyawan');
+        $responseBreak->assertSee('name="hide_status"', false);
         $responseBreak->assertDontSee('<select class="form-select" name="include_all_employees"', false);
     }
 
@@ -300,7 +303,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         });
     }
 
-    public function test_attendance_export_applies_yellow_header_and_prettified_conditional_styles()
+    public function test_attendance_export_applies_yellow_header_and_clean_rows_without_colorcoding()
     {
         $export = new AttendanceExport;
         $spreadsheet = new Spreadsheet;
@@ -319,16 +322,17 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $this->assertTrue($sheet->getStyle('A1')->getFont()->getBold());
         $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
 
-        // Mangkir row (row 3) should have soft red fill
-        $this->assertEquals('FFFFE2E2', $sheet->getStyle('A3')->getFill()->getStartColor()->getARGB());
-        $this->assertEquals('FF991B1B', $sheet->getStyle('J3')->getFont()->getColor()->getARGB());
+        // Full table styling
+        $this->assertEquals(22, $sheet->getRowDimension(2)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(3)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(4)->getRowHeight());
 
-        // Lupa presensi row (row 4) should have soft amber fill
-        $this->assertEquals('FFFFF3C7', $sheet->getStyle('A4')->getFill()->getStartColor()->getARGB());
-        $this->assertEquals('FF92400E', $sheet->getStyle('J4')->getFont()->getColor()->getARGB());
+        // Row color-coding should NOT be applied (no colored background fill)
+        $this->assertEquals(Fill::FILL_NONE, $sheet->getStyle('A3')->getFill()->getFillType());
+        $this->assertEquals(Fill::FILL_NONE, $sheet->getStyle('A4')->getFill()->getFillType());
     }
 
-    public function test_break_export_applies_yellow_header_and_prettified_conditional_styles()
+    public function test_break_export_applies_yellow_header_and_clean_rows_without_colorcoding()
     {
         $export = new BreakExport;
         $spreadsheet = new Spreadsheet;
@@ -348,15 +352,127 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $this->assertTrue($sheet->getStyle('A1')->getFont()->getBold());
         $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
 
-        // Mangkir row (row 3) should have soft red fill
-        $this->assertEquals('FFFFE2E2', $sheet->getStyle('A3')->getFill()->getStartColor()->getARGB());
-        $this->assertEquals('FF991B1B', $sheet->getStyle('K3')->getFont()->getColor()->getARGB());
+        // Full table styling
+        $this->assertEquals(22, $sheet->getRowDimension(2)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(3)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(4)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(5)->getRowHeight());
 
-        // Tidak istirahat row (row 4) should have subtle slate fill
-        $this->assertEquals('FFF8FAFC', $sheet->getStyle('A4')->getFill()->getStartColor()->getARGB());
+        // Row color-coding should NOT be applied (no colored background fill)
+        $this->assertEquals(Fill::FILL_NONE, $sheet->getStyle('A3')->getFill()->getFillType());
+        $this->assertEquals(Fill::FILL_NONE, $sheet->getStyle('A4')->getFill()->getFillType());
+        $this->assertEquals(Fill::FILL_NONE, $sheet->getStyle('A5')->getFill()->getFillType());
+    }
 
-        // Sedang / Lupa row (row 5) should have soft amber fill
-        $this->assertEquals('FFFFF3C7', $sheet->getStyle('A5')->getFill()->getStartColor()->getARGB());
-        $this->assertEquals('FF92400E', $sheet->getStyle('K5')->getFont()->getColor()->getARGB());
+    public function test_attendance_export_can_hide_status_column()
+    {
+        $shift = Shift::create([
+            'shift_name' => 'Pagi',
+            'default_start_time' => '08:00:00',
+            'default_end_time' => '17:00:00',
+        ]);
+        $attendedUser = User::factory()->create(['name' => 'Budi Santoso', 'is_active' => true]);
+        $today = Carbon::today();
+        $att = Attendance::create([
+            'user_id' => $attendedUser->id,
+            'shift_id' => $shift->id,
+            'date' => $today->toDateString(),
+        ]);
+        AttendanceEvent::create([
+            'attendance_id' => $att->id,
+            'event_type' => EventType::START_SHIFT,
+            'timestamp' => $today->copy()->setTime(8, 0, 0),
+            'latitude' => -6.2,
+            'longitude' => 106.8,
+            'selfie_path' => 'selfies/test.jpg',
+        ]);
+
+        $export = new AttendanceExport($today->toDateString(), $today->toDateString(), null, null, null, false, false);
+        $headings = $export->headings();
+
+        $this->assertNotContains('Status', $headings);
+        $this->assertCount(9, $headings);
+
+        $mapped = $export->map($att);
+        $this->assertCount(9, $mapped);
+
+        // Test styles with hidden status column
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([$headings, $mapped]);
+        $export->styles($sheet);
+
+        $this->assertEquals('I', $sheet->getHighestColumn());
+        $this->assertEquals('FFFFE599', $sheet->getStyle('A1')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(2)->getRowHeight());
+    }
+
+    public function test_break_export_can_hide_status_column()
+    {
+        $shift = Shift::create([
+            'shift_name' => 'Pagi',
+            'default_start_time' => '08:00:00',
+            'default_end_time' => '17:00:00',
+        ]);
+        $user = User::factory()->create(['name' => 'Budi Istirahat', 'is_active' => true]);
+        $today = Carbon::today();
+        $att = Attendance::create([
+            'user_id' => $user->id,
+            'shift_id' => $shift->id,
+            'date' => $today->toDateString(),
+        ]);
+
+        $export = new BreakExport($today->toDateString(), $today->toDateString(), null, null, null, false, false);
+        $headings = $export->headings();
+
+        $this->assertNotContains('Status', $headings);
+        $this->assertCount(10, $headings);
+
+        $mapped = $export->map($att);
+        $this->assertCount(10, $mapped);
+
+        // Test styles with hidden status column
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([$headings, $mapped]);
+        $export->styles($sheet);
+
+        $this->assertEquals('J', $sheet->getHighestColumn());
+        $this->assertEquals('FFFFE599', $sheet->getStyle('A1')->getFill()->getStartColor()->getARGB());
+        $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
+        $this->assertEquals(22, $sheet->getRowDimension(2)->getRowHeight());
+    }
+
+    public function test_export_controllers_handle_hide_status_option()
+    {
+        Excel::fake();
+
+        $hr = User::factory()->create();
+        $hr->assignRole('HR');
+
+        // Attendance with hide_status = 1
+        $this->actingAs($hr)->get(route('admin.attendances.export', ['export_type' => 'today', 'hide_status' => '1']))
+            ->assertStatus(200);
+
+        Excel::assertDownloaded('attendance_'.date('Y-m-d_H-i-s').'.xlsx', function (AttendanceExport $export) {
+            $reflector = new \ReflectionClass($export);
+            $prop = $reflector->getProperty('showStatus');
+            $prop->setAccessible(true);
+
+            return $prop->getValue($export) === false;
+        });
+
+        // Break with hide_status = 1
+        $this->actingAs($hr)->get(route('admin.breaks.export', ['export_type' => 'today', 'hide_status' => '1']))
+            ->assertStatus(200);
+
+        Excel::assertDownloaded('break_history_'.date('Y-m-d_H-i-s').'.xlsx', function (BreakExport $export) {
+            $reflector = new \ReflectionClass($export);
+            $prop = $reflector->getProperty('showStatus');
+            $prop->setAccessible(true);
+
+            return $prop->getValue($export) === false;
+        });
     }
 }

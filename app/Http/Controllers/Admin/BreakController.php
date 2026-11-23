@@ -216,6 +216,13 @@ class BreakController extends Controller
             ? $request->boolean('include_all_employees')
             : true;
 
-        return Excel::download(new BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
+        $showStatus = true;
+        if ($request->has('hide_status') && $request->boolean('hide_status')) {
+            $showStatus = false;
+        } elseif ($request->has('show_status')) {
+            $showStatus = $request->boolean('show_status');
+        }
+
+        return Excel::download(new BreakExport($startDate, $endDate, $search, $shift_id, $location_id, $includeAll, $showStatus), 'break_history_'.date('Y-m-d_H-i-s').'.xlsx');
     }
 }

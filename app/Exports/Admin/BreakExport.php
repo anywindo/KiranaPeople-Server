@@ -36,13 +36,16 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
 
     protected $includeAll;
 
+    protected $showStatus;
+
     public function __construct(
         $startDate = null,
         $endDate = null,
         $search = null,
         $shift_id = null,
         $location_id = null,
-        $includeAll = true
+        $includeAll = true,
+        $showStatus = true
     ) {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
@@ -50,6 +53,7 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
         $this->shift_id = $shift_id;
         $this->location_id = $location_id;
         $this->includeAll = (bool) $includeAll;
+        $this->showStatus = (bool) $showStatus;
     }
 
     public function collection(): Collection
@@ -190,7 +194,7 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
 
     public function headings(): array
     {
-        return [
+        $headers = [
             'No.',
             'ID Karyawan',
             'NIK (KTP)',
@@ -201,8 +205,13 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
             'Mulai Istirahat',
             'Selesai Istirahat',
             'Durasi Istirahat',
-            'Status',
         ];
+
+        if ($this->showStatus) {
+            $headers[] = 'Status';
+        }
+
+        return $headers;
     }
 
     public function map($attendance): array
@@ -210,7 +219,7 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
         $this->rowNumber++;
 
         if (isset($attendance->is_absent) && $attendance->is_absent) {
-            return [
+            $row = [
                 $this->rowNumber,
                 $attendance->user->employee_id ?? '-',
                 $attendance->user->nik ?? '-',
@@ -221,8 +230,13 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
                 '-',
                 '-',
                 '-',
-                'Mangkir / Belum Presensi',
             ];
+
+            if ($this->showStatus) {
+                $row[] = 'Mangkir / Belum Presensi';
+            }
+
+            return $row;
         }
 
         $startBreak = $attendance->events->first(fn ($e) => ($e->event_type?->value ?? $e->event_type) === 'START_BREAK');
@@ -246,7 +260,7 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
             $status = 'Tidak Istirahat';
         }
 
-        return [
+        $row = [
             $this->rowNumber,
             $attendance->user->employee_id ?? '-',
             $attendance->user->nik ?? '-',
@@ -257,8 +271,13 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
             $startBreak ? $startBreak->timestamp->format('H:i:s') : '-',
             $endBreak ? $endBreak->timestamp->format('H:i:s') : '-',
             $duration,
-            $status,
         ];
+
+        if ($this->showStatus) {
+            $row[] = $status;
+        }
+
+        return $row;
     }
 
     public function styles(Worksheet $sheet): ?array
@@ -267,7 +286,7 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
         $sheet->freezePane('A2');
 
         $highestRow = $sheet->getHighestRow();
-        $highestColumn = $sheet->getHighestColumn(); // 'K'
+        $highestColumn = $sheet->getHighestColumn();
 
         // 1. Header Styling (Row 1): Warm Yellow Background, Bold text, Centered
         $sheet->getRowDimension(1)->setRowHeight(28);
@@ -305,74 +324,12 @@ class BreakExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("D2:E{$highestRow}")->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle("F2:K{$highestRow}")->getAlignment()
+            $sheet->getStyle("F2:{$highestColumn}{$highestRow}")->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            // Row-level prettifying & conditional styling
+            // Row height prettifying (without row colorcoding)
             for ($r = 2; $r <= $highestRow; $r++) {
                 $sheet->getRowDimension($r)->setRowHeight(22);
-
-                $mulai = (string) $sheet->getCell("H{$r}")->getValue();
-                $selesai = (string) $sheet->getCell("I{$r}")->getValue();
-                $status = (string) $sheet->getCell("K{$r}")->getValue();
-
-                $isMangkir = str_contains($status, 'Mangkir')
-                    || str_contains($status, 'Belum Presensi');
-
-                $isLupaOrSedang = ! $isMangkir && (
-                    str_contains($status, 'Sedang Istirahat')
-                    || str_contains($status, 'Lupa')
-                    || ($mulai !== '-' && $selesai === '-')
-                );
-
-                $isTidakIstirahat = ($status === 'Tidak Istirahat');
-
-                if ($isMangkir) {
-                    // Soft light red fill for absent/mangkir
-                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
-                        ->setFillType(Fill::FILL_SOLID)
-                        ->getStartColor()->setARGB('FFFFE2E2');
-
-                    $sheet->getStyle("K{$r}")->getFont()
-                        ->setBold(true)
-                        ->getColor()->setARGB('FF991B1B');
-
-                    $sheet->getStyle("H{$r}:J{$r}")->getFont()
-                        ->getColor()->setARGB('FFDC2626');
-                } elseif ($isLupaOrSedang) {
-                    // Soft warm amber fill
-                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
-                        ->setFillType(Fill::FILL_SOLID)
-                        ->getStartColor()->setARGB('FFFFF3C7');
-
-                    $sheet->getStyle("K{$r}")->getFont()
-                        ->setBold(true)
-                        ->getColor()->setARGB('FF92400E');
-
-                    if ($selesai === '-') {
-                        $sheet->getStyle("I{$r}")->getFont()
-                            ->setBold(true)
-                            ->getColor()->setARGB('FFB45309');
-                    }
-                } elseif ($isTidakIstirahat) {
-                    // Subtle light slate fill
-                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
-                        ->setFillType(Fill::FILL_SOLID)
-                        ->getStartColor()->setARGB('FFF8FAFC');
-
-                    $sheet->getStyle("K{$r}")->getFont()
-                        ->getColor()->setARGB('FF64748B');
-                } else {
-                    if (str_contains($status, 'Terlambat') || str_contains($status, 'Istirahat Awal')) {
-                        $sheet->getStyle("K{$r}")->getFont()
-                            ->setBold(true)
-                            ->getColor()->setARGB('FFDC2626');
-                    } elseif (str_contains($status, 'Tepat Waktu')) {
-                        $sheet->getStyle("K{$r}")->getFont()
-                            ->setBold(true)
-                            ->getColor()->setARGB('FF15803D');
-                    }
-                }
             }
         }
 
