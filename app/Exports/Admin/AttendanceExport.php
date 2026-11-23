@@ -218,6 +218,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
             'Shift',
             'Masuk Aktual',
             'Keluar Aktual',
+            'Durasi Kerja',
         ];
 
         if ($this->showStatus) {
@@ -242,6 +243,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
                 $attendance->shift ? $attendance->shift->shift_name : '-',
                 '-',
                 '-',
+                '-',
             ];
 
             if ($this->showStatus) {
@@ -253,6 +255,13 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
 
         $checkInEvent = $attendance->events->where('event_type', EventType::START_SHIFT)->first();
         $checkOutEvent = $attendance->events->where('event_type', EventType::END_SHIFT)->first();
+
+        $duration = '-';
+        if ($checkInEvent && $checkOutEvent) {
+            $diff = Carbon::parse($checkOutEvent->timestamp)->diff(Carbon::parse($checkInEvent->timestamp));
+            $hours = ($diff->days * 24) + $diff->h;
+            $duration = sprintf('%02d:%02d:%02d', $hours, $diff->i, $diff->s);
+        }
 
         $status = is_array($attendance->shift_status) ? ($attendance->shift_status['label'] ?? '-') : ($attendance->shift_status ?? '-');
 
@@ -278,6 +287,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
             $attendance->shift ? $attendance->shift->shift_name : '-',
             $checkInEvent ? $checkInEvent->timestamp->format('H:i:s') : '-',
             $checkOutEvent ? $checkOutEvent->timestamp->format('H:i:s') : '-',
+            $duration,
         ];
 
         if ($this->showStatus) {
@@ -344,7 +354,7 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
 
                 $masuk = (string) $sheet->getCell("H{$r}")->getValue();
                 $keluar = (string) $sheet->getCell("I{$r}")->getValue();
-                $status = (string) $sheet->getCell("J{$r}")->getValue();
+                $status = (string) $sheet->getCell("K{$r}")->getValue();
 
                 $isMangkir = str_contains($status, 'Mangkir')
                     || str_contains($status, 'Tidak Hadir')
@@ -361,23 +371,23 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
 
                 if ($isMangkir) {
                     // Soft light red fill for absent/mangkir
-                    $sheet->getStyle("A{$r}:J{$r}")->getFill()
+                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setARGB('FFFFE2E2');
 
-                    $sheet->getStyle("J{$r}")->getFont()
+                    $sheet->getStyle("K{$r}")->getFont()
                         ->setBold(true)
                         ->getColor()->setARGB('FF991B1B');
 
-                    $sheet->getStyle("H{$r}:I{$r}")->getFont()
+                    $sheet->getStyle("H{$r}:J{$r}")->getFont()
                         ->getColor()->setARGB('FFDC2626');
                 } elseif ($isLupaPresensi) {
                     // Soft warm amber fill for lupa presensi / incomplete
-                    $sheet->getStyle("A{$r}:J{$r}")->getFill()
+                    $sheet->getStyle("A{$r}:K{$r}")->getFill()
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setARGB('FFFFF3C7');
 
-                    $sheet->getStyle("J{$r}")->getFont()
+                    $sheet->getStyle("K{$r}")->getFont()
                         ->setBold(true)
                         ->getColor()->setARGB('FF92400E');
 
@@ -393,11 +403,11 @@ class AttendanceExport implements FromCollection, ShouldAutoSize, WithHeadings, 
                     }
                 } else {
                     if (str_contains($status, 'Terlambat')) {
-                        $sheet->getStyle("J{$r}")->getFont()
+                        $sheet->getStyle("K{$r}")->getFont()
                             ->setBold(true)
                             ->getColor()->setARGB('FFDC2626');
                     } elseif (str_contains($status, 'Hadir') || str_contains($status, 'Tepat Waktu')) {
-                        $sheet->getStyle("J{$r}")->getFont()
+                        $sheet->getStyle("K{$r}")->getFont()
                             ->setBold(true)
                             ->getColor()->setARGB('FF15803D');
                     }

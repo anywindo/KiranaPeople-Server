@@ -125,6 +125,14 @@ class AdminAttendanceAndBreakExportTest extends TestCase
             'longitude' => 106.8,
             'selfie_path' => 'selfies/test.jpg',
         ]);
+        AttendanceEvent::create([
+            'attendance_id' => $att->id,
+            'event_type' => EventType::END_SHIFT,
+            'timestamp' => $today->copy()->setTime(17, 0, 0),
+            'latitude' => -6.2,
+            'longitude' => 106.8,
+            'selfie_path' => 'selfies/test2.jpg',
+        ]);
 
         // Default export (includeAll = true)
         $export = new AttendanceExport($today->toDateString(), $today->toDateString(), null, null, null, true);
@@ -138,11 +146,19 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $this->assertContains('Siti Mangkir', $names);
 
         $mapped = $collection->map(fn ($item) => $export->map($item));
+
+        $budiRow = $mapped->first(fn ($row) => $row[3] === 'Budi Santoso');
+        $this->assertNotNull($budiRow);
+        $this->assertEquals('08:00:00', $budiRow[7]);
+        $this->assertEquals('17:00:00', $budiRow[8]);
+        $this->assertEquals('09:00:00', $budiRow[9]); // Durasi kerja
+
         $mangkirRow = $mapped->first(fn ($row) => $row[3] === 'Siti Mangkir');
         $this->assertNotNull($mangkirRow);
-        $this->assertEquals('Mangkir / Belum Presensi', $mangkirRow[9]);
         $this->assertEquals('-', $mangkirRow[7]); // Masuk aktual
         $this->assertEquals('-', $mangkirRow[8]); // Keluar aktual
+        $this->assertEquals('-', $mangkirRow[9]); // Durasi kerja
+        $this->assertEquals('Mangkir / Belum Presensi', $mangkirRow[10]);
     }
 
     public function test_attendance_export_can_exclude_mangkir_when_disabled()
@@ -312,9 +328,9 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray([
             $export->headings(),
-            [1, 'EMP01', '3201', 'Budi Santoso', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '17:00:00', 'Hadir'],
-            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', 'Mangkir / Belum Presensi'],
-            [3, 'EMP03', '3203', 'Agus Lupa', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '-', 'Hadir (Lupa Checkout)'],
+            [1, 'EMP01', '3201', 'Budi Santoso', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '17:00:00', '09:00:00', 'Hadir'],
+            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', '-', 'Mangkir / Belum Presensi'],
+            [3, 'EMP03', '3203', 'Agus Lupa', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '-', '-', 'Hadir (Lupa Checkout)'],
         ]);
 
         $export->styles($sheet);
@@ -393,10 +409,10 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $headings = $export->headings();
 
         $this->assertNotContains('Status', $headings);
-        $this->assertCount(9, $headings);
+        $this->assertCount(10, $headings);
 
         $mapped = $export->map($att);
-        $this->assertCount(9, $mapped);
+        $this->assertCount(10, $mapped);
 
         // Test styles with hidden status column
         $spreadsheet = new Spreadsheet;
@@ -404,7 +420,7 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $sheet->fromArray([$headings, $mapped]);
         $export->styles($sheet);
 
-        $this->assertEquals('I', $sheet->getHighestColumn());
+        $this->assertEquals('J', $sheet->getHighestColumn());
         $this->assertEquals('FFFFE599', $sheet->getStyle('A1')->getFill()->getStartColor()->getARGB());
         $this->assertEquals(28, $sheet->getRowDimension(1)->getRowHeight());
         $this->assertEquals(22, $sheet->getRowDimension(2)->getRowHeight());
@@ -525,9 +541,9 @@ class AdminAttendanceAndBreakExportTest extends TestCase
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray([
             $export->headings(),
-            [1, 'EMP01', '3201', 'Budi Santoso', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '17:00:00', 'Hadir'],
-            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', 'Mangkir / Belum Presensi'],
-            [3, 'EMP03', '3203', 'Agus Lupa', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '-', 'Hadir (Lupa Checkout)'],
+            [1, 'EMP01', '3201', 'Budi Santoso', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '17:00:00', '09:00:00', 'Hadir'],
+            [2, 'EMP02', '3202', 'Siti Mangkir', 'Kantor', '2026-11-16', 'Pagi', '-', '-', '-', 'Mangkir / Belum Presensi'],
+            [3, 'EMP03', '3203', 'Agus Lupa', 'Kantor', '2026-11-16', 'Pagi', '08:00:00', '-', '-', 'Hadir (Lupa Checkout)'],
         ]);
         $export->styles($sheet);
 
