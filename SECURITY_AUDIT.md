@@ -39,6 +39,15 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ✅ **RESOLVED** |
+| **TN-SEC-12** | Privilege Escalation via Unchecked Role Assignment in Web Employee Controller | OWASP API5:2023 / A01:2021 | CWE-269 | **High** | ⚠️ **OPEN** |
+| **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ⚠️ **OPEN** |
+| **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ⚠️ **OPEN** |
+| **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ⚠️ **OPEN** |
+| **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ⚠️ **OPEN** |
+| **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ⚠️ **OPEN** |
+| **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ⚠️ **OPEN** |
+| **TN-SEC-19** | Active Sanctum Tokens Not Revoked on Password Change | OWASP ASVS V2.1.6 | CWE-613 | **Low** | ⚠️ **OPEN** |
+| **TN-SEC-20** | Minor Code Hygiene: `routes/web.php.bak`, Raw Model Responses, WebP Fallback | OWASP A05:2021 | CWE-200 | **Info** | ⚠️ **OPEN** |
 
 ---
 
@@ -297,20 +306,153 @@ However, several critical and medium-severity authorization flaws and business l
 
 ---
 
-## 4. Prioritized Action Plan
+## 4. Follow-Up Audit Findings (November 25, 2026)
 
-1. **Immediate (Sprint 1 - High Priority):**
-   - **Fix TN-SEC-01:** Place `teams` routes under `role:admin|super-admin|HR` or attach policies.
-   - **Fix TN-SEC-02:** Enforce `$attendance->user_id === $employee->id` on correction requests.
-   - **Fix TN-SEC-04:** Disable public `register` API endpoint.
+*Baseline verification on November 25, 2026: `php artisan test` (179 passed, 809 assertions), `composer audit` (0 advisories), `./vendor/bin/phpstan analyse app routes` (0 errors in `app/`, 4 `$this` closure errors in `routes/console.php`).*
 
-2. **Short-Term (Sprint 2 - Medium Priority):**
-   - **Fix TN-SEC-03:** Enforce `current_password` on web profile updates.
-   - **Fix TN-SEC-05:** Eliminate `public_path` fallback in `/storage/{path}`.
-   - **Fix TN-SEC-10:** Run `composer update` to resolve package advisories.
+---
 
-3. **Defense-in-Depth (Sprint 3 - Low/Info Priority):**
-   - Neutralize account enumeration in `forgotPassword` (TN-SEC-06).
-   - Sanitize 500 error messages in `bootstrap/app.php` (TN-SEC-07).
-   - Convert `/logout` to POST-only (TN-SEC-08).
-   - Clean up R2 account hashes (TN-SEC-09) and protect API docs (TN-SEC-11).
+### [TN-SEC-12] Privilege Escalation via Unchecked Role Assignment in Web Employee Controller
+* **Category:** OWASP Top 10 A01:2021 / CWE-269 (Improper Privilege Management)
+* **Severity:** **High**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `app/Http/Controllers/Admin/EmployeeController.php` (lines 115–117, 196–198)
+* **Description:**
+  While `create()` and `edit()` hide `super-admin` from the UI role dropdown for non-superadmin users, `store()` and `update()` call `$employee->syncRoles([$request->role])` without validating `role` or preventing a non-`super-admin` (`HR` or `admin`) from assigning `super-admin`.
+* **Impact:**
+  Any `HR` or `admin` user can craft a `POST /admin/employees` or `PUT /admin/employees/{id}` request with `role=super-admin` to escalate privileges to `super-admin`.
+* **Recommended Remediation:**
+  Validate `'role' => ['nullable', 'string', 'exists:roles,name']` and explicitly reject `super-admin` assignment unless `auth()->user()->hasRole('super-admin')`.
+
+---
+
+### [TN-SEC-13] Superadmin Account Takeover via API Admin Employee Update
+* **Category:** OWASP API1:2023 / API5:2023 / CWE-285 (Improper Authorization)
+* **Severity:** **High**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `app/Http/Controllers/Api/V1/Admin/EmployeeController.php` (lines 100–154)
+* **Description:**
+  Unlike the web controller (`Admin\EmployeeController::update`), `Api\V1\Admin\EmployeeController::update()` only protects `super-admin` in `destroy()` (lines 164–168), not in `update()` or `show()`.
+* **Impact:**
+  Any `HR` or `admin` user can call `PUT /api/v1/admin/employees/{superadmin_id}` to overwrite a `super-admin`'s `email` or `password` and take over the account.
+* **Recommended Remediation:**
+  Add the same `if ($employee->hasRole('super-admin') && ! auth()->user()->hasRole('super-admin'))` guard (returning HTTP 403) to `update()` (and `show()` if appropriate).
+
+---
+
+### [TN-SEC-14] Open Redirect in Admin Notification Read Endpoint
+* **Category:** OWASP Top 10 A01:2021 / CWE-601 (URL Redirection to Untrusted Site)
+* **Severity:** **Medium**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `routes/web.php` (lines 149–151)
+* **Description:**
+  In `admin/notifications/{id}/read`:
+  ```php
+  if (request()->filled('redirect_to')) {
+      return redirect(request('redirect_to'));
+  }
+  ```
+  The `redirect_to` query parameter is passed directly to `redirect()` without validating that it is a relative path or same-origin URL.
+* **Impact:**
+  An attacker can trick an authenticated admin into clicking a link that redirects them to an external phishing site.
+* **Recommended Remediation:**
+  Only allow relative paths (starting with `/` and not `//`) or validate that the parsed host matches `parse_url(config('app.url'), PHP_URL_HOST)`.
+
+---
+
+### [TN-SEC-15] Stored XSS Vector via Inline SVG Serving in `/storage/{path}`
+* **Category:** OWASP Top 10 A03:2021 / CWE-79 (Cross-Site Scripting)
+* **Severity:** **Medium**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `routes/web.php` (line 206)
+* **Description:**
+  `$allowedMimes` in `/storage/{path}` includes `'svg' => 'image/svg+xml'` and serves matching files inline without `Content-Disposition: attachment`.
+* **Impact:**
+  If an SVG file is ever stored in R2 or local storage, browsers will execute any embedded `<script>` on the application origin.
+* **Recommended Remediation:**
+  Remove `svg` from `$allowedMimes`, or serve `svg` with `Content-Disposition: attachment` and `Content-Security-Policy: sandbox`.
+
+---
+
+### [TN-SEC-16] `env()` Calls Outside Config & `(bool) 'false'` Bug in Production
+* **Category:** OWASP Top 10 A05:2021 / CWE-16 (Configuration)
+* **Severity:** **Medium**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `app/Providers/AppServiceProvider.php` (line 37), `routes/web.php` (line 84)
+* **Description:**
+  1. `AppServiceProvider::boot()` uses `if (! (bool) env('API_DOCS_ENABLED', true))`. In PHP, `(bool) 'false'` evaluates to `true`, so setting `API_DOCS_ENABLED=false` in `.env` fails to disable `/docs/api`.
+  2. Both `AppServiceProvider.php` and `routes/web.php` (`env('EMPLOYEE_WEB_MAINTENANCE', false)`) call `env()` outside `config/*.php`. Because `docker-entrypoint.sh` runs `php artisan config:cache` in production, `env()` returns `null` after config caching, causing both flags to fall back to defaults.
+* **Recommended Remediation:**
+  Move both flags into `config/app.php` or `config/api.php` using `filter_var(env(...), FILTER_VALIDATE_BOOLEAN)` and read them via `config(...)`.
+
+---
+
+### [TN-SEC-17] Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion)
+* **Category:** OWASP API4:2023 / CWE-770 (Allocation of Resources Without Limits)
+* **Severity:** **Low**
+* **Status:** ⚠️ **OPEN**
+* **Location:**
+  - `app/Http/Controllers/Api/V1/Employee/AttendanceController.php` (lines 175–176)
+  - `app/Http/Controllers/Api/V1/Admin/AttendanceCorrectionRequestController.php` (line 27)
+  - `app/Http/Controllers/Admin/EmployeeController.php` (lines 41–42)
+* **Description:**
+  These endpoints pass `$request->input('per_page', ...)` directly to `paginate()` without clamping to an upper bound (unlike `Api\V1\Admin\AttendanceController`, which clamps to `max(1, min($perPage, 100))`).
+* **Recommended Remediation:**
+  Clamp `per_page` to `1..100` on all paginated endpoints.
+
+---
+
+### [TN-SEC-18] Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard
+* **Category:** OWASP Top 10 A04:2021 / CWE-362 (Concurrent Execution)
+* **Severity:** **Low**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `app/Http/Controllers/AttendanceController.php` (lines 96–209), `routes/web.php` (line 107)
+* **Description:**
+  Unlike `Api\V1\Employee\AttendanceController` + `AttendanceService`, the web `AttendanceController::store()` does not acquire a `Cache::lock` or validate event sequencing (e.g., `END_BREAK` before `START_BREAK`, or duplicate `START_SHIFT` overwriting today's `status`). Additionally, `Route::post('/attendance')` on `routes/web.php` line 107 is registered outside the `EMPLOYEE_WEB_MAINTENANCE` conditional block.
+* **Recommended Remediation:**
+  Delegate web attendance submission to `AttendanceService::recordEvent` (or apply the same lock/sequence rules) and gate `POST /attendance` behind the maintenance check when enabled.
+
+---
+
+### [TN-SEC-19] Active Sanctum Tokens Not Revoked on Password Change
+* **Category:** OWASP ASVS V2.1.6 / CWE-613 (Insufficient Session Expiration)
+* **Severity:** **Low**
+* **Status:** ⚠️ **OPEN**
+* **Location:** `app/Http/Controllers/Api/V1/AuthController.php` (lines 116–232)
+* **Description:**
+  `changePassword()` and `updateOnboardingPassword()` update `password` and `password_changed_at` without revoking other active Sanctum tokens, unlike `PasswordResetService::resetWithOtp` and `resetWithToken`.
+* **Recommended Remediation:**
+  Revoke all other tokens (`$user->tokens()->where('id', '!=', $user->currentAccessToken()?->id)->delete()`) after a password change.
+
+---
+
+### [TN-SEC-20] Minor Code Hygiene & Hardening Notes
+* **Category:** OWASP Top 10 A05:2021 / CWE-200
+* **Severity:** **Info**
+* **Status:** ⚠️ **OPEN**
+* **Locations:**
+  - `routes/web.php.bak`: Backup route file left in repository.
+  - `app/Http/Controllers/Api/V1/Admin/EmployeeController.php` (lines 96, 104, 152): `store`, `show`, and `update` return raw Eloquent `User` models instead of `UserResource`.
+  - `app/Services/FileUploadService.php` (lines 61–65): Falls back to raw `file_get_contents()` if Intervention fails while still saving under a `.webp` extension.
+
+---
+
+## 5. Prioritized Action Plan
+
+1. **Immediate (High Priority - New):**
+   - **Fix TN-SEC-12:** Validate `role` in `Admin\EmployeeController::store` and `update`; block non-superadmins from assigning `super-admin`.
+   - **Fix TN-SEC-13:** Add `super-admin` protection to `Api\V1\Admin\EmployeeController::update` (and `show`).
+
+2. **Short-Term (Medium Priority - New):**
+   - **Fix TN-SEC-14:** Validate `redirect_to` in `admin/notifications/{id}/read` against relative/same-origin URLs.
+   - **Fix TN-SEC-15:** Remove `svg` from inline `$allowedMimes` in `/storage/{path}` or force download/sandbox.
+   - **Fix TN-SEC-16:** Move `API_DOCS_ENABLED` and `EMPLOYEE_WEB_MAINTENANCE` into `config/*.php` using boolean parsing.
+
+3. **Defense-in-Depth (Low/Info Priority - New):**
+   - Clamp `per_page` to `1..100` across remaining paginated endpoints (TN-SEC-17).
+   - Align web `AttendanceController::store` with `AttendanceService` and maintenance mode (TN-SEC-18).
+   - Revoke other Sanctum tokens on password change (TN-SEC-19).
+   - Remove `routes/web.php.bak`, standardize `UserResource` responses, and tighten `FileUploadService` fallback (TN-SEC-20).
+
+4. **Previously Completed (Baseline Nov 17, 2026):**
+   - **TN-SEC-01 through TN-SEC-11:** All verified resolved in code and covered by automated tests.
