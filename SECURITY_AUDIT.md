@@ -39,7 +39,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-09** | Cloudflare R2 Account Identifier Exposed in Configuration | OWASP A05:2021 | CWE-200 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ✅ **RESOLVED** |
-| **TN-SEC-12** | Privilege Escalation via Unchecked Role Assignment in Web Employee Controller | OWASP API5:2023 / A01:2021 | CWE-269 | **High** | ⚠️ **OPEN** |
+| **TN-SEC-12** | Privilege Escalation via Unchecked Role Assignment in Web Employee Controller | OWASP API5:2023 / A01:2021 | CWE-269 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ⚠️ **OPEN** |
 | **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ⚠️ **OPEN** |
 | **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ⚠️ **OPEN** |
@@ -315,14 +315,17 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-12] Privilege Escalation via Unchecked Role Assignment in Web Employee Controller
 * **Category:** OWASP Top 10 A01:2021 / CWE-269 (Improper Privilege Management)
 * **Severity:** **High**
-* **Status:** ⚠️ **OPEN**
-* **Location:** `app/Http/Controllers/Admin/EmployeeController.php` (lines 115–117, 196–198)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `app/Http/Controllers/Admin/EmployeeController.php` (lines 76–77, 118–120, 160–161, 200–221)
 * **Description:**
-  While `create()` and `edit()` hide `super-admin` from the UI role dropdown for non-superadmin users, `store()` and `update()` call `$employee->syncRoles([$request->role])` without validating `role` or preventing a non-`super-admin` (`HR` or `admin`) from assigning `super-admin`.
+  While `create()` and `edit()` hide `super-admin` from the UI role dropdown for non-superadmin users, `store()` and `update()` previously called `$employee->syncRoles([$request->role])` without validating `role` or preventing a non-`super-admin` (`HR` or `admin`) from assigning `super-admin`.
 * **Impact:**
-  Any `HR` or `admin` user can craft a `POST /admin/employees` or `PUT /admin/employees/{id}` request with `role=super-admin` to escalate privileges to `super-admin`.
-* **Recommended Remediation:**
-  Validate `'role' => ['nullable', 'string', 'exists:roles,name']` and explicitly reject `super-admin` assignment unless `auth()->user()->hasRole('super-admin')`.
+  Any `HR` or `admin` user could craft a `POST /admin/employees` or `PUT /admin/employees/{id}` request with `role=super-admin` to escalate privileges to `super-admin`.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Added `roleValidationRules()` in `Admin\EmployeeController` enforcing `Rule::exists('roles', 'name')->where('guard_name', 'web')` and `Rule::notIn(['super-admin'])` whenever the authenticated user does not have the `super-admin` role, applied to both `store()` and `update()`.
+  2. Changed `$request->has('role')` to `$request->filled('role')` before calling `syncRoles()`.
+  3. Added automated tests in `tests/Feature/SuperadminProtectionTest.php` verifying that `HR` cannot create or promote users to `super-admin`, while `super-admin` still can.
 
 ---
 

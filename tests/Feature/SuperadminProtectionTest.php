@@ -99,3 +99,65 @@ it('hides delete button for superadmin in employee list view', function () {
     $deleteActionUrl = route('admin.employees.destroy', $superadmin);
     expect($response->getContent())->not->toContain('action="'.$deleteActionUrl.'"');
 });
+
+it('prevents non-superadmin from assigning super-admin role when creating an employee', function () {
+    $location = Location::factory()->create();
+    $hr = User::factory()->create(['location_id' => $location->id]);
+    $hr->assignRole('HR');
+
+    $response = $this->actingAs($hr)->post(route('admin.employees.store'), [
+        'name' => 'Escalated User',
+        'email' => 'escalated@example.com',
+        'dob' => '1995-05-05',
+        'location_id' => $location->id,
+        'role' => 'super-admin',
+    ]);
+
+    $response->assertSessionHasErrors('role');
+    expect(User::where('email', 'escalated@example.com')->exists())->toBeFalse();
+});
+
+it('prevents non-superadmin from escalating an existing employee to super-admin role', function () {
+    $location = Location::factory()->create();
+    $hr = User::factory()->create(['location_id' => $location->id]);
+    $hr->assignRole('HR');
+
+    $employee = User::factory()->create(['location_id' => $location->id]);
+    $employee->assignRole('Employee');
+
+    $response = $this->actingAs($hr)->put(route('admin.employees.update', $employee), [
+        'name' => $employee->name,
+        'email' => $employee->email,
+        'dob' => '1995-05-05',
+        'location_id' => $location->id,
+        'role' => 'super-admin',
+    ]);
+
+    $response->assertSessionHasErrors('role');
+    $employee->refresh();
+    expect($employee->hasRole('super-admin'))->toBeFalse();
+    expect($employee->hasRole('Employee'))->toBeTrue();
+});
+
+it('allows superadmin to assign super-admin role via web controller', function () {
+    $location = Location::factory()->create();
+    $superadmin = User::factory()->create(['location_id' => $location->id]);
+    $superadmin->assignRole('super-admin');
+
+    $employee = User::factory()->create(['location_id' => $location->id]);
+    $employee->assignRole('Employee');
+
+    $response = $this->actingAs($superadmin)->put(route('admin.employees.update', $employee), [
+        'name' => $employee->name,
+        'email' => $employee->email,
+        'dob' => '1995-05-05',
+        'location_id' => $location->id,
+        'role' => 'super-admin',
+    ]);
+
+    $response->assertRedirect(route('admin.employees.index'))
+        ->assertSessionHas('success');
+
+    $employee->refresh();
+    expect($employee->hasRole('super-admin'))->toBeTrue();
+});

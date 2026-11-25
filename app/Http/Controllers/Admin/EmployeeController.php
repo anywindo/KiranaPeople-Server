@@ -12,6 +12,7 @@ use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 
@@ -73,6 +74,7 @@ class EmployeeController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'location_id' => 'required|exists:locations,id',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'role' => $this->roleValidationRules(),
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -80,6 +82,7 @@ class EmployeeController extends Controller
             'dob.date' => 'Format tanggal lahir tidak valid.',
             'location_id.required' => 'Lokasi kerja wajib dipilih.',
             'location_id.exists' => 'Lokasi kerja yang dipilih tidak valid.',
+            'role.not_in' => 'Hanya Superadmin yang dapat menetapkan role Superadmin.',
         ]);
 
         $dob = $request->dob;
@@ -112,7 +115,7 @@ class EmployeeController extends Controller
 
         $employee = User::create($data);
 
-        if ($request->has('role')) {
+        if ($request->filled('role')) {
             $employee->syncRoles([$request->role]);
         }
 
@@ -154,6 +157,7 @@ class EmployeeController extends Controller
             'dob' => 'required|date',
             'location_id' => 'required|exists:locations,id',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'role' => $this->roleValidationRules(),
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -161,6 +165,7 @@ class EmployeeController extends Controller
             'dob.date' => 'Format tanggal lahir tidak valid.',
             'location_id.required' => 'Lokasi kerja wajib dipilih.',
             'location_id.exists' => 'Lokasi kerja yang dipilih tidak valid.',
+            'role.not_in' => 'Hanya Superadmin yang dapat menetapkan role Superadmin.',
         ]);
 
         $dob = $request->dob;
@@ -193,11 +198,31 @@ class EmployeeController extends Controller
 
         $employee->update($data);
 
-        if ($request->has('role')) {
+        if ($request->filled('role')) {
             $employee->syncRoles([$request->role]);
         }
 
         return redirect()->route('admin.employees.index')->with('success', 'Employee updated successfully.');
+    }
+
+    /**
+     * Build validation rules for role assignment, preventing privilege escalation.
+     *
+     * @return array<int, mixed>
+     */
+    private function roleValidationRules(): array
+    {
+        $rules = [
+            'nullable',
+            'string',
+            Rule::exists('roles', 'name')->where('guard_name', 'web'),
+        ];
+
+        if (! auth()->user()?->hasRole('super-admin')) {
+            $rules[] = Rule::notIn(['super-admin']);
+        }
+
+        return $rules;
     }
 
     public function destroy(User $employee)
