@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\Employee\AttendanceController;
 use App\Http\Controllers\Api\V1\Employee\AttendanceCorrectionRequestController;
+use App\Http\Controllers\Api\V1\SecurityIncidentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => config('app.version', '1.0.6'), 'status' => 'healthy']));
@@ -40,6 +41,10 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         // Onboarding Password Route
         Route::post('onboarding/password', [AuthController::class, 'updateOnboardingPassword']);
+
+        // Client-side Security Incident Telemetry (MASVS-AUTH / SEC-08 / SEC-20)
+        Route::post('security/incident', [SecurityIncidentController::class, 'store'])
+            ->middleware('throttle:attendance-events');
 
         // Employee Routes
         Route::prefix('employee')->group(function () {
