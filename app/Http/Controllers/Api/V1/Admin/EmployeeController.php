@@ -94,7 +94,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Employee created successfully.',
-            'data' => $user,
+            'data' => new UserResource($user->load(['location', 'roles'])),
         ], 201);
     }
 
@@ -106,7 +106,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Employee retrieved successfully.',
-            'data' => $employee,
+            'data' => new UserResource($employee->load(['location', 'roles'])),
         ]);
     }
 
@@ -158,7 +158,7 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Employee updated successfully.',
-            'data' => $employee,
+            'data' => new UserResource($employee->fresh()->load(['location', 'roles'])),
         ]);
     }
 

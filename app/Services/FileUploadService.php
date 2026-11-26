@@ -19,10 +19,10 @@ class FileUploadService
      */
     public function uploadImage(UploadedFile $file, string $directory = 'selfies', int $quality = 70): string
     {
-        $path = $this->generateFilePath($directory);
-        $binary = $this->compressImage($file, $quality);
+        $processed = $this->compressImage($file, $quality);
+        $path = $this->generateFilePath($directory, $processed['extension']);
 
-        $this->storeLocallyAndOnR2($path, $directory, $binary);
+        $this->storeLocallyAndOnR2($path, $directory, $processed['binary'], $processed['mime']);
 
         return $path;
     }
@@ -35,21 +35,23 @@ class FileUploadService
      */
     public function uploadImageWithBase64(UploadedFile $file, string $directory = 'selfies', int $quality = 65): array
     {
-        $path = $this->generateFilePath($directory);
-        $binary = $this->compressImage($file, $quality);
+        $processed = $this->compressImage($file, $quality);
+        $path = $this->generateFilePath($directory, $processed['extension']);
 
-        $this->storeLocallyAndOnR2($path, $directory, $binary);
+        $this->storeLocallyAndOnR2($path, $directory, $processed['binary'], $processed['mime']);
 
         return [
             'path' => $path,
-            'base64' => base64_encode($binary),
+            'base64' => base64_encode($processed['binary']),
         ];
     }
 
     /**
-     * Compress and scale an uploaded image to WebP format.
+     * Compress and scale an uploaded image to WebP format, falling back to original safe extension/MIME on failure.
+     *
+     * @return array{binary: string, extension: string, mime: string}
      */
-    protected function compressImage(UploadedFile $file, int $quality): string
+    protected function compressImage(UploadedFile $file, int $quality): array
     {
         try {
             $manager = new ImageManager(new Driver);
@@ -57,20 +59,41 @@ class FileUploadService
             $image->scaleDown(width: 800, height: 800);
             $encodedImage = $image->encode(new WebpEncoder(quality: $quality));
 
-            return (string) $encodedImage;
+            return [
+                'binary' => (string) $encodedImage,
+                'extension' => 'webp',
+                'mime' => 'image/webp',
+            ];
         } catch (Throwable $e) {
             Log::warning('Intervention image processing fallback: '.$e->getMessage());
 
-            return (string) file_get_contents($file->getRealPath());
+            $allowedExtensions = [
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'webp' => 'image/webp',
+                'gif' => 'image/gif',
+            ];
+
+            $ext = strtolower((string) ($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'jpg'));
+            if (! array_key_exists($ext, $allowedExtensions)) {
+                $ext = 'jpg';
+            }
+
+            return [
+                'binary' => (string) file_get_contents($file->getRealPath()),
+                'extension' => $ext,
+                'mime' => $allowedExtensions[$ext],
+            ];
         }
     }
 
     /**
-     * Generate a unique WebP destination path.
+     * Generate a unique destination path.
      */
-    protected function generateFilePath(string $directory): string
+    protected function generateFilePath(string $directory, string $extension = 'webp'): string
     {
-        $filename = uniqid().'_'.time().'.webp';
+        $filename = uniqid().'_'.time().'.'.$extension;
 
         return trim($directory, '/').'/'.$filename;
     }
@@ -78,7 +101,7 @@ class FileUploadService
     /**
      * Store image binary to both Cloudflare R2 and local storage cache.
      */
-    protected function storeLocallyAndOnR2(string $path, string $directory, string $binary): void
+    protected function storeLocallyAndOnR2(string $path, string $directory, string $binary, string $mime = 'image/webp'): void
     {
         // Ensure local destination directory exists (handles serverless /tmp)
         $this->ensureLocalDirectoryExists($directory);
@@ -87,7 +110,7 @@ class FileUploadService
         try {
             Storage::disk('r2')->put($path, $binary, [
                 'visibility' => 'public',
-                'ContentType' => 'image/webp',
+                'ContentType' => $mime,
             ]);
         } catch (Throwable $e) {
             Log::error('R2 upload failed: '.$e->getMessage());

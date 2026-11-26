@@ -59,4 +59,19 @@ class UploadFileToR2JobTest extends TestCase
 
         Storage::disk('r2')->assertMissing($testPath);
     }
+
+    public function test_file_upload_service_preserves_safe_extension_on_compression_fallback(): void
+    {
+        Storage::fake('public');
+        Storage::fake('r2');
+
+        $file = UploadedFile::fake()->createWithContent('corrupt.png', 'not-a-valid-image-binary');
+        $service = new FileUploadService;
+
+        $path = $service->uploadImage($file, 'avatars');
+
+        $this->assertStringEndsWith('.png', $path);
+        Storage::disk('public')->assertExists($path);
+        Storage::disk('r2')->assertExists($path);
+    }
 }

@@ -47,7 +47,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-19** | Active Sanctum Tokens Not Revoked on Password Change | OWASP ASVS V2.1.6 | CWE-613 | **Low** | ✅ **RESOLVED** |
-| **TN-SEC-20** | Minor Code Hygiene: `routes/web.php.bak`, Raw Model Responses, WebP Fallback | OWASP A05:2021 | CWE-200 | **Info** | ⚠️ **OPEN** |
+| **TN-SEC-20** | Minor Code Hygiene: `routes/web.php.bak`, Raw Model Responses, WebP Fallback | OWASP A05:2021 | CWE-200 | **Info** | ✅ **RESOLVED** |
 
 ---
 
@@ -446,11 +446,16 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-20] Minor Code Hygiene & Hardening Notes
 * **Category:** OWASP Top 10 A05:2021 / CWE-200
 * **Severity:** **Info**
-* **Status:** ⚠️ **OPEN**
+* **Status:** ✅ **RESOLVED**
 * **Locations:**
-  - `routes/web.php.bak`: Backup route file left in repository.
-  - `app/Http/Controllers/Api/V1/Admin/EmployeeController.php` (lines 96, 104, 152): `store`, `show`, and `update` return raw Eloquent `User` models instead of `UserResource`.
-  - `app/Services/FileUploadService.php` (lines 61–65): Falls back to raw `file_get_contents()` if Intervention fails while still saving under a `.webp` extension.
+  - `routes/web.php.bak` (removed)
+  - `app/Http/Controllers/Api/V1/Admin/EmployeeController.php` (lines 96, 108, 156)
+  - `app/Services/FileUploadService.php` (lines 20–106)
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Removed the stale `routes/web.php.bak` backup file.
+  2. Updated `Api\V1\Admin\EmployeeController` (`store`, `show`, `update`) to return `UserResource` instead of raw `User` models.
+  3. Updated `FileUploadService::compressImage()` to return the matching safe extension and MIME type on fallback rather than saving non-WebP bytes with a `.webp` extension, with regression coverage in `tests/Feature/UploadFileToR2JobTest.php`.
 
 ---
 
