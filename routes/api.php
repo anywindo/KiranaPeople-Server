@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\V1\Employee\AttendanceCorrectionRequestController;
 use App\Http\Controllers\Api\V1\SecurityIncidentController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => config('app.version', '1.0.6'), 'status' => 'healthy']));
+Route::get('/', fn () => response()->json(['name' => config('app.name'), 'version' => config('app.version', '1.0.7'), 'status' => 'healthy']));
 Route::get('health', HealthController::class);
 
 Route::prefix('v1')->group(function () {
