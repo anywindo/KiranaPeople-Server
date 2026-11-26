@@ -172,7 +172,7 @@ class AttendanceController extends Controller
             $query->whereYear('date', $request->input('year'));
         }
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = max(1, min((int) $request->input('per_page', 15), 100));
         $attendances = $query->paginate($perPage);
 
         return AttendanceResource::collection($attendances);

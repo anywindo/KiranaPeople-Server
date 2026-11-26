@@ -44,7 +44,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ✅ **RESOLVED** |
-| **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ⚠️ **OPEN** |
+| **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ⚠️ **OPEN** |
 | **TN-SEC-19** | Active Sanctum Tokens Not Revoked on Password Change | OWASP ASVS V2.1.6 | CWE-613 | **Low** | ⚠️ **OPEN** |
 | **TN-SEC-20** | Minor Code Hygiene: `routes/web.php.bak`, Raw Model Responses, WebP Fallback | OWASP A05:2021 | CWE-200 | **Info** | ⚠️ **OPEN** |
@@ -396,15 +396,21 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-17] Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion)
 * **Category:** OWASP API4:2023 / CWE-770 (Allocation of Resources Without Limits)
 * **Severity:** **Low**
-* **Status:** ⚠️ **OPEN**
-* **Location:**
-  - `app/Http/Controllers/Api/V1/Employee/AttendanceController.php` (lines 175–176)
+* **Status:** ✅ **RESOLVED**
+* **Locations:**
+  - `app/Repositories/Eloquent/BaseRepository.php` (line 74)
+  - `app/Http/Controllers/Api/V1/Employee/AttendanceController.php` (line 175)
   - `app/Http/Controllers/Api/V1/Admin/AttendanceCorrectionRequestController.php` (line 27)
-  - `app/Http/Controllers/Admin/EmployeeController.php` (lines 41–42)
+  - `app/Http/Controllers/Admin/EmployeeController.php` (line 42)
+  - `app/Http/Controllers/Admin/AbsenceController.php` (line 46)
+  - `app/Http/Controllers/Admin/AttendanceController.php` (line 54)
+  - `app/Http/Controllers/Admin/BreakController.php` (line 55)
 * **Description:**
-  These endpoints pass `$request->input('per_page', ...)` directly to `paginate()` without clamping to an upper bound (unlike `Api\V1\Admin\AttendanceController`, which clamps to `max(1, min($perPage, 100))`).
-* **Recommended Remediation:**
-  Clamp `per_page` to `1..100` on all paginated endpoints.
+  These endpoints previously passed `$request->input('per_page', ...)` directly to `paginate()` without clamping to `[1, 100]` (and `BaseRepository::paginate` lacked a lower bound of `1`).
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Clamped `per_page` to `max(1, min((int) ..., 100))` across all listed API/Web controllers and `BaseRepository::paginate()`.
+  2. Added automated tests in `tests/Feature/PaginationBoundsSecurityTest.php` verifying upper (`100`) and lower (`1`) bounds on API and Web endpoints.
 
 ---
 

@@ -71,7 +71,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function paginate(int $perPage = 15, array $columns = ['*'], array $filters = []): LengthAwarePaginator
     {
         $cols = $columns === ['*'] ? $this->defaultColumns : $columns;
-        $perPage = min($perPage, config('api.pagination.max_per_page', 100));
+        $perPage = max(1, min($perPage, (int) config('api.pagination.max_per_page', 100)));
 
         return $this->newQuery()->paginate($perPage, $cols);
     }

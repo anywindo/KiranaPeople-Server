@@ -51,7 +51,7 @@ class AttendanceController extends Controller
             });
         }
 
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = max(1, min((int) $request->input('per_page', 10), 100));
         $includeAll = $request->boolean('include_all_employees');
 
         if ($includeAll) {

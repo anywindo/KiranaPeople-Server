@@ -39,7 +39,7 @@ class EmployeeController extends Controller
             $query->where('location_id', $request->location_id);
         }
 
-        $perPage = $request->input('per_page', 10);
+        $perPage = max(1, min((int) $request->input('per_page', 10), 100));
         $employees = $query->paginate($perPage)->appends($request->all());
 
         return view('admin.employees.index', compact('employees'));

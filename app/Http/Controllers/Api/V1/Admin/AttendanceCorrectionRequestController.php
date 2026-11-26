@@ -24,7 +24,8 @@ class AttendanceCorrectionRequestController extends Controller
      */
     public function index(Request $request)
     {
-        $requests = $this->repository->paginate($request->input('per_page', 15));
+        $perPage = max(1, min((int) $request->input('per_page', 15), 100));
+        $requests = $this->repository->paginate($perPage);
 
         return AttendanceCorrectionRequestResource::collection($requests);
     }
