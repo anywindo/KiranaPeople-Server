@@ -101,4 +101,55 @@ class ApiProfileUpdateTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonPath('meta.success', false);
     }
+
+    public function test_change_password_revokes_other_active_sanctum_tokens()
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('OldPassword123!'),
+            'password_changed_at' => now(),
+        ]);
+
+        $otherToken = $user->createToken('other-device')->plainTextToken;
+        $currentToken = $user->createToken('current-device')->plainTextToken;
+
+        $response = $this->withToken($currentToken)->postJson('/api/v1/auth/change-password', [
+            'current_password' => 'OldPassword123!',
+            'password' => 'NewSecurePass2026!',
+            'password_confirmation' => 'NewSecurePass2026!',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertEquals(1, $user->tokens()->count());
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($otherToken)->getJson('/api/v1/auth/profile')->assertStatus(401);
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($currentToken)->getJson('/api/v1/auth/profile')->assertStatus(200);
+    }
+
+    public function test_onboarding_password_update_revokes_other_active_sanctum_tokens()
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+            'password_changed_at' => null,
+        ]);
+
+        $otherToken = $user->createToken('other-device')->plainTextToken;
+        $currentToken = $user->createToken('current-device')->plainTextToken;
+
+        $response = $this->withToken($currentToken)->postJson('/api/v1/onboarding/password', [
+            'password' => 'NewSecurePass2026!',
+            'password_confirmation' => 'NewSecurePass2026!',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertEquals(1, $user->tokens()->count());
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($otherToken)->getJson('/api/v1/auth/profile')->assertStatus(401);
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($currentToken)->getJson('/api/v1/auth/profile')->assertStatus(200);
+    }
 }

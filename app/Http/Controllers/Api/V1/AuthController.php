@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\Auth\UserResource;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\FileUploadService;
 use App\Services\PasswordResetService;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends BaseController
 {
@@ -181,6 +183,8 @@ class AuthController extends BaseController
         $user->password_changed_at = now();
         $user->save();
 
+        $this->revokeOtherTokens($user);
+
         return $this->success(
             new UserResource($user->fresh()->load('roles', 'location')),
             'Kata sandi berhasil diperbarui'
@@ -225,10 +229,28 @@ class AuthController extends BaseController
         $user->password_changed_at = now();
         $user->save();
 
+        $this->revokeOtherTokens($user);
+
         return $this->success(
             new UserResource($user->fresh()->load('roles', 'location')),
             'Password updated successfully'
         );
+    }
+
+    /**
+     * Revoke all active Sanctum tokens except the current access token.
+     */
+    private function revokeOtherTokens(User $user): void
+    {
+        $currentToken = $user->currentAccessToken();
+
+        if ($currentToken instanceof PersonalAccessToken) {
+            $user->tokens()->where('id', '!=', $currentToken->id)->delete();
+
+            return;
+        }
+
+        $user->tokens()->delete();
     }
 
     /**
