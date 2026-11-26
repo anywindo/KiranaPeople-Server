@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventType;
 use App\Models\Attendance;
 use App\Models\AttendanceEvent;
-use App\Models\Setting;
 use App\Models\Shift;
-use App\Models\User;
-use App\Notifications\EmployeeLateNotification;
+use App\Services\AttendanceService;
 use App\Services\FileUploadService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class AttendanceController extends Controller
 {
+    public function __construct(
+        protected AttendanceService $attendanceService
+    ) {}
+
     public function index(Request $request)
     {
         if (Auth::user()?->isAdmin()) {
@@ -130,82 +133,39 @@ class AttendanceController extends Controller
         }
         // --- END GEOFENCING VALIDATION ---
 
-        $today = Carbon::today();
+        $eventTypeRaw = $request->input('event_type');
+        $lock = Cache::lock("attendance_lock:{$user->id}:{$eventTypeRaw}", 10);
 
-        // Check for lateness if START_SHIFT
-        $status = 'EXACT';
-        $latenessMinutes = 0;
-
-        $shift = ($request->filled('shift_id') ? Shift::findCached($request->shift_id) : null)
-            ?? $user->shift
-            ?? Shift::getFirstCached();
-        $shiftId = $shift ? $shift->id : 1;
-
-        if ($request->event_type === 'START_SHIFT') {
-            if ($shift && $shift->default_start_time) {
-                $scheduledStart = Carbon::parse($today->format('Y-m-d').' '.$shift->default_start_time);
-                $ruleEnabled = (bool) Setting::get('attendance_rule_enabled', false);
-                $cutoffMinutes = $ruleEnabled ? (int) Setting::get('attendance_rule_minutes', 15) : 0;
-
-                $now = now();
-                if ($ruleEnabled && $cutoffMinutes > 0) {
-                    $lateThreshold = $scheduledStart->copy()->subMinutes($cutoffMinutes);
-                    if ($now->greaterThanOrEqualTo($lateThreshold)) {
-                        $latenessMinutes = (int) abs($now->diffInMinutes($lateThreshold));
-                        $status = 'LATE';
-                    } elseif ($now->lessThan($lateThreshold)) {
-                        $status = 'EARLY';
-                    }
-                } else {
-                    if ($now->greaterThan($scheduledStart)) {
-                        $latenessMinutes = (int) abs($now->diffInMinutes($scheduledStart));
-                        $status = 'LATE';
-                    } elseif ($now->lessThan($scheduledStart)) {
-                        $status = 'EARLY';
-                    }
-                }
-            }
+        if (! $lock->get()) {
+            return back()->with('error', 'Permintaan presensi sedang diproses. Mohon tunggu sejenak.');
         }
 
-        // Find or create today's attendance record
-        $attendance = Attendance::firstOrCreate(
-            ['user_id' => $user->id, 'date' => $today],
-            ['status' => $status, 'shift_id' => $shiftId] // Using dynamic valid status
-        );
+        try {
+            $shift = ($request->filled('shift_id') ? Shift::findCached($request->shift_id) : null)
+                ?? $user->shift
+                ?? Shift::getFirstCached();
 
-        // If it's START_SHIFT and attendance was just created or we need to update status
-        if ($request->event_type === 'START_SHIFT') {
-            $attendance->update(['status' => $status]);
-        }
-
-        $selfiePath = $fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
-
-        AttendanceEvent::create([
-            'attendance_id' => $attendance->id,
-            'event_type' => $request->event_type,
-            'timestamp' => now(),
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'selfie_path' => $selfiePath,
-        ]);
-
-        $message = 'Kehadiran berhasil dicatat!';
-
-        // Notification for late check-in
-        if ($request->event_type === 'START_SHIFT' && $status === 'LATE') {
-            try {
-                $admins = User::role(['super-admin', 'HR'], 'web')->get();
-                if ($admins->isNotEmpty()) {
-                    Notification::send($admins, new EmployeeLateNotification($user, $latenessMinutes));
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Late notification warning: '.$e->getMessage());
+            if (! $shift) {
+                return back()->with('error', 'Shift kerja tidak ditemukan. Silakan hubungi admin.');
             }
 
-            $message .= ' Anda terlambat '.$latenessMinutes.' menit.';
-        }
+            $selfiePath = $fileUploadService->uploadImage($request->file('selfie'), 'attendance-selfies');
+            $eventType = EventType::from($eventTypeRaw);
 
-        return redirect()->route('attendance.index')->with('success', $message);
+            $this->attendanceService->recordEvent($user, $shift, $eventType, [
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'selfie_path' => $selfiePath,
+            ]);
+
+            return redirect()->route('attendance.index')->with('success', 'Kehadiran berhasil dicatat!');
+        } catch (ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first() ?? 'Presensi tidak dapat diproses.';
+
+            return back()->with('error', $firstError);
+        } finally {
+            $lock->release();
+        }
     }
 
     public function updateProfile(Request $request, FileUploadService $fileUploadService)

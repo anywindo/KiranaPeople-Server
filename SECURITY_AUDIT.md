@@ -45,7 +45,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ✅ **RESOLVED** |
-| **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ⚠️ **OPEN** |
+| **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-19** | Active Sanctum Tokens Not Revoked on Password Change | OWASP ASVS V2.1.6 | CWE-613 | **Low** | ⚠️ **OPEN** |
 | **TN-SEC-20** | Minor Code Hygiene: `routes/web.php.bak`, Raw Model Responses, WebP Fallback | OWASP A05:2021 | CWE-200 | **Info** | ⚠️ **OPEN** |
 
@@ -417,12 +417,15 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-18] Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard
 * **Category:** OWASP Top 10 A04:2021 / CWE-362 (Concurrent Execution)
 * **Severity:** **Low**
-* **Status:** ⚠️ **OPEN**
-* **Location:** `app/Http/Controllers/AttendanceController.php` (lines 96–209), `routes/web.php` (line 107)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `app/Http/Controllers/AttendanceController.php` (lines 95–169), `routes/web.php` (lines 84–110)
 * **Description:**
-  Unlike `Api\V1\Employee\AttendanceController` + `AttendanceService`, the web `AttendanceController::store()` does not acquire a `Cache::lock` or validate event sequencing (e.g., `END_BREAK` before `START_BREAK`, or duplicate `START_SHIFT` overwriting today's `status`). Additionally, `Route::post('/attendance')` on `routes/web.php` line 107 is registered outside the `EMPLOYEE_WEB_MAINTENANCE` conditional block.
-* **Recommended Remediation:**
-  Delegate web attendance submission to `AttendanceService::recordEvent` (or apply the same lock/sequence rules) and gate `POST /attendance` behind the maintenance check when enabled.
+  Unlike `Api\V1\Employee\AttendanceController` + `AttendanceService`, the web `AttendanceController::store()` previously did not acquire a `Cache::lock` or validate event sequencing, and `Route::post('/attendance')` was registered outside the `EMPLOYEE_WEB_MAINTENANCE` conditional block.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Updated `AttendanceController::store()` to acquire `Cache::lock("attendance_lock:{$user->id}:{$eventTypeRaw}", 10)` and delegate event recording to `AttendanceService::recordEvent()`, enforcing sequential state machine checks and row locking.
+  2. Moved `Route::post('/attendance')` into the `employee_web_maintenance` `if/else` block in `routes/web.php` so maintenance mode blocks web attendance submissions.
+  3. Added automated tests in `tests/Feature/WebAttendanceSecurityTest.php` verifying sequence validation and concurrency lock enforcement.
 
 ---
 

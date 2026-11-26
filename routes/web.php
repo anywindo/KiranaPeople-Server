@@ -90,6 +90,14 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             return response()->view('maintenance');
         })->name('attendance.index');
 
+        Route::post('/attendance', function () {
+            if (auth()->user()->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            return redirect()->route('maintenance');
+        })->name('attendance.store');
+
         Route::any('/attendance/{any?}', function () {
             if (auth()->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
@@ -99,12 +107,12 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         })->where('any', '.*');
     } else {
         Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     }
 
     Route::get('/attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
     Route::get('/attendance/profile', [AttendanceController::class, 'profile'])->name('attendance.profile');
     Route::put('/attendance/profile', [AttendanceController::class, 'updateProfile'])->name('attendance.profile.update');
-    Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
 
     // HR / Admin Routes
     Route::middleware(['role:admin|HR|super-admin'])->prefix('admin')->name('admin.')->group(function () {
