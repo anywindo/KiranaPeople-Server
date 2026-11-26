@@ -153,8 +153,8 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                 $requestHost = request()->getHost();
 
                 $isSafeRelative = str_starts_with($redirectTo, '/')
-                    && ! str_starts_with($redirectTo, '//')
-                    && ! str_starts_with($redirectTo, '/\\');
+                    && !str_starts_with($redirectTo, '//')
+                    && !str_starts_with($redirectTo, '/\\');
 
                 $isSameOrigin = isset($parsed['scheme'], $parsed['host'])
                     && in_array(strtolower($parsed['scheme']), ['http', 'https'], true)
@@ -221,7 +221,6 @@ Route::get('/storage/{path}', function ($path) {
         'jpg' => 'image/jpeg',
         'jpeg' => 'image/jpeg',
         'gif' => 'image/gif',
-        'svg' => 'image/svg+xml',
         'pdf' => 'application/pdf',
     ];
 

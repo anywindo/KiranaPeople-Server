@@ -30,6 +30,16 @@ class StorageEndpointSecurityTest extends TestCase
         }
     }
 
+    public function test_cannot_serve_svg_files_to_prevent_stored_xss(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('avatars/xss.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+
+        $response = $this->get('/storage/avatars/xss.svg');
+
+        $response->assertStatus(404);
+    }
+
     public function test_cannot_perform_directory_traversal(): void
     {
         $traversalAttempts = [

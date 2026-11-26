@@ -42,7 +42,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-12** | Privilege Escalation via Unchecked Role Assignment in Web Employee Controller | OWASP API5:2023 / A01:2021 | CWE-269 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ✅ **RESOLVED** |
-| **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ⚠️ **OPEN** |
+| **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ⚠️ **OPEN** |
 | **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ⚠️ **OPEN** |
 | **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ⚠️ **OPEN** |
@@ -364,14 +364,16 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-15] Stored XSS Vector via Inline SVG Serving in `/storage/{path}`
 * **Category:** OWASP Top 10 A03:2021 / CWE-79 (Cross-Site Scripting)
 * **Severity:** **Medium**
-* **Status:** ⚠️ **OPEN**
-* **Location:** `routes/web.php` (line 206)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `routes/web.php` (lines 218–225)
 * **Description:**
-  `$allowedMimes` in `/storage/{path}` includes `'svg' => 'image/svg+xml'` and serves matching files inline without `Content-Disposition: attachment`.
+  `$allowedMimes` in `/storage/{path}` previously included `'svg' => 'image/svg+xml'` and served matching files inline without `Content-Disposition: attachment`.
 * **Impact:**
-  If an SVG file is ever stored in R2 or local storage, browsers will execute any embedded `<script>` on the application origin.
-* **Recommended Remediation:**
-  Remove `svg` from `$allowedMimes`, or serve `svg` with `Content-Disposition: attachment` and `Content-Security-Policy: sandbox`.
+  If an SVG file were ever stored in R2 or local storage, browsers would execute any embedded `<script>` on the application origin.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Removed `'svg' => 'image/svg+xml'` from `$allowedMimes` in `routes/web.php` so `/storage/{path}` returns `404` for `.svg` files.
+  2. Added `test_cannot_serve_svg_files_to_prevent_stored_xss` in `tests/Feature/StorageEndpointSecurityTest.php` confirming `.svg` files on disk are rejected with `404`.
 
 ---
 
