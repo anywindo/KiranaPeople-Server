@@ -40,7 +40,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-10** | 14 Known Vulnerability Advisories in Third-Party Composer Packages | OWASP A06:2021 | CWE-1395 | **Low** | ✅ **RESOLVED** |
 | **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ✅ **RESOLVED** |
 | **TN-SEC-12** | Privilege Escalation via Unchecked Role Assignment in Web Employee Controller | OWASP API5:2023 / A01:2021 | CWE-269 | **High** | ✅ **RESOLVED** |
-| **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ⚠️ **OPEN** |
+| **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ⚠️ **OPEN** |
 | **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ⚠️ **OPEN** |
 | **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ⚠️ **OPEN** |
@@ -332,14 +332,16 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-13] Superadmin Account Takeover via API Admin Employee Update
 * **Category:** OWASP API1:2023 / API5:2023 / CWE-285 (Improper Authorization)
 * **Severity:** **High**
-* **Status:** ⚠️ **OPEN**
-* **Location:** `app/Http/Controllers/Api/V1/Admin/EmployeeController.php` (lines 100–154)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `app/Http/Controllers/Api/V1/Admin/EmployeeController.php` (lines 100–120, 195–204)
 * **Description:**
-  Unlike the web controller (`Admin\EmployeeController::update`), `Api\V1\Admin\EmployeeController::update()` only protects `super-admin` in `destroy()` (lines 164–168), not in `update()` or `show()`.
+  Unlike the web controller (`Admin\EmployeeController::update`), `Api\V1\Admin\EmployeeController::update()` previously only protected `super-admin` in `destroy()` (lines 164–168), not in `update()` or `show()`.
 * **Impact:**
-  Any `HR` or `admin` user can call `PUT /api/v1/admin/employees/{superadmin_id}` to overwrite a `super-admin`'s `email` or `password` and take over the account.
-* **Recommended Remediation:**
-  Add the same `if ($employee->hasRole('super-admin') && ! auth()->user()->hasRole('super-admin'))` guard (returning HTTP 403) to `update()` (and `show()` if appropriate).
+  Any `HR` or `admin` user could call `PUT /api/v1/admin/employees/{superadmin_id}` to overwrite a `super-admin`'s `email` or `password` and take over the account.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Added `denyNonSuperadminForSuperadminTarget()` in `Api\V1\Admin\EmployeeController` returning HTTP 403 whenever a non-`super-admin` attempts to `show()` or `update()` a `super-admin` account.
+  2. Added automated tests in `tests/Feature/SuperadminProtectionTest.php` verifying `HR` receives 403 on `GET` and `PUT /api/v1/admin/employees/{superadmin}`, while `super-admin` can still update.
 
 ---
 

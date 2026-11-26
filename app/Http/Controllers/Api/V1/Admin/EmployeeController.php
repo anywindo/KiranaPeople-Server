@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Auth\UserResource;
 use App\Models\User;
 use App\Services\FileUploadService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -99,6 +100,10 @@ class EmployeeController extends Controller
 
     public function show(User $employee)
     {
+        if ($forbidden = $this->denyNonSuperadminForSuperadminTarget($employee)) {
+            return $forbidden;
+        }
+
         return response()->json([
             'message' => 'Employee retrieved successfully.',
             'data' => $employee,
@@ -107,6 +112,10 @@ class EmployeeController extends Controller
 
     public function update(Request $request, User $employee, FileUploadService $fileUploadService)
     {
+        if ($forbidden = $this->denyNonSuperadminForSuperadminTarget($employee)) {
+            return $forbidden;
+        }
+
         $validated = $request->validate([
             'employee_id' => 'nullable|string|max:50|unique:users,employee_id,'.$employee->id,
             'name' => 'required|string|max:255',
@@ -178,5 +187,19 @@ class EmployeeController extends Controller
         return response()->json([
             'message' => 'Employee deleted successfully.',
         ]);
+    }
+
+    /**
+     * Prevent non-superadmin users from viewing or modifying a super-admin account.
+     */
+    private function denyNonSuperadminForSuperadminTarget(User $employee): ?JsonResponse
+    {
+        if ($employee->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
+            return response()->json([
+                'message' => 'Hanya Superadmin yang dapat mengubah akun Superadmin.',
+            ], 403);
+        }
+
+        return null;
     }
 }

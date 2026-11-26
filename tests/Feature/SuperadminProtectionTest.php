@@ -161,3 +161,56 @@ it('allows superadmin to assign super-admin role via web controller', function (
     $employee->refresh();
     expect($employee->hasRole('super-admin'))->toBeTrue();
 });
+
+it('prevents non-superadmin from viewing or updating superadmin via api controller', function () {
+    $location = Location::factory()->create();
+    $superadmin = User::factory()->create(['location_id' => $location->id]);
+    $superadmin->assignRole('super-admin');
+
+    $hr = User::factory()->create(['location_id' => $location->id]);
+    $hr->assignRole('HR');
+
+    $showResponse = $this->actingAs($hr, 'sanctum')->getJson("/api/v1/admin/employees/{$superadmin->id}");
+    $showResponse->assertStatus(403)
+        ->assertJson([
+            'message' => 'Hanya Superadmin yang dapat mengubah akun Superadmin.',
+        ]);
+
+    $updateResponse = $this->actingAs($hr, 'sanctum')->putJson("/api/v1/admin/employees/{$superadmin->id}", [
+        'name' => 'Hacked Name',
+        'email' => 'hacked-api@example.com',
+        'nik' => $superadmin->nik,
+        'dob' => '1990-01-01',
+        'phone' => '08123456789',
+        'location_id' => $location->id,
+        'password' => 'HackedPass123!',
+        'password_confirmation' => 'HackedPass123!',
+    ]);
+
+    $updateResponse->assertStatus(403)
+        ->assertJson([
+            'message' => 'Hanya Superadmin yang dapat mengubah akun Superadmin.',
+        ]);
+
+    $superadmin->refresh();
+    expect($superadmin->email)->not->toBe('hacked-api@example.com');
+});
+
+it('allows superadmin to update superadmin via api controller', function () {
+    $location = Location::factory()->create();
+    $superadmin = User::factory()->create(['location_id' => $location->id]);
+    $superadmin->assignRole('super-admin');
+
+    $response = $this->actingAs($superadmin, 'sanctum')->putJson("/api/v1/admin/employees/{$superadmin->id}", [
+        'name' => 'Updated Superadmin',
+        'email' => $superadmin->email,
+        'nik' => $superadmin->nik ?? '1234567890123456',
+        'dob' => '1990-01-01',
+        'phone' => '08123456789',
+        'location_id' => $location->id,
+    ]);
+
+    $response->assertOk();
+    $superadmin->refresh();
+    expect($superadmin->name)->toBe('Updated Superadmin');
+});
