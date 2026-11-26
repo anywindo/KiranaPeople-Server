@@ -41,7 +41,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-11** | Interactive API Documentation (`/docs/api`) Publicly Accessible | OWASP API9:2023 | CWE-200 | **Info** | ✅ **RESOLVED** |
 | **TN-SEC-12** | Privilege Escalation via Unchecked Role Assignment in Web Employee Controller | OWASP API5:2023 / A01:2021 | CWE-269 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ✅ **RESOLVED** |
-| **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ⚠️ **OPEN** |
+| **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ⚠️ **OPEN** |
 | **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ⚠️ **OPEN** |
 | **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ⚠️ **OPEN** |
@@ -348,20 +348,16 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-14] Open Redirect in Admin Notification Read Endpoint
 * **Category:** OWASP Top 10 A01:2021 / CWE-601 (URL Redirection to Untrusted Site)
 * **Severity:** **Medium**
-* **Status:** ⚠️ **OPEN**
-* **Location:** `routes/web.php` (lines 149–151)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `routes/web.php` (lines 149–169)
 * **Description:**
-  In `admin/notifications/{id}/read`:
-  ```php
-  if (request()->filled('redirect_to')) {
-      return redirect(request('redirect_to'));
-  }
-  ```
-  The `redirect_to` query parameter is passed directly to `redirect()` without validating that it is a relative path or same-origin URL.
+  In `admin/notifications/{id}/read`, the `redirect_to` query parameter was previously passed directly to `redirect()` without validating that it was a relative path or same-origin URL.
 * **Impact:**
-  An attacker can trick an authenticated admin into clicking a link that redirects them to an external phishing site.
-* **Recommended Remediation:**
-  Only allow relative paths (starting with `/` and not `//`) or validate that the parsed host matches `parse_url(config('app.url'), PHP_URL_HOST)`.
+  An attacker could trick an authenticated admin into clicking a link that redirects them to an external phishing site.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Updated `admin/notifications/{id}/read` in `routes/web.php` to only honor `redirect_to` when it is a safe relative path (starts with `/`, not `//` or `/\`) or a same-origin `http`/`https` URL matching `config('app.url')` or `request()->getHost()`. Unsafe values fall back to `admin.attendances.index`.
+  2. Added automated tests in `tests/Feature/AdminNotificationRedirectTest.php` covering relative, same-origin, external, protocol-relative, backslash, and `javascript:` redirect payloads.
 
 ---
 
