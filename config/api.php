@@ -51,4 +51,11 @@ return [
     */
     'token_expiry' => (int) env('SANCTUM_EXPIRATION', env('SANCTUM_TOKEN_EXPIRY', 1440)), // minutes (default 24h)
 
+    /*
+    |--------------------------------------------------------------------------
+    | API Documentation (Scramble / OpenAPI)
+    |--------------------------------------------------------------------------
+    */
+    'docs_enabled' => filter_var(env('API_DOCS_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+
 ];

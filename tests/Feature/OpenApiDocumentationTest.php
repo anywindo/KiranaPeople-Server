@@ -76,4 +76,13 @@ class OpenApiDocumentationTest extends TestCase
         $this->get('/docs/api')->assertStatus(200);
         $this->get('/docs/api.json')->assertStatus(200);
     }
+
+    public function test_api_docs_can_be_disabled_via_config_even_for_admin(): void
+    {
+        config(['api.docs_enabled' => false]);
+
+        $this->actingAs($this->admin)->get('/docs/api')->assertStatus(403);
+        $this->actingAs($this->admin)->get('/docs/api.json')->assertStatus(403);
+        $this->get('/docs/api')->assertStatus(403);
+    }
 }

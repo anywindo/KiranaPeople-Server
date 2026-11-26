@@ -43,7 +43,7 @@ However, several critical and medium-severity authorization flaws and business l
 | **TN-SEC-13** | Superadmin Account Takeover via API Admin Employee Update | OWASP API1:2023 / API5:2023 | CWE-285 | **High** | ✅ **RESOLVED** |
 | **TN-SEC-14** | Open Redirect in Admin Notification Read Endpoint | OWASP A01:2021 | CWE-601 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-15** | Stored XSS Vector via Inline SVG Serving in `/storage/{path}` | OWASP A03:2021 | CWE-79 | **Medium** | ✅ **RESOLVED** |
-| **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ⚠️ **OPEN** |
+| **TN-SEC-16** | `env()` Outside Config & `(bool) 'false'` Bug in Production | OWASP A05:2021 | CWE-16 | **Medium** | ✅ **RESOLVED** |
 | **TN-SEC-17** | Unbounded `per_page` Pagination Parameter (DoS / Memory Exhaustion) | OWASP API4:2023 | CWE-770 | **Low** | ⚠️ **OPEN** |
 | **TN-SEC-18** | Web `AttendanceController::store` Lacks Lock, Sequence Check, and Maintenance Guard | OWASP A04:2021 | CWE-362 | **Low** | ⚠️ **OPEN** |
 | **TN-SEC-19** | Active Sanctum Tokens Not Revoked on Password Change | OWASP ASVS V2.1.6 | CWE-613 | **Low** | ⚠️ **OPEN** |
@@ -380,13 +380,16 @@ However, several critical and medium-severity authorization flaws and business l
 ### [TN-SEC-16] `env()` Calls Outside Config & `(bool) 'false'` Bug in Production
 * **Category:** OWASP Top 10 A05:2021 / CWE-16 (Configuration)
 * **Severity:** **Medium**
-* **Status:** ⚠️ **OPEN**
-* **Location:** `app/Providers/AppServiceProvider.php` (line 37), `routes/web.php` (line 84)
+* **Status:** ✅ **RESOLVED**
+* **Location:** `config/api.php` (line 59), `config/app.php` (line 138), `app/Providers/AppServiceProvider.php` (line 37), `routes/web.php` (line 84)
 * **Description:**
-  1. `AppServiceProvider::boot()` uses `if (! (bool) env('API_DOCS_ENABLED', true))`. In PHP, `(bool) 'false'` evaluates to `true`, so setting `API_DOCS_ENABLED=false` in `.env` fails to disable `/docs/api`.
-  2. Both `AppServiceProvider.php` and `routes/web.php` (`env('EMPLOYEE_WEB_MAINTENANCE', false)`) call `env()` outside `config/*.php`. Because `docker-entrypoint.sh` runs `php artisan config:cache` in production, `env()` returns `null` after config caching, causing both flags to fall back to defaults.
-* **Recommended Remediation:**
-  Move both flags into `config/app.php` or `config/api.php` using `filter_var(env(...), FILTER_VALIDATE_BOOLEAN)` and read them via `config(...)`.
+  1. `AppServiceProvider::boot()` previously used `if (! (bool) env('API_DOCS_ENABLED', true))`. In PHP, `(bool) 'false'` evaluates to `true`, so setting `API_DOCS_ENABLED=false` in `.env` failed to disable `/docs/api`.
+  2. Both `AppServiceProvider.php` and `routes/web.php` (`env('EMPLOYEE_WEB_MAINTENANCE', false)`) called `env()` outside `config/*.php`, which returns `null` after `php artisan config:cache` in production.
+* **Remediation & Status:**
+  ✅ **Resolved:**
+  1. Moved `API_DOCS_ENABLED` to `config/api.php` (`api.docs_enabled`) and `EMPLOYEE_WEB_MAINTENANCE` to `config/app.php` (`app.employee_web_maintenance`), both parsed with `filter_var(..., FILTER_VALIDATE_BOOLEAN)`.
+  2. Updated `AppServiceProvider.php` and `routes/web.php` to read via `config(...)` instead of `env(...)`.
+  3. Added `test_api_docs_can_be_disabled_via_config_even_for_admin` in `tests/Feature/OpenApiDocumentationTest.php`.
 
 ---
 

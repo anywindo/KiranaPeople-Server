@@ -73,7 +73,7 @@ Route::get('/maintenance', function () {
 Route::middleware(['auth', 'password.changed'])->group(function () {
     // Role Selection (HR & Admin langsung direct ke admin dashboard)
     Route::get('/role-selection', function () {
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             return redirect()->route('maintenance');
         }
 
@@ -81,7 +81,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     })->name('role.selection');
 
     // Attendance routes: configurable employee web maintenance (defaults to standard active routes)
-    if (env('EMPLOYEE_WEB_MAINTENANCE', false) && !app()->runningUnitTests()) {
+    if (config('app.employee_web_maintenance', false) && ! app()->runningUnitTests()) {
         Route::get('/attendance', function () {
             if (auth()->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
@@ -153,8 +153,8 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                 $requestHost = request()->getHost();
 
                 $isSafeRelative = str_starts_with($redirectTo, '/')
-                    && !str_starts_with($redirectTo, '//')
-                    && !str_starts_with($redirectTo, '/\\');
+                    && ! str_starts_with($redirectTo, '//')
+                    && ! str_starts_with($redirectTo, '/\\');
 
                 $isSameOrigin = isset($parsed['scheme'], $parsed['host'])
                     && in_array(strtolower($parsed['scheme']), ['http', 'https'], true)
@@ -172,7 +172,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             if ($notification && isset($notification->data['employee_id'])) {
                 $employeeName = User::find($notification->data['employee_id'])?->name;
             }
-            if (!$employeeName && $notification && isset($notification->data['message'])) {
+            if (! $employeeName && $notification && isset($notification->data['message'])) {
                 $parts = explode(' terlambat ', $notification->data['message']);
                 $employeeName = $parts[0] ?? null;
             }
@@ -224,7 +224,7 @@ Route::get('/storage/{path}', function ($path) {
         'pdf' => 'application/pdf',
     ];
 
-    if (!array_key_exists($ext, $allowedMimes)) {
+    if (! array_key_exists($ext, $allowedMimes)) {
         abort(404);
     }
 
@@ -238,7 +238,7 @@ Route::get('/storage/{path}', function ($path) {
     };
 
     // 3. Check in /tmp/storage/app/public/ (local lambda container cache)
-    $tmpPath = '/tmp/storage/app/public/' . $path;
+    $tmpPath = '/tmp/storage/app/public/'.$path;
     if (file_exists($tmpPath) && is_file($tmpPath)) {
         return $respondFile(file_get_contents($tmpPath), $mime);
     }
@@ -266,7 +266,7 @@ Route::get('/storage/{path}', function ($path) {
     // 6. Check only whitelisted legacy upload subdirectories in public_path() (never root public_path)
     $legacyDirs = ['selfies', 'avatars', 'attendance-selfies'];
     foreach ($legacyDirs as $dir) {
-        $legacyFile = public_path($dir . '/' . $filename);
+        $legacyFile = public_path($dir.'/'.$filename);
         if (file_exists($legacyFile) && is_file($legacyFile)) {
             return $respondFile(file_get_contents($legacyFile), $mime);
         }

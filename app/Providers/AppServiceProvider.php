@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         Gate::define('viewApiDocs', function ($user = null) {
-            if (! (bool) env('API_DOCS_ENABLED', true)) {
+            if (! config('api.docs_enabled', true)) {
                 return false;
             }
 

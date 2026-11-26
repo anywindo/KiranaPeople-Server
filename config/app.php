@@ -135,4 +135,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'employee_web_maintenance' => filter_var(env('EMPLOYEE_WEB_MAINTENANCE', false), FILTER_VALIDATE_BOOLEAN),
+
 ];
